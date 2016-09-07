@@ -1,10 +1,7 @@
 """Func provides functional connectivity"""
-import logging
 from itertools import product, groupby
-
 import numpy as np
-from matplotlib import pyplot as plt
-
+import logging
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -92,9 +89,9 @@ def timelag_standardscore(timeseries1, timeseries2, surrogates):
     return timelags, std_score, timeseries_hist, surrogates_mean, surrogates_std
 
 
-def timeseries_to_surrogates(timeseries):
+def timeseries_to_surrogates(timeseries, n=10, factor=2):
     """Generating surrogate timeseries (this can take a while)"""
-    timeseries_surrogates = dict([(key, surrogate_timeseries(timeseries[key])) for key in timeseries])
+    timeseries_surrogates = dict([(key, surrogate_timeseries(timeseries[key], n=n, factor=factor)) for key in timeseries])
     return timeseries_surrogates
 
 
@@ -121,14 +118,24 @@ def find_peaks (x, y, thr=0):
     pieces = (zip(*list(g)) for k, g in groupby(enumerate(y), lambda iv: iv[1] > thr) if k)
     try: y_max, x_max, x_start, y_start = zip(*((max(v), x[i[np.argmax(v)]], x[i[0]], x[i[-1]]) for (i, v) in pieces))
     except: y_max, x_max, x_start, y_start = (), (), (), ()  # nothing above threshold
-    return y_max, x_max, x_start, y_start
+    return np.array(y_max), np.array(x_max), np.array(x_start), np.array(y_start)
 
-
-def all_peaks (timelags, std_score_dict, thr=10):
+def all_peaks (timelags, std_score_dict, thr=10, direction='both'):
     """Compute peaks"""
     all_score_max, all_timelag_max, all_timelag_start, all_timelag_end = [],[],[],[]
     for pair in std_score_dict:
         score_max, timelag_max, timelag_start, timelag_end = find_peaks(timelags, std_score_dict[pair], thr=thr)
+        if direction=='reverse':
+            timelag_max = -timelag_max
+            timelag_start = - timelag_start
+            timelag_end = - timelag_end
+            pair = pair[::-1]
+        if direction<>'both':  # if forward or reversed only, subset the peak descriptions
+            index = timelag_max>0
+            score_max = score_max[index]
+            timelag_max = timelag_max[index]
+            timelag_start = timelag_start[index]
+            timelag_end = timelag_end[index]
         if len(score_max)>0:
             index_largest_peak = np.argmax(score_max)
             logging.info(("Timeseries %d->%d" % pair) +
@@ -142,20 +149,3 @@ def all_peaks (timelags, std_score_dict, thr=10):
     return dict(all_score_max), dict(all_timelag_max), dict(all_timelag_start), dict(all_timelag_end)
 
 
-def plot_pair_func(timelags, timeseries_hist, surrogates_mean, surrogates_std, std_score, title):
-    ax1 = plt.subplot(211)
-    ax1.step(timelags, timeseries_hist, label="original histogram", color='b', linewidth=1)
-    ax1.step(timelags, surrogates_mean, label="surrogates (mean)", color='r', linewidth=1)
-    ax1.step(timelags, surrogates_mean - surrogates_std, label="surrogates (std)", color='r', linewidth=1, linestyle='dotted')
-    ax1.step(timelags, surrogates_mean + surrogates_std, color='r', linewidth=1, linestyle='dotted')
-    ax1.set_xlim([np.min(timelags), np.max(timelags)])
-    ax1.set_xlabel("time lag [s]")
-    ax1.set_ylabel("count")
-    ax1.legend()
-    plt.title(title)
-    ax2 = plt.subplot(212)
-    ax2.step(timelags, std_score, label="standard score", color='b', linewidth=1)
-    ax2.set_xlim([np.min(timelags), np.max(timelags)])
-    ax2.set_xlabel("time lag [s]")
-    ax2.set_ylabel("(normalized)")
-    ax2.legend()

@@ -19,3 +19,22 @@ def events_to_timeseries(events):
     timeseries = dict([(neuron, np.array(times)[neurons == neuron]) for neuron in unique_neurons])
     return timeseries
 
+def load_positions(filename):
+    """Loads electrode positions"""
+    data = sio.loadmat(filename)["hidens_electrodes"]
+    x = data[0][0][0][0]
+    y = data[0][0][1][0]
+    return np.rec.fromarrays((x, y), dtype=[('x', 'f4'), ('y', 'f4')])
+
+
+def load_neurites(filename):
+    """Loads delay map into dictionary"""
+    data = sio.loadmat(filename)["arbors"]
+    delay = {}
+    positivep_peak = {}
+    for record in data[0]:
+        delay[record[0][0][0][0][0]] = record[0][0][1][0]
+        positivep_peak[record[0][0][0][0][0]] = record[0][0][2][0]
+    return delay, positivep_peak
+
+
