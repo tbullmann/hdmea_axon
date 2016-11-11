@@ -1,10 +1,13 @@
-import os, pickle
-
-import numpy as np
-
 from hana.matlab import load_neurites
 from hana.structure import all_overlaps
+from publication.plotting import plot_parameter_dependency
 
+import numpy as np
+import networkx as nx
+import matplotlib.pyplot as plt
+
+import os, pickle, logging
+logging.basicConfig(level=logging.DEBUG)
 
 # Data preparation
 
@@ -39,39 +42,83 @@ def explore_parameter_space_for_structural_connectivity():
 
 def analyse_structural_networks():
     network = pickle.load(open('temp/struc_networks_for_thr_peak_thr_overlap_hidens2018.p', 'rb'))
-    factors, thresholds = (list(sorted(set(index)) for index in zip(*list(network))))
+    thr_peak, thr_overlap = (list(sorted(set(index)) for index in zip(*list(network))))
 
-    k = np.zeros((len(factors), len(thresholds)))
-    C = np.zeros((len(factors), len(thresholds)))
-    L = np.zeros((len(factors), len(thresholds)))
-    D = np.zeros((len(factors), len(thresholds)))
+    k = np.zeros((len(thr_peak), len(thr_overlap)))
+    C = np.zeros((len(thr_peak), len(thr_overlap)))
+    L = np.zeros((len(thr_peak), len(thr_overlap)))
+    D = np.zeros((len(thr_peak), len(thr_overlap)))
     G = nx.DiGraph()
 
-    for i,thr_peak in enumerate(factors):
-        for j,thr_overlap in enumerate(thresholds):
+    for i,thr_peak in enumerate(thr_peak):
+        for j,thr_overlap in enumerate(thr_overlap):
+                logging.info('Analyse Graph for thr_peak=%1.3f, thr_overlap=%1.3f' % (thr_peak, thr_overlap))
                 edges = list(key for key in network[(thr_peak, thr_overlap)]['overlap ratio'])
                 G.clear()
                 G.add_edges_from(edges)
-                giant = max(nx.connected_component_subgraphs(G.to_undirected()), key=len)
-                number_of_nodes = nx.number_of_nodes(giant)
-                number_of_edges = nx.number_of_edges(giant)
-                average_clustering = nx.average_clustering(giant)
-                average_shortest_path_length = nx.average_shortest_path_length(giant)
-                average_degree = float(number_of_edges)/number_of_nodes
-                k[direction][i, j] = number_of_edges
-                C[direction][i, j] = average_clustering
-                L[direction][i, j] = average_shortest_path_length
-                D[direction][i, j] = average_degree
-                logging.info('Analyse Graph for thr_peak=%1.3f, thr_overlap=%1.3f' % (thr_peak, thr_overlap))
+                logging.info('k=%d', len(edges))
+                if G:
+                    giant = max(nx.connected_component_subgraphs(G.to_undirected()), key=len)
+                    number_of_nodes = nx.number_of_nodes(giant)
+                    number_of_edges = nx.number_of_edges(giant)
+                    average_clustering = nx.average_clustering(giant)
+                    average_shortest_path_length = nx.average_shortest_path_length(giant)
+                    average_degree = float(number_of_edges)/number_of_nodes
+                    k[i, j] = number_of_edges
+                    C[i, j] = average_clustering
+                    L[i, j] = average_shortest_path_length
+                    D[i, j] = average_degree
 
-    pickle.dump((k, C, L, D, factors, thresholds, directions),
+    pickle.dump((k, C, L, D, thr_peak, thr_overlap),
                  open('temp/struc_networkparameters_for_thr_peak_thr_overlap_hidens2018.p', 'wb'))
 
 
 # Final version
+
+def figure09():
+    plt.figure('Figure 9', figsize=(12,12))
+
+    k, C, L, D, thr_peak, thr_overlap = pickle.load(open('temp/struc_networkparameters_for_thr_peak_thr_overlap_hidens2018.p', 'rb'))
+
+    print "Plotting results for %d paramter sets" % len(k)**2
+
+    ax = plt.subplot(221)
+    plot_parameter_dependency(ax, k, thr_peak, thr_overlap, levels=(5, 10, 20, 50, 100, 250, 500))
+    ax.set_title('number of edges, k')
+    ax.set_xscale('log')
+    ax.set_xlabel('threshold peak [uV]')
+    ax.set_ylabel('threshold overlap [1]')
+
+    ax = plt.subplot(222)
+    plot_parameter_dependency(ax, C, thr_peak, thr_overlap, fmt='%1.1f')
+    ax.set_title('average clustering coefficient, C')
+    ax.set_xscale('log')
+    ax.set_xlabel('threshold peak [uV]')
+    ax.set_ylabel('threshold overlap [1]')
+
+    ax = plt.subplot(223)
+    plot_parameter_dependency(ax, L, thr_peak, thr_overlap, fmt='%1.1f')
+    ax.set_title('average maximum pathlength, L')
+    ax.set_xscale('log')
+    ax.set_xlabel('threshold peak [uV]')
+    ax.set_ylabel('threshold overlap [1]')
+
+
+    ax = plt.subplot(224)
+    plot_parameter_dependency(ax, D, thr_peak, thr_overlap, fmt='%1.1f')
+    ax.set_title('average node degree, D')
+    ax.set_xscale('log')
+    ax.set_xlabel('threshold peak [uV]')
+    ax.set_ylabel('threshold overlap [1]')
+
+
+    plt.show()
+
 
 
 
 
 if not os.path.isfile('temp/struc_networks_for_thr_peak_thr_overlap_hidens2018.p'): explore_parameter_space_for_structural_connectivity()
 if not os.path.isfile('temp/struc_networkparameters_for_thr_peak_thr_overlap_hidens2018.p'): analyse_structural_networks()
+
+figure09()
