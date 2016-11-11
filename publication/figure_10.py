@@ -1,14 +1,17 @@
-import logging
-import pickle
+from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks
+from hana.matlab import events_to_timeseries
 
 import networkx as nx
 import numpy as np
 from matplotlib import pyplot as plt
+import pickle
 
-from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks
-from hana.matlab import events_to_timeseries
-
+import os
+import logging
 logging.basicConfig(level=logging.DEBUG)
+
+
+# Data preparation
 
 def prepare_timeseries_for_figures():
     events = load_events('data/hidens2018at35C_events.mat')
@@ -16,7 +19,7 @@ def prepare_timeseries_for_figures():
     pickle.dump((timeseries), open('temp/timeseries_hidens2018.p', 'wb'))
 
 
-def figure11_prepare_data():
+def explore_parameter_space_for_functional_connectivity():
     timeseries = pickle.load(open('temp/timeseries_hidens2018.p', 'rb'))
 
     n=20 # number of surrogate data (if too low, std is not robust)
@@ -51,16 +54,39 @@ def figure11_prepare_data():
     print 'Saved data'
 
 
-def load_number_of_edges_functional_networksize():
-    network_size = pickle.load(open('temp/func_networksize_for_factor_thr_direction_hidens2018.p', 'rb'))
-    factors, thresholds, directions = (list(sorted(set(index)) for index in zip(*list(network_size))))
+def analyse_functional_networks():
+    network = pickle.load(open('temp/func_networks_for_factor_thr_direction_hidens2018.p', 'rb'))
+    factors, thresholds, directions = (list(sorted(set(index)) for index in zip(*list(network))))
+
     k = {'forward':np.zeros((len(factors), len(thresholds))),'reverse':np.zeros((len(factors), len(thresholds)))}
+    C = {'forward':np.zeros((len(factors), len(thresholds))),'reverse':np.zeros((len(factors), len(thresholds)))}
+    L = {'forward':np.zeros((len(factors), len(thresholds))),'reverse':np.zeros((len(factors), len(thresholds)))}
+    D = {'forward':np.zeros((len(factors), len(thresholds))),'reverse':np.zeros((len(factors), len(thresholds)))}
+    G = nx.DiGraph()
+
     for i,factor in enumerate(factors):
         for j,thr in enumerate(thresholds):
-            k['forward'][i,j] = network_size[(factor, thr ,'forward')]
-            k['reverse'][i,j] = network_size[(factor, thr ,'reverse')]
-    return k, factors, thresholds, directions
+            for direction in directions:
+                edges = list(key for key in network[(factor, thr, direction)]['peak_score'])
+                G.clear()
+                G.add_edges_from(edges)
+                giant = max(nx.connected_component_subgraphs(G.to_undirected()), key=len)
+                number_of_nodes = nx.number_of_nodes(giant)
+                number_of_edges = nx.number_of_edges(giant)
+                average_clustering = nx.average_clustering(giant)
+                average_shortest_path_length = nx.average_shortest_path_length(giant)
+                average_degree = float(number_of_edges)/number_of_nodes
+                k[direction][i, j] = number_of_edges
+                C[direction][i, j] = average_clustering
+                L[direction][i, j] = average_shortest_path_length
+                D[direction][i, j] = average_degree
+                logging.info('Analyse Graph for factor=%1.3f, threshold=%1.3f, direction: %s' % (factor, thr, direction))
 
+    pickle.dump((k, C, L, D, factors, thresholds, directions),
+                 open('temp/func_networkparameters_for_factor_thr_direction_hidens2018.p', 'wb'))
+
+
+# Plotting TODO: Consider moving to plotting
 
 def plot_parameter_dependency(ax, Z, x, y, w=None, levels=None, fmt='%d'):
     """Plotting parameter dependency"""
@@ -83,10 +109,37 @@ def plot_parameter_dependency(ax, Z, x, y, w=None, levels=None, fmt='%d'):
         plt.legend(loc=2, handles=[black_patch, red_patch])
 
 
-def plot_number_of_edges_functional_network(ax):
+# Early version
+
+def load_number_of_edges_functional_networksize():
+    network_size = pickle.load(open('temp/func_networksize_for_factor_thr_direction_hidens2018.p', 'rb'))
+    factors, thresholds, directions = (list(sorted(set(index)) for index in zip(*list(network_size))))
+    k = {'forward':np.zeros((len(factors), len(thresholds))),'reverse':np.zeros((len(factors), len(thresholds)))}
+    for i,factor in enumerate(factors):
+        for j,thr in enumerate(thresholds):
+            k['forward'][i,j] = network_size[(factor, thr ,'forward')]
+            k['reverse'][i,j] = network_size[(factor, thr ,'reverse')]
+    return k, factors, thresholds, directions
+
+
+def figure_11_only_k():
+    """
+    Plots the number of edges functional network, which were saved during parameter space exploration.
+    This was used mainly for testing.
+    """
+    plt.figure()
+    ax = plt.subplot(111)
     k, factors, thresholds, directions = load_number_of_edges_functional_networksize()
     plot_parameter_dependency(ax, k, factors, thresholds, directions,levels=(5, 10, 20, 50, 100, 250, 500))
+    ax.set_title('number of edges, k')
+    ax.set_yscale('log')
+    ax.set_xscale('log')
+    ax.set_xlabel('threshold $\zeta$')
+    ax.set_ylabel('randomization factor $\sigma$')
+    plt.show()
 
+
+# Final version
 
 def figure11():
     plt.figure()
@@ -129,39 +182,11 @@ def figure11():
 
     plt.show()
 
-def extract_functional_networks():
-    network = pickle.load(open('temp/func_networks_for_factor_thr_direction_hidens2018.p', 'rb'))
-    factors, thresholds, directions = (list(sorted(set(index)) for index in zip(*list(network))))
-    k = {'forward':np.zeros((len(factors), len(thresholds))),'reverse':np.zeros((len(factors), len(thresholds)))}
-    C = {'forward':np.zeros((len(factors), len(thresholds))),'reverse':np.zeros((len(factors), len(thresholds)))}
-    L = {'forward':np.zeros((len(factors), len(thresholds))),'reverse':np.zeros((len(factors), len(thresholds)))}
-    D = {'forward':np.zeros((len(factors), len(thresholds))),'reverse':np.zeros((len(factors), len(thresholds)))}
-    G = nx.DiGraph()
-    for i,factor in enumerate(factors):
-        for j,thr in enumerate(thresholds):
-            for direction in directions:
-                edges = list(key for key in network[(factor, thr, direction)]['peak_score'])
-                G.clear()
-                G.add_edges_from(edges)
-                giant = max(nx.connected_component_subgraphs(G.to_undirected()), key=len)
-                number_of_nodes = nx.number_of_nodes(giant)
-                number_of_edges = nx.number_of_edges(giant)
-                average_clustering = nx.average_clustering(giant)
-                average_shortest_path_length = nx.average_shortest_path_length(giant)
-                average_degree = float(number_of_edges)/number_of_nodes
-                k[direction][i, j] = number_of_edges
-                C[direction][i, j] = average_clustering
-                L[direction][i, j] = average_shortest_path_length
-                D[direction][i, j] = average_degree
-                logging.info('Analyse Graph for factor=%1.3f, threshold=%1.3f, direction: %s' % (factor, thr, direction))
-    pickle.dump((k, C, L, D, factors, thresholds, directions),
-                 open('temp/func_networkparameters_for_factor_thr_direction_hidens2018.p', 'wb'))
 
-import os
-print (os.getcwd())
-print (os.path.isfile('temp/timeseries_hidens2018.p'))
+if not os.path.isfile('temp/timeseries_hidens2018.p'): prepare_timeseries_for_figures()
+if not os.path.isfile('temp/func_networks_for_factor_thr_direction_hidens2018.p'): explore_parameter_space_for_functional_connectivity()
+if not os.path.isfile('temp/func_networkparameters_for_factor_thr_direction_hidens2018.p'):  analyse_functional_networks()
 
-# prepare_timeseries_for_figures()
-# figure11_prepare_data()
-# extract_functional_networks()
-# figure11()
+# figure_11_only_k()
+
+figure11()
