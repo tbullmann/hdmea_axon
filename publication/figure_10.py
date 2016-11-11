@@ -1,15 +1,12 @@
-import logging
-import os
-import pickle
+from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks
+from hana.matlab import events_to_timeseries
+from publication.plotting import plot_parameter_dependency
 
 import networkx as nx
 import numpy as np
 from matplotlib import pyplot as plt
 
-from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks
-from hana.matlab import events_to_timeseries
-from publication.plotting import plot_parameter_dependency
-
+import os, pickle, logging
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -120,7 +117,7 @@ def figure_10_only_k():
 # Final version
 
 def figure10():
-    plt.figure()
+    plt.figure('Figure 10', figsize=(12,12))
 
     k,C,L,D,factors, thresholds, directions = pickle.load(open('temp/func_networkparameters_for_factor_thr_direction_hidens2018.p', 'rb'))
 
