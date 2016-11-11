@@ -1,5 +1,5 @@
 .idea/*
 .DS_Store
-data/*.*
-temp/*.*
+hana/data/*.*
+publication/temp/*.*
 *.pyc

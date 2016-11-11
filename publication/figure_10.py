@@ -157,10 +157,11 @@ def extract_functional_networks():
     pickle.dump((k, C, L, D, factors, thresholds, directions),
                  open('temp/func_networkparameters_for_factor_thr_direction_hidens2018.p', 'wb'))
 
-
-
+import os
+print (os.getcwd())
+print (os.path.isfile('temp/timeseries_hidens2018.p'))
 
 # prepare_timeseries_for_figures()
 # figure11_prepare_data()
 # extract_functional_networks()
-figure11()
+# figure11()
