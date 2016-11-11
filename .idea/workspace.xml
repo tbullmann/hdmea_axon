@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="af5ac82a-8d93-4cc7-b15e-697d72943f54" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/publication/figure_10.py" afterPath="$PROJECT_DIR$/publication/figure_10.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/hana/misc.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/publication/figure_07.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hana/test_function.py" afterPath="$PROJECT_DIR$/hana/test_function.py" />
     </list>
     <ignored path="hdmea.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -23,19 +25,30 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="figure_10.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="figure_10.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/publication/figure_10.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="921">
-              <caret line="189" column="2" selection-start-line="189" selection-start-column="2" selection-end-line="189" selection-end-column="2" />
+            <state relative-caret-position="-275">
+              <caret line="14" column="0" selection-start-line="14" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
               <folding>
                 <element signature="e#0#88#0" expanded="true" />
-                <element signature="e#358#533#0" expanded="false" />
                 <element signature="e#599#2258#0" expanded="false" />
                 <element signature="e#2300#4199#0" expanded="false" />
                 <element signature="e#4327#5470#0" expanded="false" />
                 <element signature="e#5542#6132#0" expanded="false" />
                 <element signature="e#6163#6747#0" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="figure_07.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/publication/figure_07.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="542">
+              <caret line="133" column="26" selection-start-line="133" selection-start-column="26" selection-end-line="133" selection-end-column="26" />
+              <folding>
+                <element signature="e#0#13#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -71,17 +84,18 @@
         <option value="$PROJECT_DIR$/hana/test_structure.py" />
         <option value="$PROJECT_DIR$/hana/plotting.py" />
         <option value="$PROJECT_DIR$/hana/function.py" />
-        <option value="$PROJECT_DIR$/hana/test_function.py" />
         <option value="$PROJECT_DIR$/publication/README.md" />
         <option value="$PROJECT_DIR$/publication/figure_10.py" />
+        <option value="$PROJECT_DIR$/hana/test_function.py" />
+        <option value="$PROJECT_DIR$/publication/figure_07.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="330" />
-    <option name="y" value="47" />
-    <option name="width" value="1546" />
-    <option name="height" value="1153" />
+    <option name="x" value="677" />
+    <option name="y" value="23" />
+    <option name="width" value="1757" />
+    <option name="height" value="1308" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <OptionsSetting value="true" id="Add" />
@@ -174,7 +188,7 @@
       <recent name="$PROJECT_DIR$/hana" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.figure_10">
+  <component name="RunManager" selected="Python.figure_07">
     <configuration default="false" name="figure_10" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -205,6 +219,40 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="hdmea" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/hana/test_structure.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="test_function" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/hana" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="hdmea" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/hana/test_function.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="figure_07" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/publication" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="hdmea" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/publication/figure_07.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -357,14 +405,18 @@
       <option name="USE_KEYWORD" value="false" />
       <method />
     </configuration>
-    <list size="2">
+    <list size="4">
       <item index="0" class="java.lang.String" itemvalue="Python.figure_10" />
       <item index="1" class="java.lang.String" itemvalue="Python.test_structure" />
+      <item index="2" class="java.lang.String" itemvalue="Python.test_function" />
+      <item index="3" class="java.lang.String" itemvalue="Python.figure_07" />
     </list>
     <recent_temporary>
-      <list size="2">
-        <item index="0" class="java.lang.String" itemvalue="Python.figure_10" />
-        <item index="1" class="java.lang.String" itemvalue="Python.test_structure" />
+      <list size="4">
+        <item index="0" class="java.lang.String" itemvalue="Python.figure_07" />
+        <item index="1" class="java.lang.String" itemvalue="Python.test_function" />
+        <item index="2" class="java.lang.String" itemvalue="Python.test_structure" />
+        <item index="3" class="java.lang.String" itemvalue="Python.figure_10" />
       </list>
     </recent_temporary>
   </component>
@@ -385,16 +437,16 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="330" y="47" width="1546" height="1153" extended-state="0" />
+    <frame x="677" y="23" width="1757" height="1308" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.28978008" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2549801" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32841328" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32768363" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.329653" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.28505534" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24939467" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -441,7 +493,6 @@
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#0#88#0" expanded="true" />
-            <element signature="e#358#533#0" expanded="false" />
             <element signature="e#599#2258#0" expanded="false" />
             <element signature="e#2300#4199#0" expanded="false" />
             <element signature="e#4327#5470#0" expanded="false" />
@@ -477,7 +528,6 @@
           <caret line="103" column="50" selection-start-line="103" selection-start-column="50" selection-end-line="103" selection-end-column="50" />
           <folding>
             <element signature="e#0#88#0" expanded="true" />
-            <element signature="e#358#533#0" expanded="false" />
             <element signature="e#599#2258#0" expanded="false" />
             <element signature="e#2300#4199#0" expanded="false" />
             <element signature="e#4327#5470#0" expanded="false" />
@@ -491,9 +541,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1095">
           <caret line="83" column="0" selection-start-line="83" selection-start-column="0" selection-end-line="83" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#13#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -551,7 +599,6 @@
           <caret line="103" column="50" selection-start-line="103" selection-start-column="50" selection-end-line="103" selection-end-column="50" />
           <folding>
             <element signature="e#0#88#0" expanded="true" />
-            <element signature="e#358#533#0" expanded="false" />
             <element signature="e#599#2258#0" expanded="false" />
             <element signature="e#2300#4199#0" expanded="false" />
             <element signature="e#4327#5470#0" expanded="false" />
@@ -565,9 +612,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1095">
           <caret line="83" column="0" selection-start-line="83" selection-start-column="0" selection-end-line="83" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#13#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -597,7 +642,6 @@
           <caret line="92" column="0" selection-start-line="92" selection-start-column="0" selection-end-line="92" selection-end-column="0" />
           <folding>
             <element signature="e#0#88#0" expanded="true" />
-            <element signature="e#358#533#0" expanded="false" />
             <element signature="e#599#2258#0" expanded="false" />
             <element signature="e#2300#4199#0" expanded="false" />
             <element signature="e#4327#5470#0" expanded="false" />
@@ -611,9 +655,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1095">
           <caret line="83" column="0" selection-start-line="83" selection-start-column="0" selection-end-line="83" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#13#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -687,16 +729,6 @@
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/hana/test_function.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="657">
-          <caret line="179" column="19" selection-start-line="179" selection-start-column="19" selection-end-line="179" selection-end-column="19" />
-          <folding>
-            <element signature="e#0#13#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -794,18 +826,37 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/hana/test_function.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="930">
+          <caret line="62" column="0" selection-start-line="62" selection-start-column="0" selection-end-line="62" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#31#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/publication/figure_10.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="921">
-          <caret line="189" column="2" selection-start-line="189" selection-start-column="2" selection-end-line="189" selection-end-column="2" />
+        <state relative-caret-position="-275">
+          <caret line="14" column="0" selection-start-line="14" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
           <folding>
             <element signature="e#0#88#0" expanded="true" />
-            <element signature="e#358#533#0" expanded="false" />
             <element signature="e#599#2258#0" expanded="false" />
             <element signature="e#2300#4199#0" expanded="false" />
             <element signature="e#4327#5470#0" expanded="false" />
             <element signature="e#5542#6132#0" expanded="false" />
             <element signature="e#6163#6747#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/publication/figure_07.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="542">
+          <caret line="133" column="26" selection-start-line="133" selection-start-column="26" selection-end-line="133" selection-end-column="26" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
           </folding>
         </state>
       </provider>
