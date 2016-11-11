@@ -1,13 +1,13 @@
+import logging
 import pickle
 
+import networkx as nx
 import numpy as np
 from matplotlib import pyplot as plt
-import networkx as nx
 
-from func import timeseries_to_surrogates, all_timelag_standardscore, all_peaks
-from mio import events_to_timeseries
+from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks
+from hana.matlab import events_to_timeseries
 
-import logging
 logging.basicConfig(level=logging.DEBUG)
 
 def prepare_timeseries_for_figures():
