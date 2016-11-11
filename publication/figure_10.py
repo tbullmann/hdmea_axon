@@ -187,6 +187,6 @@ if not os.path.isfile('temp/timeseries_hidens2018.p'): prepare_timeseries_for_fi
 if not os.path.isfile('temp/func_networks_for_factor_thr_direction_hidens2018.p'): explore_parameter_space_for_functional_connectivity()
 if not os.path.isfile('temp/func_networkparameters_for_factor_thr_direction_hidens2018.p'):  analyse_functional_networks()
 
-# figure_11_only_k()
+# figure_10_only_k()
 
 figure11()
