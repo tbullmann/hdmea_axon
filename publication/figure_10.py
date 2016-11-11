@@ -1,13 +1,15 @@
-from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks
-from hana.matlab import events_to_timeseries
+import logging
+import os
+import pickle
 
 import networkx as nx
 import numpy as np
 from matplotlib import pyplot as plt
-import pickle
 
-import os
-import logging
+from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks
+from hana.matlab import events_to_timeseries
+from publication.plotting import plot_parameter_dependency
+
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -85,30 +87,6 @@ def analyse_functional_networks():
     pickle.dump((k, C, L, D, factors, thresholds, directions),
                  open('temp/func_networkparameters_for_factor_thr_direction_hidens2018.p', 'wb'))
 
-
-# Plotting TODO: Consider moving to plotting
-
-def plot_parameter_dependency(ax, Z, x, y, w=None, levels=None, fmt='%d'):
-    """Plotting parameter dependency"""
-    from scipy.ndimage.filters import gaussian_filter
-    import matplotlib.patches as mpatches
-    X, Y = np.meshgrid(x, y)
-    if w is None:  # standard black and white blot
-        CS1 = ax.contour(X, Y, gaussian_filter(Z, 1), levels=levels, colors='k')
-        ax.clabel(CS1, fmt=fmt, inline=1, fontsize=10, inline_spacing=-5)
-    else:  # first entry entry in dictionary in black, second in red and dashed lines
-        CS1 = ax.contour(X, Y, gaussian_filter(Z[w[0]], 1), levels=levels, colors='k')
-        ax.clabel(CS1, fmt=fmt, inline=1, fontsize=10, inline_spacing=-5)
-        CS2 = ax.contour(X, Y, gaussian_filter(Z[w[1]], 1), levels=levels, colors='r',
-                         linestyles='dashed')
-        ax.clabel(CS2, fmt=fmt, inline=1, fontsize=10, inline_spacing=-5)
-        # Zinf = np.float64(np.isfinite(Z[w[0]]))
-        # CS1 = ax.contourf(X, Y, gaussian_filter(Zinf, 1), levels=(0,1), colors='y')
-        black_patch = mpatches.Patch(color='black', label=w[0])
-        red_patch = mpatches.Patch(color='red', label=w[1])
-        plt.legend(loc=2, handles=[black_patch, red_patch])
-
-
 # Early version
 
 def load_number_of_edges_functional_networksize():
@@ -122,7 +100,7 @@ def load_number_of_edges_functional_networksize():
     return k, factors, thresholds, directions
 
 
-def figure_11_only_k():
+def figure_10_only_k():
     """
     Plots the number of edges functional network, which were saved during parameter space exploration.
     This was used mainly for testing.
@@ -130,7 +108,7 @@ def figure_11_only_k():
     plt.figure()
     ax = plt.subplot(111)
     k, factors, thresholds, directions = load_number_of_edges_functional_networksize()
-    plot_parameter_dependency(ax, k, factors, thresholds, directions,levels=(5, 10, 20, 50, 100, 250, 500))
+    plot_parameter_dependency(ax, k, factors, thresholds, directions, levels=(5, 10, 20, 50, 100, 250, 500))
     ax.set_title('number of edges, k')
     ax.set_yscale('log')
     ax.set_xscale('log')
@@ -141,7 +119,7 @@ def figure_11_only_k():
 
 # Final version
 
-def figure11():
+def figure10():
     plt.figure()
 
     k,C,L,D,factors, thresholds, directions = pickle.load(open('temp/func_networkparameters_for_factor_thr_direction_hidens2018.p', 'rb'))
@@ -149,7 +127,7 @@ def figure11():
     print "Plotting results for %d paramter sets" % len(k['forward'])**2
 
     ax = plt.subplot(221)
-    plot_parameter_dependency(ax, k, factors, thresholds, directions,levels=(5, 10, 20, 50, 100, 250, 500))
+    plot_parameter_dependency(ax, k, factors, thresholds, directions, levels=(5, 10, 20, 50, 100, 250, 500))
     ax.set_title('number of edges, k')
     ax.set_yscale('log')
     ax.set_xscale('log')
@@ -189,4 +167,4 @@ if not os.path.isfile('temp/func_networkparameters_for_factor_thr_direction_hide
 
 # figure_10_only_k()
 
-figure11()
+figure10()
