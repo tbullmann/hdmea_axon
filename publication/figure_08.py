@@ -60,7 +60,7 @@ def figure08():
     plt.show()
 
     # plot example of a single polychronous group
-    polychronous_group = list_of_polychronous_groups[1]
+    polychronous_group = list_of_polychronous_groups[10]
     plot(polychronous_group)
     plt.show()
 
