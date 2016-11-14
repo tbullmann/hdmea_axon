@@ -45,10 +45,13 @@ def figure08():
         timeseries = events_to_timeseries(events)
         pickle.dump((timeseries, all_delays), open('temp/data_PCGs_hidens2018.p', 'wb'))
 
-    timeseries, all_delays = pickle.load(open('temp/data_PCGs_hidens2018.p', 'rb'))
+    if not os.path.isfile('temp/connected_events_hidens2018.p'):
+        timeseries, all_delays = pickle.load(open('temp/data_PCGs_hidens2018.p', 'rb'))
+        connected_events = filter(timeseries, all_delays)
+        pickle.dump(connected_events, open('temp/connected_events_hidens2018.p', 'wb'))
 
-    connected_events = filter (timeseries, all_delays)
-    graph_of_connected_events = combine (connected_events)
+    connected_events = pickle.load(open('temp/connected_events_hidens2018.p', 'rb'))
+    graph_of_connected_events = combine(connected_events)
     list_of_polychronous_groups = group(graph_of_connected_events)
 
     # for debugging:
@@ -64,6 +67,7 @@ def figure08():
     # plot all polychronous grooups
     plot(graph_of_connected_events)
     plt.show()
+    
 
 # testing()
 figure08()
