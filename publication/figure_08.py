@@ -52,9 +52,9 @@ def figure08():
     list_of_polychronous_groups = group(graph_of_connected_events)
 
     # for debugging:
-    print("From total % events, %d events form %d pairs"
+    print("Summary: %d events form %d pairs"
           % (len(graph_of_connected_events.nodes()), len(graph_of_connected_events.edges())))
-    print(len(list_of_polychronous_groups))
+    print("Forming %d polycronous groups" % len(list_of_polychronous_groups))
 
     # plot all polychronous grooups
     plot(graph_of_connected_events)
