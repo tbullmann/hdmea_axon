@@ -10,13 +10,8 @@ from hana.plotting import plot_network, plot_neuron_points, plot_neuron_id, set_
 from hana.misc import unique_neurons
 
 
-def load_test_data():
-    events = load_events ('data/hidens2018at35C_events.mat')
-    return events
-
-
 def detect_function_networks():
-    events = load_test_data()
+    events = load_events ('data/hidens2018at35C_events.mat')
     timeseries = events_to_timeseries(events)
     timeseries_surrogates = timeseries_to_surrogates(timeseries)
     timelags, std_score_dict, timeseries_hist_dict = all_timelag_standardscore(timeseries, timeseries_surrogates)
