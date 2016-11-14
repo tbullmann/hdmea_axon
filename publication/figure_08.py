@@ -56,15 +56,14 @@ def figure08():
           % (len(graph_of_connected_events.nodes()), len(graph_of_connected_events.edges())))
     print("Forming %d polycronous groups" % len(list_of_polychronous_groups))
 
-    # plot all polychronous grooups
-    plot(graph_of_connected_events)
-    plt.show()
-
     # plot example of a single polychronous group
     polychronous_group = list_of_polychronous_groups[10]
     plot(polychronous_group)
     plt.show()
 
+    # plot all polychronous grooups
+    plot(graph_of_connected_events)
+    plt.show()
 
 # testing()
 figure08()
