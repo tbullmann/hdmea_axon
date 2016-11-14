@@ -41,7 +41,7 @@ def figure08():
         axon_delay, dendrite_peak = load_neurites ('data/hidens2018at35C_arbors.mat')
         _, all_delays = all_overlaps(axon_delay, dendrite_peak)
         events = load_events('data/hidens2018at35C_events.mat')
-        # events = events[0:10000] # for testing
+        events = events[0:100000] # for testing
         timeseries = events_to_timeseries(events)
         pickle.dump((timeseries, all_delays), open('temp/data_PCGs_hidens2018.p', 'wb'))
 
@@ -67,7 +67,7 @@ def figure08():
     # plot all polychronous grooups
     plot(graph_of_connected_events)
     plt.show()
-    
+
 
 # testing()
 figure08()
