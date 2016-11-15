@@ -1,20 +1,21 @@
-import pickle
+import logging
 import os
-
-from hana.matlab import load_neurites, load_events, events_to_timeseries
-from hana.structure import all_overlaps
-from hana.polychronous import filter, combine, plot, group
-from publication.plotting import FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE
+import pickle
 
 from matplotlib import pyplot as plt
 
-import logging
+from hana.matlab import load_neurites, load_events, events_to_timeseries
+from hana.polychronous import filter, combine, group
+from hana.structure import all_overlaps
+from publication.plotting import FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, plot_loglog_fit
+
 logging.basicConfig(level=logging.DEBUG)
 
 
 # Previous versions for finding connected events
 
 import numpy as np
+
 
 def testing_algorithm():
     source = np.array([6, 14, 25, 55, 70, 80])
@@ -65,14 +66,37 @@ def figure08():
           % (len(graph_of_connected_events.nodes()), len(graph_of_connected_events.edges())))
     logging.info('Forming %d polycronous groups' % len(list_of_polychronous_groups))
 
-    # plot example of a single polychronous group
+    # # plot example of a single polychronous group
+    # polychronous_group = list_of_polychronous_groups[10]
+    # plot(polychronous_group)
+    # plt.show()
+    #
+    # # plot all polychronous grooups
+    # plot(graph_of_connected_events)
+    # plt.show()
+
+    # # plot size distribution
+    # polychronous_group_size = list(len(g) for g in list_of_polychronous_groups)
+    # ax = plt.subplot(111)
+    # plot_loglog_fit(ax, polychronous_group_size)
+    # plt.show()
+
+    # plot example of a single polychronous group with arrows
+    ax = plt.subplot(111)
     polychronous_group = list_of_polychronous_groups[10]
-    plot(polychronous_group)
+    plot_pcg(ax, polychronous_group)
     plt.show()
 
-    # plot all polychronous grooups
-    plot(graph_of_connected_events)
-    plt.show()
+
+def plot_pcg(ax, polychronous_group, color='r'):
+    times, neurons = (zip(*polychronous_group.nodes()))
+    ax.plot(times, neurons, '.k')
+    for ((time1, neuron1), (time2, neuron2)) in polychronous_group.edges():
+        if time1 < time2: time1, neuron1, time2, neuron2 = time2, neuron2, time1, neuron1
+        ax.annotate('', (time1, neuron1), (time2, neuron2), arrowprops={'color': r, 'arrowstyle': '->'})
+    # Annotations alone do not resize the plotting windows, do:
+    # ax.set_xlim([min(times), max(times)])
+    # ax.set_ylim([min(neurons), max(neurons)])
 
 
 # testing()
