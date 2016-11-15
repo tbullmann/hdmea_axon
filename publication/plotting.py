@@ -9,7 +9,17 @@ FIGURE_ELECTRODES_FILE = 'data/hidens_electrodes.mat'
 
 
 def plot_parameter_dependency(ax, Z, x, y, w=None, levels=None, fmt='%d'):
-    """Plotting parameter dependency"""
+    """
+    Plotting parameter dependency.
+    :param ax: axis handle
+    :param Z: dictionary containing values for parameters x, y, w
+    :param x: parameter values for x axis
+    :param y: parameter values for x axis
+    :param w: (two) parameter values for overlay, w=None if not applicable
+    :param levels: list of Z values, for which contour lines are plotted
+    :param fmt: format string for labeling of contour lines
+    :return:
+    """
     from scipy.ndimage.filters import gaussian_filter
     import matplotlib.patches as mpatches
     X, Y = np.meshgrid(x, y)
@@ -30,6 +40,15 @@ def plot_parameter_dependency(ax, Z, x, y, w=None, levels=None, fmt='%d'):
 
 
 def plot_loglog_fit(ax, y, title = 'size distribution', datalabel = 'data', xlabel = 'rank', ylabel = 'size'):
+    """
+    Log log plot of size distributions with power law fitted.
+    :param ax: axis handle
+    :param y: data
+    :param title: subplot title
+    :param datalabel: data label
+    :param xlabel: x axis label
+    :param ylabel: y axis label
+    """
 
     # sort y data in descending order, define corresponding rank starting from 1 for larges y
     y.sort(reverse=True)
