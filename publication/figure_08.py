@@ -5,9 +5,9 @@ import pickle
 from matplotlib import pyplot as plt
 
 from hana.matlab import load_neurites, load_events, events_to_timeseries
-from hana.polychronous import filter, combine, group
+from hana.polychronous import filter, combine, group, plot
 from hana.structure import all_overlaps
-from publication.plotting import FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, plot_pcg, plot_pcgs
+from publication.plotting import FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, plot_loglog_fit, plot_pcg, plot_pcgs
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -66,31 +66,31 @@ def figure08():
           % (len(graph_of_connected_events.nodes()), len(graph_of_connected_events.edges())))
     logging.info('Forming %d polycronous groups' % len(list_of_polychronous_groups))
 
-    # # plot example of a single polychronous group
-    # polychronous_group = list_of_polychronous_groups[10]
-    # plot(polychronous_group)
-    # plt.show()
-    #
-    # # plot all polychronous grooups
-    # plot(graph_of_connected_events)
-    # plt.show()
 
-    # # plot size distribution
-    # polychronous_group_size = list(len(g) for g in list_of_polychronous_groups)
-    # ax = plt.subplot(111)
-    # plot_loglog_fit(ax, polychronous_group_size)
-    # plt.show()
+    # Plotting
+    plt.figure('Figure 8', figsize=(12,12))
+
+
+    # plot example of a single polychronous group
+    ax1 = plt.subplot(211)
+    plot(graph_of_connected_events)
 
     # # plot example of a single polychronous group with arrows
-    # ax = plt.subplot(111)
-    # polychronous_group = list_of_polychronous_groups[10]
-    # plot_pcg(ax, polychronous_group)
-    # plt.show()
+    ax = plt.subplot(223)
+    polychronous_group = list_of_polychronous_groups[10]
+    plot_pcg(ax, polychronous_group)
+
+    # plot size distribution
+    ax2 = plt.subplot(224)
+    polychronous_group_size = list(len(g) for g in list_of_polychronous_groups)
+    plot_loglog_fit(ax2, polychronous_group_size)
+
+
 
     # # plot polychronous groups with in different arrow colors
     # ax = plt.subplot(111)
     # plot_pcgs(ax, list_of_polychronous_groups[0:2])
-    # plt.show()
+    plt.show()
 
 
 # testing()
