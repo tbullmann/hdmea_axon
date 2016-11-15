@@ -1,6 +1,6 @@
 from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks
-from hana.matlab import events_to_timeseries
-from publication.plotting import plot_parameter_dependency
+from hana.matlab import load_events, events_to_timeseries
+from publication.plotting import plot_parameter_dependency, FIGURE_EVENTS_FILE
 
 import networkx as nx
 import numpy as np
@@ -13,18 +13,18 @@ logging.basicConfig(level=logging.DEBUG)
 # Data preparation
 
 def prepare_timeseries_for_figures():
-    events = load_events('data/hidens2018at35C_events.mat')
+    events = load_events(FIGURE_EVENTS_FILE)
     timeseries = events_to_timeseries(events)
-    pickle.dump((timeseries), open('temp/timeseries_hidens2018.p', 'wb'))
+    pickle.dump((timeseries), open('temp/timeseries.p', 'wb'))
 
 
 def explore_parameter_space_for_functional_connectivity():
-    timeseries = pickle.load(open('temp/timeseries_hidens2018.p', 'rb'))
+    timeseries = pickle.load(open('temp/timeseries.p', 'rb'))
 
     n=20 # number of surrogate data (if too low, std is not robust)
     resolution = 4
     factors = list(2**(np.float(exp)/resolution) for exp in range(6*resolution+1))
-    print factors
+    logging.info('Factors: ', factors)
     thresholds = list(2**(np.float(exp)/resolution) for exp in range(6*resolution+1))
     directions = ('forward','reverse')
 
@@ -32,29 +32,29 @@ def explore_parameter_space_for_functional_connectivity():
     networks = []
 
     for factor in factors:
-        print 'Surrogate data (n = %d const.) using factor = %f' % (n, factor)
+        logging.info('Surrogate data (n = %d const.) using factor = %f' % (n, factor))
         timeseries_surrogates = timeseries_to_surrogates(timeseries, n=n, factor=factor )
-        print 'Compute standard score for histograms'
+        logging.info('Compute standard score for histograms')
         timelags, std_score_dict, timeseries_hist_dict = all_timelag_standardscore(timeseries, timeseries_surrogates)
         for thr in thresholds:
             for direction in directions:
-                print 'Peaks for threshold = %f and direction = %s' % (thr, direction)
+                logging.info('Peaks for threshold = %f and direction = %s' % (thr, direction))
                 peak_score, peak_timelag, _, _ = all_peaks(timelags, std_score_dict, thr=thr, direction=direction)
                 k = len(peak_score)
-                print 'Network connection k = %d' % k
+                logging.info('Network connection k = %d' % k)
                 network_size.append(((factor, thr, direction), k))
                 networks.append(((factor, thr, direction),{'peak_score': peak_score, 'peak_timelag': peak_timelag}))
 
-    print 'Finshed exploring %d different parameter sets' % len(network_size)
+    logging.info('Finshed exploring %d different parameter sets' % len(network_size))
 
-    pickle.dump(dict(network_size), open('temp/func_networksize_for_factor_thr_direction_hidens2018.p', 'wb'))
-    pickle.dump(dict(networks), open('temp/func_networks_for_factor_thr_direction_hidens2018.p', 'wb'))
+    pickle.dump(dict(network_size), open('temp/functional_networks_size.p', 'wb'))
+    pickle.dump(dict(networks), open('temp/functional_networks.p', 'wb'))
 
-    print 'Saved data'
+    logging.info('Saved data')
 
 
 def analyse_functional_networks():
-    network = pickle.load(open('temp/func_networks_for_factor_thr_direction_hidens2018.p', 'rb'))
+    network = pickle.load(open('temp/functional_networks.p', 'rb'))
     factors, thresholds, directions = (list(sorted(set(index)) for index in zip(*list(network))))
 
     k = {'forward':np.zeros((len(factors), len(thresholds))),'reverse':np.zeros((len(factors), len(thresholds)))}
@@ -81,13 +81,12 @@ def analyse_functional_networks():
                 D[direction][i, j] = average_degree
                 logging.info('Analyse Graph for factor=%1.3f, threshold=%1.3f, direction: %s' % (factor, thr, direction))
 
-    pickle.dump((k, C, L, D, factors, thresholds, directions),
-                 open('temp/func_networkparameters_for_factor_thr_direction_hidens2018.p', 'wb'))
+    pickle.dump((k, C, L, D, factors, thresholds, directions), open('temp/functional_networks_parameters.p', 'wb'))
 
 # Early version
 
 def load_number_of_edges_functional_networksize():
-    network_size = pickle.load(open('temp/func_networksize_for_factor_thr_direction_hidens2018.p', 'rb'))
+    network_size = pickle.load(open('temp/functional_networks_size.p', 'rb'))
     factors, thresholds, directions = (list(sorted(set(index)) for index in zip(*list(network_size))))
     k = {'forward':np.zeros((len(factors), len(thresholds))),'reverse':np.zeros((len(factors), len(thresholds)))}
     for i,factor in enumerate(factors):
@@ -119,9 +118,9 @@ def figure_10_only_k():
 def figure10():
     plt.figure('Figure 10', figsize=(12,12))
 
-    k,C,L,D,factors, thresholds, directions = pickle.load(open('temp/func_networkparameters_for_factor_thr_direction_hidens2018.p', 'rb'))
+    k,C,L,D,factors, thresholds, directions = pickle.load(open('temp/functional_networks_parameters.p', 'rb'))
 
-    print "Plotting results for %d paramter sets" % len(k['forward'])**2
+    logging.info('Plotting results for %d paramter sets' % len(k['forward'])**2)
 
     ax = plt.subplot(221)
     plot_parameter_dependency(ax, k, factors, thresholds, directions, levels=(5, 10, 20, 50, 100, 250, 500))
@@ -158,9 +157,9 @@ def figure10():
     plt.show()
 
 
-if not os.path.isfile('temp/timeseries_hidens2018.p'): prepare_timeseries_for_figures()
-if not os.path.isfile('temp/func_networks_for_factor_thr_direction_hidens2018.p'): explore_parameter_space_for_functional_connectivity()
-if not os.path.isfile('temp/func_networkparameters_for_factor_thr_direction_hidens2018.p'):  analyse_functional_networks()
+if not os.path.isfile('temp/timeseries.p'): prepare_timeseries_for_figures()
+if not os.path.isfile('temp/functional_networks.p'): explore_parameter_space_for_functional_connectivity()
+if not os.path.isfile('temp/functional_networks_parameters.p'):  analyse_functional_networks()
 
 # figure_10_only_k()
 

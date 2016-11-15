@@ -8,10 +8,11 @@ from hana.matlab import load_events, events_to_timeseries, load_positions
 from hana.plotting import plot_network, plot_neuron_points, plot_neuron_id, set_axis_hidens, \
     plot_timeseries_hist_and_surrogates, plot_std_score_and_peaks, highlight_connection
 from hana.misc import unique_neurons
+from publication.plotting import FIGURE_EVENTS_FILE
 
 
 def detect_function_networks():
-    events = load_events ('data/hidens2018at35C_events.mat')
+    events = load_events (FIGURE_EVENTS_FILE)
     timeseries = events_to_timeseries(events)
     timeseries_surrogates = timeseries_to_surrogates(timeseries)
     timelags, std_score_dict, timeseries_hist_dict = all_timelag_standardscore(timeseries, timeseries_surrogates)
@@ -21,8 +22,8 @@ def detect_function_networks():
         plt.plot(timelags*1000, std_score_dict[pair])
     plt.show()
 
-    pickle.dump((timeseries, timeseries_surrogates),open( 'temp/timeseries_and_surrogates_hidens2018.p','wb'))
-    pickle.dump((timelags, std_score_dict, timeseries_hist_dict),open( 'temp/standardscores_hidens2018.p','wb'))
+    pickle.dump((timeseries, timeseries_surrogates),open('temp/timeseries_and_surrogates.p','wb'))
+    pickle.dump((timelags, std_score_dict, timeseries_hist_dict),open('temp/standardscores.p','wb'))
 
 
 def plot_func_network_forward_vs_reverse(thr, pos, timelags, std_score_dict):
@@ -89,7 +90,7 @@ def plot_func_example_and_network(ax1, ax2, ax3, pre, post, direction, thr, pos,
 
 def figure07_only_forward_and_reverse_networks(thr =20):
     """FIGURE showing functional networks according to forward and reverse definition"""
-    timelags, std_score_dict, timeseries_hist_dict = pickle.load(open( 'temp/standardscores_hidens2018.p','rb'))
+    timelags, std_score_dict, timeseries_hist_dict = pickle.load(open( 'temp/standardscores.p','rb'))
     pos = load_positions('data/hidens_electrodes.mat')
     plot_func_network_forward_vs_reverse(thr, pos, timelags, std_score_dict)
     plt.show()
@@ -100,8 +101,8 @@ def figure07_only_forward_and_reverse_networks(thr =20):
 def Figure07_seq (thr =20):
     """FIGURE showing Displays functional connectivity according to forward and reverse definition for two
     neuron pairs within the network"""
-    timeseries, timeseries_surrogates = pickle.load(open( 'temp/timeseries_and_surrogates_hidens2018.p','rb'))
-    timelags, std_score_dict, timeseries_hist_dict = pickle.load(open( 'temp/standardscores_hidens2018.p','rb'))
+    timeseries, timeseries_surrogates = pickle.load(open( 'temp/timeseries_and_surrogates.p','rb'))
+    timelags, std_score_dict, timeseries_hist_dict = pickle.load(open( 'temp/standardscores.p','rb'))
     pos = load_positions('data/hidens_electrodes.mat')
     for pre,post in ((4972,3240), (8060,7374)):
         for direction in ('forward', 'reverse'):
@@ -118,8 +119,8 @@ def Figure07_seq (thr =20):
 def Figure07(thr =20):
     """FIGURE showing Displays functional connectivity according to forward and reverse definition for two
     neuron pairs within the network"""
-    timeseries, timeseries_surrogates = pickle.load(open( 'temp/timeseries_and_surrogates_hidens2018.p','rb'))
-    timelags, std_score_dict, timeseries_hist_dict = pickle.load(open( 'temp/standardscores_hidens2018.p','rb'))
+    timeseries, timeseries_surrogates = pickle.load(open( 'temp/timeseries_and_surrogates.p','rb'))
+    timelags, std_score_dict, timeseries_hist_dict = pickle.load(open( 'temp/standardscores.p','rb'))
     pos = load_positions('data/hidens_electrodes.mat')
     pre, post  = 4972, 3240   # pre, post = 8060,7374
     plt.figure('Figure 7', figsize=(16, 16))
@@ -139,7 +140,7 @@ def Figure07(thr =20):
 
 
 
-if not os.path.isfile('temp/timeseries_hidens2018.p'): detect_function_networks()
+if not os.path.isfile('temp/standardscores.p'): detect_function_networks()
 
 # figure07_only_forward_and_reverse_networks()
 Figure07()

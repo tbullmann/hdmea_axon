@@ -1,6 +1,7 @@
 from hana.matlab import load_neurites, load_positions
 from hana.structure import find_overlap, all_overlaps
 from hana.plotting import plot_axon, plot_dendrite, plot_neuron_pair, plot_network, set_axis_hidens
+from publication.plotting import FIGURE_ARBORS_FILE, FIGURE_ELECTRODES_FILE
 
 from matplotlib import pyplot as plt
 
@@ -12,9 +13,9 @@ logging.basicConfig(level=logging.DEBUG)
 # Other plots, mainly used for finding good examples
 
 def test_plot_all_axonal_fields():
-    """Display axonal field for each neuron, good examples are 3606, 9953, 3094"""
-    axon_delay, dendrite_peak = load_neurites ('data/hidens2018at35C_arbors.mat')
-    pos = load_positions('data/hidens_electrodes.mat')
+    """Display axonal field for each neuron, good examples are 3605, 9952, 3093"""
+    axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_FILE)
+    pos = load_positions(FIGURE_ELECTRODES_FILE)
     for neuron in axon_delay :
         ax=plt.subplot(111)
         plot_axon(ax, pos, axon_delay[neuron])
@@ -25,9 +26,9 @@ def test_plot_all_axonal_fields():
 
 def test_plot_all_dendritic_fields_vs_one_axonal_field (presynaptic_neuron):
     """Display dendritic field for each neuron,
-    good examples are 3606->7375,5243,4973,not 6272,6295,8061; 9953->not3606,7375,4973,5243;3094->3606, not7375,5243,4973"""
-    axon_delay, dendrite_peak = load_neurites ('data/hidens2018at35C_arbors.mat')
-    pos = load_positions('data/hidens_electrodes.mat')
+    good examples are 3605->7374,5242,4972,not 6271,6294,8060; 9952->not3605,7374,4972,5242;3093->3605, not7374,5242,4972"""
+    axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_FILE)
+    pos = load_positions(FIGURE_ELECTRODES_FILE)
     for postsynaptic_neuron in dendrite_peak :
         ax=plt.subplot(111)
         plot_axon(ax, pos, axon_delay[presynaptic_neuron])
@@ -41,10 +42,10 @@ def test_plot_all_dendritic_fields_vs_one_axonal_field (presynaptic_neuron):
 
 def Figure06_only_overlap():
     """Plot overlap between axonal and dendritic fields of a presumably pre- and post-synaptic neuron pair"""
-    axon_delay, dendrite_peak = load_neurites ('data/hidens2018at35C_arbors.mat')
-    pos = load_positions('data/hidens_electrodes.mat')
-    presynaptic_neuron = 3606
-    postsynaptic_neuron = 4973  # 5243
+    axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_FILE)
+    pos = load_positions(FIGURE_ELECTRODES_FILE)
+    presynaptic_neuron = 3605
+    postsynaptic_neuron = 4972
     delay = 2.3  # NOTE Arbitrary used for checking plot function
     plt.figure('Figure 6', figsize=(16, 8))
     ax=plt.subplot(111)
@@ -57,11 +58,11 @@ def Figure06_only_overlap():
 # Final version
 
 def Figure06():
-    axon_delay, dendrite_peak = load_neurites ('data/hidens2018at35C_arbors.mat')
-    pos = load_positions('data/hidens_electrodes.mat')
+    axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_FILE)
+    pos = load_positions(FIGURE_ELECTRODES_FILE)
 
-    presynaptic_neuron = 3606
-    postsynaptic_neuron = 4973  # 5243
+    presynaptic_neuron = 3605
+    postsynaptic_neuron = 4972
     thr_peak = 5
     thr_overlap = 0.05
 
@@ -82,6 +83,6 @@ def Figure06():
 
 
 # test_plot_all_axonal_fields()
-# test_plot_all_dendritic_fields_vs_one_axonal_field(3606)
+# test_plot_all_dendritic_fields_vs_one_axonal_field(3605)
 # Figure06_only_overlap
 Figure06()

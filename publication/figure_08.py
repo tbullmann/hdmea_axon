@@ -4,6 +4,7 @@ import os
 from hana.matlab import load_neurites, load_events, events_to_timeseries
 from hana.structure import all_overlaps
 from hana.polychronous import filter, combine, plot, group
+from publication.plotting import FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE
 
 from matplotlib import pyplot as plt
 
@@ -37,27 +38,32 @@ def testing_algorithm():
 # Final figure 8
 
 def figure08():
-    if not os.path.isfile('temp/data_PCGs_hidens2018.p'):
-        axon_delay, dendrite_peak = load_neurites ('data/hidens2018at35C_arbors.mat')
+    if not os.path.isfile('temp/all_delays.p'):
+        axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_FILE)
         _, all_delays = all_overlaps(axon_delay, dendrite_peak)
-        events = load_events('data/hidens2018at35C_events.mat')
-        events = events[0:100000] # for testing
+        pickle.dump(all_delays, open('temp/all_delays.p', 'wb'))
+
+    if not os.path.isfile('temp/partial_timeseries.p'):
+        events = load_events(FIGURE_EVENTS_FILE)
+        events = events[0:10000] # for figures
         timeseries = events_to_timeseries(events)
-        pickle.dump((timeseries, all_delays), open('temp/data_PCGs_hidens2018.p', 'wb'))
+        pickle.dump(timeseries, open('temp/partial_timeseries.p', 'wb'))
 
-    if not os.path.isfile('temp/connected_events_hidens2018.p'):
-        timeseries, all_delays = pickle.load(open('temp/data_PCGs_hidens2018.p', 'rb'))
+    if not os.path.isfile('temp/connected_events.p'):
+        all_delays = pickle.load(open('temp/all_delays.p', 'rb'))
+        timeseries = pickle.load(open('temp/partial_timeseries.p', 'rb'))
+
         connected_events = filter(timeseries, all_delays)
-        pickle.dump(connected_events, open('temp/connected_events_hidens2018.p', 'wb'))
+        pickle.dump(connected_events, open('temp/connected_events.p', 'wb'))
 
-    connected_events = pickle.load(open('temp/connected_events_hidens2018.p', 'rb'))
+    connected_events = pickle.load(open('temp/connected_events.p', 'rb'))
     graph_of_connected_events = combine(connected_events)
     list_of_polychronous_groups = group(graph_of_connected_events)
 
     # for debugging:
-    print("Summary: %d events form %d pairs"
+    logging.info('Summary: %d events form %d pairs'
           % (len(graph_of_connected_events.nodes()), len(graph_of_connected_events.edges())))
-    print("Forming %d polycronous groups" % len(list_of_polychronous_groups))
+    logging.info('Forming %d polycronous groups' % len(list_of_polychronous_groups))
 
     # plot example of a single polychronous group
     polychronous_group = list_of_polychronous_groups[10]

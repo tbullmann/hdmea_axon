@@ -1,6 +1,6 @@
 from hana.matlab import load_neurites
 from hana.structure import all_overlaps
-from publication.plotting import plot_parameter_dependency
+from publication.plotting import plot_parameter_dependency, FIGURE_ARBORS_FILE
 
 import numpy as np
 import networkx as nx
@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.DEBUG)
 # Data preparation
 
 def explore_parameter_space_for_structural_connectivity():
-    axon_delay, dendrite_peak = load_neurites ('data/hidens2018at35C_arbors.mat')
+    axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_FILE)
 
     resolution = 3
     alpha = np.float64(range(-5*resolution,5*resolution+1))/resolution
@@ -20,28 +20,28 @@ def explore_parameter_space_for_structural_connectivity():
     resolution = resolution*2
     thresholds_peak  = list(2**(np.float(exp+1)/resolution)-1 for exp in range(5*resolution+1))
 
-    print 'total', len(thresholds_peak), 'thresholds for peak ', thresholds_peak
-    print 'total', len(thresholds_overlap), 'thresholds for overlap = ', thresholds_overlap
+    logging.info('Total', len(thresholds_peak), 'thresholds for peak ', thresholds_peak)
+    logging.info('Total', len(thresholds_overlap), 'thresholds for overlap = ', thresholds_overlap)
 
     networks = []
 
     for thr_peak in thresholds_peak:
         for thr_overlap in thresholds_overlap:
-            print 'Connections for peak > %1.1f mV and overlap > = %1.2f' % (thr_peak, thr_overlap)
+            logging.info('Connections for peak > %1.1f mV and overlap > = %1.2f' % (thr_peak, thr_overlap))
             all_ratio, all_delay = all_overlaps(axon_delay, dendrite_peak, thr_peak=thr_peak, thr_overlap=thr_overlap)
             k = len(all_ratio)
-            print 'Network connection k = %d' % k
+            logging.info('Network connection k = %d' % k)
             networks.append(((thr_peak, thr_overlap),{'overlap ratio': all_ratio, 'delay': all_delay}))
 
-    print 'Finished exploring %d different parameter sets' % len(networks)
+    logging.info('Finished exploring %d different parameter sets' % len(networks))
 
-    pickle.dump(dict(networks), open('temp/struc_networks_for_thr_peak_thr_overlap_hidens2018.p', 'wb'))
+    pickle.dump(dict(networks), open('temp/structural_networks.p', 'wb'))
 
-    print 'Saved data'
+    logging.info('Saved data')
 
 
 def analyse_structural_networks():
-    network = pickle.load(open('temp/struc_networks_for_thr_peak_thr_overlap_hidens2018.p', 'rb'))
+    network = pickle.load(open('temp/structural_networks.p', 'rb'))
     thr_peak, thr_overlap = (list(sorted(set(index)) for index in zip(*list(network))))
 
     k = np.zeros((len(thr_peak), len(thr_overlap)))
@@ -69,8 +69,7 @@ def analyse_structural_networks():
                     L[i, j] = average_shortest_path_length
                     D[i, j] = average_degree
 
-    pickle.dump((k, C, L, D, thr_peak, thr_overlap),
-                 open('temp/struc_networkparameters_for_thr_peak_thr_overlap_hidens2018.p', 'wb'))
+    pickle.dump((k, C, L, D, thr_peak, thr_overlap), open('temp/structural_networks_parameters.p', 'wb'))
 
 
 # Final version
@@ -78,9 +77,9 @@ def analyse_structural_networks():
 def figure09():
     plt.figure('Figure 9', figsize=(12,12))
 
-    k, C, L, D, thr_peak, thr_overlap = pickle.load(open('temp/struc_networkparameters_for_thr_peak_thr_overlap_hidens2018.p', 'rb'))
+    k, C, L, D, thr_peak, thr_overlap = pickle.load(open('temp/structural_networks_parameters.p', 'rb'))
 
-    print "Plotting results for %d paramter sets" % len(k)**2
+    logging.info('Plotting results for %d paramter sets' % len(k)**2)
 
     ax = plt.subplot(221)
     plot_parameter_dependency(ax, k, thr_peak, thr_overlap, levels=(5, 10, 20, 50, 100, 250, 500))
@@ -111,14 +110,10 @@ def figure09():
     ax.set_xlabel('threshold peak [uV]')
     ax.set_ylabel('threshold overlap [1]')
 
-
     plt.show()
 
 
-
-
-
-if not os.path.isfile('temp/struc_networks_for_thr_peak_thr_overlap_hidens2018.p'): explore_parameter_space_for_structural_connectivity()
-if not os.path.isfile('temp/struc_networkparameters_for_thr_peak_thr_overlap_hidens2018.p'): analyse_structural_networks()
+if not os.path.isfile('temp/structural_networks.p'): explore_parameter_space_for_structural_connectivity()
+if not os.path.isfile('temp/structural_networks_parameters.p'): analyse_structural_networks()
 
 figure09()
