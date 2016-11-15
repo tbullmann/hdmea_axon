@@ -1,6 +1,7 @@
 from hana.matlab import load_neurites, load_positions
 from hana.structure import find_overlap, all_overlaps
-from hana.plotting import plot_axon, plot_dendrite, plot_neuron_pair, plot_network, set_axis_hidens
+from hana.plotting import plot_axon, plot_dendrite, plot_neuron_points, plot_neuron_pair, plot_network, set_axis_hidens
+from hana.misc import unique_neurons
 from publication.plotting import FIGURE_ARBORS_FILE, FIGURE_ELECTRODES_FILE
 
 from matplotlib import pyplot as plt
@@ -76,8 +77,9 @@ def Figure06():
 
     ax2 = plt.subplot(122)
     all_ratio, all_delay = all_overlaps(axon_delay, dendrite_peak)
+    plot_neuron_points(ax2, unique_neurons(all_delay), pos)
     plot_network (ax2, all_delay, pos)
-    set_axis_hidens(ax2,pos)
+    set_axis_hidens(ax2, pos)
     ax2.set_title ('structural connectivity graph')
     plt.show()
 
