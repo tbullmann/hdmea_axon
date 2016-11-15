@@ -2,6 +2,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 
+FIGURE_ARBORS_FILE = 'data/hidens2018at35C_arbors.mat'
+FIGURE_EVENTS_FILE = 'data/hidens2018at35C_events.mat'
+FIGURE_ELECTRODES_FILE = 'data/hidens_electrodes.mat'
+
 def plot_parameter_dependency(ax, Z, x, y, w=None, levels=None, fmt='%d'):
     """Plotting parameter dependency"""
     from scipy.ndimage.filters import gaussian_filter
