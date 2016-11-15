@@ -31,7 +31,7 @@ def explore_parameter_space_for_structural_connectivity():
             all_ratio, all_delay = all_overlaps(axon_delay, dendrite_peak, thr_peak=thr_peak, thr_overlap=thr_overlap)
             k = len(all_ratio)
             logging.info('Network connection k = %d' % k)
-            networks.append(((thr_peak, thr_overlap),{'overlap ratio': all_ratio, 'delay': all_delay}))
+            networks.append(((thr_peak, thr_overlap), {'overlap ratio': all_ratio, 'delay': all_delay}))
 
     logging.info('Finished exploring %d different parameter sets' % len(networks))
 
@@ -42,16 +42,16 @@ def explore_parameter_space_for_structural_connectivity():
 
 def analyse_structural_networks():
     network = pickle.load(open('temp/structural_networks.p', 'rb'))
-    thr_peak, thr_overlap = (list(sorted(set(index)) for index in zip(*list(network))))
+    thresholds_peak, thresholds_overlap = (list(sorted(set(index)) for index in zip(*list(network))))
 
-    k = np.zeros((len(thr_peak), len(thr_overlap)))
-    C = np.zeros((len(thr_peak), len(thr_overlap)))
-    L = np.zeros((len(thr_peak), len(thr_overlap)))
-    D = np.zeros((len(thr_peak), len(thr_overlap)))
+    k = np.zeros((len(thresholds_peak), len(thresholds_overlap)))
+    C = np.zeros((len(thresholds_peak), len(thresholds_overlap)))
+    L = np.zeros((len(thresholds_peak), len(thresholds_overlap)))
+    D = np.zeros((len(thresholds_peak), len(thresholds_overlap)))
     G = nx.DiGraph()
 
-    for i,thr_peak in enumerate(thr_peak):
-        for j,thr_overlap in enumerate(thr_overlap):
+    for i,thr_peak in enumerate(thresholds_peak):
+        for j,thr_overlap in enumerate(thresholds_overlap):
                 logging.info('Analyse Graph for thr_peak=%1.3f, thr_overlap=%1.3f' % (thr_peak, thr_overlap))
                 edges = list(key for key in network[(thr_peak, thr_overlap)]['overlap ratio'])
                 G.clear()
@@ -69,7 +69,7 @@ def analyse_structural_networks():
                     L[i, j] = average_shortest_path_length
                     D[i, j] = average_degree
 
-    pickle.dump((k, C, L, D, thr_peak, thr_overlap), open('temp/structural_networks_parameters.p', 'wb'))
+    pickle.dump((k, C, L, D, thresholds_peak, thresholds_overlap), open('temp/structural_networks_parameters.p', 'wb'))
 
 
 # Final version
