@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 from hana.matlab import load_neurites, load_events, events_to_timeseries
 from hana.polychronous import filter, combine, group
 from hana.structure import all_overlaps
-from publication.plotting import FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, plot_loglog_fit
+from publication.plotting import FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, plot_pcg, plot_pcgs
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -81,22 +81,16 @@ def figure08():
     # plot_loglog_fit(ax, polychronous_group_size)
     # plt.show()
 
-    # plot example of a single polychronous group with arrows
-    ax = plt.subplot(111)
-    polychronous_group = list_of_polychronous_groups[10]
-    plot_pcg(ax, polychronous_group)
-    plt.show()
+    # # plot example of a single polychronous group with arrows
+    # ax = plt.subplot(111)
+    # polychronous_group = list_of_polychronous_groups[10]
+    # plot_pcg(ax, polychronous_group)
+    # plt.show()
 
-
-def plot_pcg(ax, polychronous_group, color='r'):
-    times, neurons = (zip(*polychronous_group.nodes()))
-    ax.plot(times, neurons, '.k')
-    for ((time1, neuron1), (time2, neuron2)) in polychronous_group.edges():
-        if time1 < time2: time1, neuron1, time2, neuron2 = time2, neuron2, time1, neuron1
-        ax.annotate('', (time1, neuron1), (time2, neuron2), arrowprops={'color': r, 'arrowstyle': '->'})
-    # Annotations alone do not resize the plotting windows, do:
-    # ax.set_xlim([min(times), max(times)])
-    # ax.set_ylim([min(neurons), max(neurons)])
+    # # plot polychronous groups with in different arrow colors
+    # ax = plt.subplot(111)
+    # plot_pcgs(ax, list_of_polychronous_groups[0:2])
+    # plt.show()
 
 
 # testing()
