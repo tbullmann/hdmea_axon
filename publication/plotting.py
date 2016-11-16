@@ -1,8 +1,9 @@
-import numpy as np
-from scipy.optimize import curve_fit
-from matplotlib import pyplot as plt
+import logging
 
-import os, pickle, logging
+import numpy as np
+from matplotlib import pyplot as plt
+from scipy.optimize import curve_fit
+
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -83,35 +84,4 @@ def plot_loglog_fit(ax, y, title = 'size distribution', datalabel = 'data', xlab
     ax.set_ylabel(ylabel)
     ax.set_title(title)
 
-
-def plot_pcg(ax, polychronous_group, color='r'):
-    """
-    Plots a polychronous group with colored arrows. Unfortunately, (re)plotting is slow for large groups.
-    :param ax: axis handle
-    :param polychronous_group: graph containing the events and connections of a polychronous group
-    :param color: color of arrows, default is red
-    :return:
-    """
-    times, neurons = (zip(*polychronous_group.nodes()))
-    ax.plot(times, neurons, '.k', markersize=10)
-    for ((time1, neuron1), (time2, neuron2)) in polychronous_group.edges():
-        if time1 < time2: time1, neuron1, time2, neuron2 = time2, neuron2, time1, neuron1
-        ax.annotate('', (time1, neuron1), (time2, neuron2), arrowprops={'color': color, 'arrowstyle': '->'})
-    # Annotations alone do not resize the plotting windows, do:
-    # ax.set_xlim([min(times), max(times)])
-    # ax.set_ylim([min(neurons), max(neurons)])
-    plt.xlabel("time [s]")
-    plt.ylabel("neuron index")
-
-
-def plot_pcgs(ax, list_of_polychronous_groups):
-    """
-    Plots each polychronous group with different (arrow) colors. (Re)Plotting is painfully slow.
-    :param ax: axis handle
-    :param list_of_polychronous_groups: list of polychronous groups
-    """
-    from itertools import cycle
-    cycol = cycle('bgrcmk').next
-    for g in list_of_polychronous_groups:
-        plot_pcg(ax, g, color=cycol())
 
