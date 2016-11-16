@@ -74,41 +74,41 @@ def analyse_structural_networks():
 
 # Final version
 
+def scale_and_label(ax, line_x_coordinates, line_y_coordinates):
+    ax.set_xlabel('threshold for positive peak, $\\rho$ [mV]')
+    ax.set_ylabel('threshold for overlap, $\phi$')
+    ax.plot(line_x_coordinates, line_y_coordinates, 'k:')
+
+
 def figure09():
     plt.figure('Figure 9', figsize=(12,12))
 
     k, C, L, D, thr_peak, thr_overlap = pickle.load(open('temp/structural_networks_parameters.p', 'rb'))
+
+    line_x_coordiantes = (thr_peak[14], thr_peak[14])  # see figure_11.compare_structural_and_functional_networks
+    line_y_coordinates = (min(thr_overlap), max(thr_overlap))
 
     logging.info('Plotting results for %d paramter sets' % len(k)**2)
 
     ax = plt.subplot(221)
     plot_parameter_dependency(ax, k, thr_peak, thr_overlap, levels=(5, 10, 20, 50, 100, 250, 500))
     ax.set_title('number of edges, k')
-    ax.set_xscale('log')
-    ax.set_xlabel('threshold peak [uV]')
-    ax.set_ylabel('threshold overlap [1]')
+    scale_and_label(ax, line_x_coordiantes, line_y_coordinates)
 
     ax = plt.subplot(222)
     plot_parameter_dependency(ax, C, thr_peak, thr_overlap, fmt='%1.1f')
     ax.set_title('average clustering coefficient, C')
-    ax.set_xscale('log')
-    ax.set_xlabel('threshold peak [uV]')
-    ax.set_ylabel('threshold overlap [1]')
+    scale_and_label(ax, line_x_coordiantes, line_y_coordinates)
 
     ax = plt.subplot(223)
     plot_parameter_dependency(ax, L, thr_peak, thr_overlap, fmt='%1.1f')
     ax.set_title('average maximum pathlength, L')
-    ax.set_xscale('log')
-    ax.set_xlabel('threshold peak [uV]')
-    ax.set_ylabel('threshold overlap [1]')
-
+    scale_and_label(ax, line_x_coordiantes, line_y_coordinates)
 
     ax = plt.subplot(224)
     plot_parameter_dependency(ax, D, thr_peak, thr_overlap, fmt='%1.1f')
     ax.set_title('average node degree, D')
-    ax.set_xscale('log')
-    ax.set_xlabel('threshold peak [uV]')
-    ax.set_ylabel('threshold overlap [1]')
+    scale_and_label(ax, line_x_coordiantes, line_y_coordinates)
 
     plt.show()
 

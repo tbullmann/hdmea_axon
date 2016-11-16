@@ -23,8 +23,10 @@ def explore_parameter_space_for_functional_connectivity():
 
     n=20 # number of surrogate data (if too low, std is not robust)
     resolution = 4
+    resolution = 1 # for testing
     factors = list(2**(np.float(exp)/resolution) for exp in range(6*resolution+1))
     logging.info('Factors: ', factors)
+    resolution = 2 # for testing
     thresholds = list(2**(np.float(exp)/resolution) for exp in range(6*resolution+1))
     directions = ('forward','reverse')
 
@@ -115,44 +117,43 @@ def figure_10_only_k():
 
 # Final version
 
+def scale_and_label(ax, line_x_coordinates, line_y_coordinates):
+    ax.set_yscale('log')
+    ax.set_xscale('log')
+    ax.set_xlabel('randomization factor, $\sigma$')
+    ax.set_ylabel('threshold for score, $\zeta$')
+    ax.plot(line_x_coordinates, line_y_coordinates, 'k:')
+
+
 def figure10():
     plt.figure('Figure 10', figsize=(12,12))
 
     k,C,L,D,factors, thresholds, directions = pickle.load(open('temp/functional_networks_parameters.p', 'rb'))
+
+    line_x_coordiantes = (min(factors), max(factors))
+    line_y_coordinates = (max(thresholds), min(thresholds))
 
     logging.info('Plotting results for %d paramter sets' % len(k['forward'])**2)
 
     ax = plt.subplot(221)
     plot_parameter_dependency(ax, k, factors, thresholds, directions, levels=(5, 10, 20, 50, 100, 250, 500))
     ax.set_title('number of edges, k')
-    ax.set_yscale('log')
-    ax.set_xscale('log')
-    ax.set_xlabel('threshold $\zeta$')
-    ax.set_ylabel('randomization factor $\sigma$')
+    scale_and_label(ax, line_x_coordiantes, line_y_coordinates)
 
     ax = plt.subplot(222)
     plot_parameter_dependency(ax, C, factors, thresholds, directions, fmt='%1.1f')
     ax.set_title('average clustering coefficient, C')
-    ax.set_yscale('log')
-    ax.set_xscale('log')
-    ax.set_xlabel('threshold $\zeta$')
-    ax.set_ylabel('randomization factor $\sigma$')
+    scale_and_label(ax, line_x_coordiantes, line_y_coordinates)
 
     ax = plt.subplot(223)
     plot_parameter_dependency(ax, L, factors, thresholds, directions, fmt='%1.1f')
     ax.set_title('average maximum pathlength, L')
-    ax.set_yscale('log')
-    ax.set_xscale('log')
-    ax.set_xlabel('threshold $\zeta$')
-    ax.set_ylabel('randomization factor $\sigma$')
+    scale_and_label(ax, line_x_coordiantes, line_y_coordinates)
 
     ax = plt.subplot(224)
     plot_parameter_dependency(ax, D, factors, thresholds, directions, fmt='%1.1f')
     ax.set_title('average node degree, D')
-    ax.set_yscale('log')
-    ax.set_xscale('log')
-    ax.set_xlabel('threshold $\zeta$')
-    ax.set_ylabel('randomization factor $\sigma$')
+    scale_and_label(ax, line_x_coordiantes, line_y_coordinates)
 
     plt.show()
 

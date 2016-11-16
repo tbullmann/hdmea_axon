@@ -4,10 +4,10 @@ import pickle
 
 from matplotlib import pyplot as plt
 
-from hana.matlab import load_neurites, load_events, events_to_timeseries
-from hana.polychronous import filter, combine, group, plot
+from hana.matlab import load_neurites, load_events, load_positions, events_to_timeseries
+from hana.polychronous import filter, combine, group, plot, plot_pcg_on_network, plot_pcg
 from hana.structure import all_overlaps
-from publication.plotting import FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, plot_loglog_fit, plot_pcg, plot_pcgs
+from publication.plotting import FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, FIGURE_ELECTRODES_FILE, plot_loglog_fit
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -72,19 +72,26 @@ def figure08():
 
 
     # plot example of a single polychronous group
-    ax1 = plt.subplot(211)
+    plt.subplot(221)
     plot(graph_of_connected_events)
-
-    # # plot example of a single polychronous group with arrows
-    ax = plt.subplot(223)
-    polychronous_group = list_of_polychronous_groups[10]
-    plot_pcg(ax, polychronous_group)
+    plt.xlim((590,700))
 
     # plot size distribution
-    ax2 = plt.subplot(224)
+    ax2 = plt.subplot(222)
     polychronous_group_size = list(len(g) for g in list_of_polychronous_groups)
     plot_loglog_fit(ax2, polychronous_group_size)
 
+    # plot example of a single polychronous group with arrows
+    ax = plt.subplot(223)
+    polychronous_group = list_of_polychronous_groups[3]   #10 too complex, 7 highly repetetive
+    plot_pcg(ax, polychronous_group)
+
+    # plot example of a single polychronous group onto network
+    ax4 = plt.subplot(224)
+    pos = load_positions(FIGURE_ELECTRODES_FILE)
+    all_delay = pickle.load(open('temp/all_delays.p', 'rb'))
+    plot_pcg_on_network(ax4, polychronous_group, all_delay, pos)
+    ax4.set_title('network activation by polychronous group')
 
 
     # # plot polychronous groups with in different arrow colors
