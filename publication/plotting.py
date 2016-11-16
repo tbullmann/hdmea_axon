@@ -2,13 +2,16 @@ import numpy as np
 from scipy.optimize import curve_fit
 from matplotlib import pyplot as plt
 
+import os, pickle, logging
+logging.basicConfig(level=logging.DEBUG)
+
 
 FIGURE_ARBORS_FILE = 'data/hidens2018at35C_arbors.mat'
 FIGURE_EVENTS_FILE = 'data/hidens2018at35C_events.mat'
 FIGURE_ELECTRODES_FILE = 'data/hidens_electrodes.mat'
 
 
-def plot_parameter_dependency(ax, Z, x, y, w=None, levels=None, fmt='%d'):
+def plot_parameter_dependency(ax, Z, x, y, w=None, levels=None, fmt='%d', legend_loc='lower right'):
     """
     Plotting parameter dependency.
     :param ax: axis handle
@@ -22,7 +25,9 @@ def plot_parameter_dependency(ax, Z, x, y, w=None, levels=None, fmt='%d'):
     """
     from scipy.ndimage.filters import gaussian_filter
     import matplotlib.patches as mpatches
-    X, Y = np.meshgrid(x, y)
+
+    X, Y = np.meshgrid(x, y, indexing='ij')
+
     if w is None:  # standard black and white blot
         CS1 = ax.contour(X, Y, gaussian_filter(Z, 1), levels=levels, colors='k')
         ax.clabel(CS1, fmt=fmt, inline=1, fontsize=10, inline_spacing=-5)
@@ -36,7 +41,7 @@ def plot_parameter_dependency(ax, Z, x, y, w=None, levels=None, fmt='%d'):
         # CS1 = ax.contourf(X, Y, gaussian_filter(Zinf, 1), levels=(0,1), colors='y')
         black_patch = mpatches.Patch(color='black', label=w[0])
         red_patch = mpatches.Patch(color='red', label=w[1])
-        plt.legend(loc=2, handles=[black_patch, red_patch])
+        plt.legend(loc=legend_loc, handles=[black_patch, red_patch])
 
 
 def plot_loglog_fit(ax, y, title = 'size distribution', datalabel = 'data', xlabel = 'rank', ylabel = 'size'):
