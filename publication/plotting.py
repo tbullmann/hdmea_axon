@@ -10,6 +10,23 @@ logging.basicConfig(level=logging.DEBUG)
 FIGURE_ARBORS_FILE = 'data/hidens2018at35C_arbors.mat'
 FIGURE_EVENTS_FILE = 'data/hidens2018at35C_events.mat'
 FIGURE_ELECTRODES_FILE = 'data/hidens_electrodes.mat'
+FIGURE_NEURON_FILE = 'data/neuron11.h5'
+# Made by the following Matlab code:
+# neurons=events.neurons;
+# NeuronTable = events.NeuronTable;
+# clear events;
+# neuron_index = 11;
+# x = neurons{neuron_index}.x;
+# y = neurons{neuron_index}.y;
+# distances = distn([x' y']',[x' y']');
+# V = neurons{neuron_index}.mean ;trigger_el_idx = Neuron2Electrode ( NeuronTable, neuron_index);
+# pre = -80;
+# post = 80;
+# sampling_frequency = 20000;
+# time = (-pre:post)/sampling_frequency;
+# filename = '/Users/tbullmann/Desktop/neuron11.h5'
+# hdf5write(filename, '/V',V, '/time',time/1000, '/x',x, '/y',y , '/trigger',trigger_el_idx-1, '/neuron',neuron_index)
+# TODO: Fix the BIG BUG in the matlab export script / Neuron2Electrode: Indicies for electrodes in events correctly start at 0, in delays and positive peak the (trigger) electrodes from 1 (!)
 
 
 def plot_parameter_dependency(ax, Z, x, y, w=None, levels=None, fmt='%d', legend_loc='lower right'):
