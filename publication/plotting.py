@@ -105,3 +105,10 @@ def legend_without_multiple_labels(ax, **kwargs):
     handles, labels = ax.get_legend_handles_labels()
     by_label = OrderedDict(zip(labels, handles))
     ax.legend(by_label.values(), by_label.keys(), **kwargs)
+
+
+def label_subplot(ax, text, xoffset=-0.06):
+    """Labelthe subplot in the upper left corner."""
+    position = ax.get_position()
+    fig = ax.figure
+    fig.text(position.x0 + xoffset, position.y1, text, size=30, weight='bold')
