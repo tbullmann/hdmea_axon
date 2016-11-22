@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.DEBUG)
 FIGURE_ARBORS_FILE = 'data/hidens2018at35C_arbors.mat'
 FIGURE_EVENTS_FILE = 'data/hidens2018at35C_events.mat'
 FIGURE_ELECTRODES_FILE = 'data/hidens_electrodes.mat'
-FIGURE_NEURON_FILE = 'data/neuron11.h5'
+FIGURE_NEURON_FILE = 'data/neuron5.h5'
 
 
 def plot_parameter_dependency(ax, Z, x, y, w=None, levels=None, fmt='%d', legend_loc='lower right'):
