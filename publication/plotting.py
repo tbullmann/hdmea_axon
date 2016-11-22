@@ -86,3 +86,22 @@ def plot_loglog_fit(ax, y, title = 'size distribution', datalabel = 'data', xlab
     ax.set_title(title)
 
 
+def without_spines_and_ticks(ax):
+    """Remove spines and ticks on left and bottom side of the plot"""
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.yaxis.set_ticks_position('left')
+    ax.xaxis.set_ticks_position('bottom')
+
+
+def cross_hair(ax2, x, y):
+    """Plot a simple crosshair"""
+    ax2.plot(x, y, marker='$\\bigoplus$', markersize=20)
+
+
+def legend_without_multiple_labels(ax, **kwargs):
+    """Stop matplotlib repeating labels in legend"""
+    from collections import OrderedDict
+    handles, labels = ax.get_legend_handles_labels()
+    by_label = OrderedDict(zip(labels, handles))
+    ax.legend(by_label.values(), by_label.keys(), **kwargs)
