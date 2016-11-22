@@ -1,15 +1,15 @@
-import logging
-
-import numpy as np
-from matplotlib import pyplot as plt
-
 from hana.matlab import load_traces, load_positions
 from hana.plotting import annotate_x_bar, set_axis_hidens
 from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain
 from publication.plotting import FIGURE_NEURON_FILE, FIGURE_ELECTRODES_FILE, without_spines_and_ticks, cross_hair, \
     legend_without_multiple_labels, label_subplot
 
+import numpy as np
+from matplotlib import pyplot as plt
+
+import logging
 logging.basicConfig(level=logging.DEBUG)
+
 
 # Testing code
 
@@ -32,7 +32,7 @@ def figure02(testing=False):
     pos = load_positions(FIGURE_ELECTRODES_FILE)  # only used for set_axis_hidens
 
     V, t, x, y, trigger, neuron = load_traces(FIGURE_NEURON_FILE)
-    t = t *1000  # convert to ms
+    t *= 1000  # convert to ms
 
     # Electrode with most minimal V corresponding to proximal AIS, get coordinates and recorded voltage trace
     ais = np.unravel_index(np.argmin(V), V.shape)[0]
@@ -94,7 +94,6 @@ def figure02(testing=False):
     ax4.set_xlabel(r'$\Delta$t [ms]')
     without_spines_and_ticks(ax4)
     label_subplot(ax4, 'D')
-
 
     plt.show()
 
