@@ -1,4 +1,3 @@
-import logging
 import os
 import pickle
 
@@ -9,6 +8,7 @@ from hana.polychronous import filter, combine, group, plot, plot_pcg_on_network,
 from hana.structure import all_overlaps
 from publication.plotting import FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, FIGURE_ELECTRODES_FILE, plot_loglog_fit
 
+import logging
 logging.basicConfig(level=logging.DEBUG)
 
 
