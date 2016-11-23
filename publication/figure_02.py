@@ -132,10 +132,11 @@ def figure02():
 
     # subplot original unaligned traces
     ax1 = plt.subplot(331)
+    V_AIS = V[index_AIS]  # Showing AIS trace in different color
     ax1.plot(t, V.T,'-', color='gray', label='all' )
-    ax1.plot(t, V[index_AIS], 'r-', label='AIS')
+    ax1.plot(t, V_AIS, 'r-', label='AIS')
     ax1.scatter(delay[index_AIS], -550, marker='^', s=100, edgecolor='None', facecolor='red')
-    annotate_x_bar(peak_peak_domain(t, V_AIS), 100, text=' $\delta_p$ = %0.3f ms' % peak_peak_width(t, V_AIS))
+    annotate_x_bar(peak_peak_domain(t, V_AIS), 150, text=' $\delta_p$ = %0.3f ms' % peak_peak_width(t, V_AIS))
     legend_without_multiple_labels(ax1, loc=4, frameon=False)
     ax1.set_xlim((-4,4))
     ax1.set_ylabel(r'V [$\mu$V]')
