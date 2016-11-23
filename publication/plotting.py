@@ -107,8 +107,8 @@ def legend_without_multiple_labels(ax, **kwargs):
     ax.legend(by_label.values(), by_label.keys(), **kwargs)
 
 
-def label_subplot(ax, text, xoffset=-0.06):
+def label_subplot(ax, text, xoffset=-0.06, yoffset=0):
     """Labelthe subplot in the upper left corner."""
     position = ax.get_position()
     fig = ax.figure
-    fig.text(position.x0 + xoffset, position.y1, text, size=30, weight='bold')
+    fig.text(position.x0 + xoffset, position.y1+yoffset, text, size=30, weight='bold')
