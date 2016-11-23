@@ -194,7 +194,7 @@ def figure02():
     ax3.set_ylabel(r'count')
     ax3.set_xlabel(r'$\tau$ [ms]')
     without_spines_and_ticks(ax3)
-    shrink_axes(ax, xshrink=0.01)
+    shrink_axes(ax3, xshrink=0.01)
     label_subplot(ax3, 'C', xoffset=-0.04, yoffset=-0.01)
 
     # ------------- second row
@@ -238,7 +238,7 @@ def figure02():
     ax7.set_ylabel(r'count')
     ax7.set_xlabel(r'$s_{\tau}$ [ms]')
     without_spines_and_ticks(ax7)
-    shrink_axes(ax, xshrink=0.01)
+    shrink_axes(ax7, xshrink=0.01)
     label_subplot(ax7, 'G', xoffset=-0.04, yoffset=-0.01)
 
     # ------------- third row
