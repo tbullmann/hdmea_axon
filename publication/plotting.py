@@ -94,9 +94,9 @@ def without_spines_and_ticks(ax):
     ax.xaxis.set_ticks_position('bottom')
 
 
-def cross_hair(ax2, x, y):
+def cross_hair(ax2, x, y, color='red'):
     """Plot a simple crosshair"""
-    ax2.plot(x, y, marker='$\\bigoplus$', markersize=20)
+    ax2.plot(x, y, marker='$\\bigoplus$', markersize=20, color=color)
 
 
 def legend_without_multiple_labels(ax, **kwargs):
@@ -110,5 +110,40 @@ def legend_without_multiple_labels(ax, **kwargs):
 def label_subplot(ax, text, xoffset=-0.06, yoffset=0):
     """Labelthe subplot in the upper left corner."""
     position = ax.get_position()
+    logging.info('Subplot %s with position:' % text)
+    logging.info(position)
     fig = ax.figure
     fig.text(position.x0 + xoffset, position.y1+yoffset, text, size=30, weight='bold')
+
+
+def plot_traces_and_delays(ax, V, t, delay, indicies, offset=None, ylim=None, color='k'):
+    """
+    Plot traces and delays (of a neighborhod of electrodes).
+    :param ax: axis handle
+    :param V: (all) Voltage traces
+    :param t: time
+    :param delay: (all) delays
+    :param indicies: traces indicicating what part of V and delay should be plotted
+    :param offset: y offset for the markers
+    """
+    if not offset: offset = max(V)
+    ax.plot(t, V[indicies].T, '-', color=color)
+    ax.scatter(delay[indicies], offset * np.ones(7), marker='^', s=100, edgecolor='None', facecolor=color)
+    ax.set_xlim((min(t), max(t)))
+    if ylim: ax.set_ylim(ylim)
+    ax.set_ylabel(r'V [$\mu$V]')
+    ax.set_xlabel(r'$\Delta$t [ms]')
+    without_spines_and_ticks(ax)
+    shrink_yaxis(ax)
+
+
+def shrink_yaxis(ax, yshrink = 0.01):
+    """
+    Shrink height to fit with surrounding plots.
+    :param ax: axis handle
+    :param yshrink: shrinkage in figure coordinates (0..1)
+    """
+    position = ax.get_position()
+    position.y0 += yshrink
+    position.y1 -= yshrink
+    ax.set_position(position)
