@@ -116,7 +116,7 @@ def label_subplot(ax, text, xoffset=-0.06, yoffset=0):
     fig.text(position.x0 + xoffset, position.y1+yoffset, text, size=30, weight='bold')
 
 
-def plot_traces_and_delays(ax, V, t, delay, indicies, offset=None, ylim=None, color='k'):
+def plot_traces_and_delays(ax, V, t, delay, indicies, offset=None, ylim=None, color='k', label=None):
     """
     Plot traces and delays (of a neighborhod of electrodes).
     :param ax: axis handle
@@ -127,7 +127,7 @@ def plot_traces_and_delays(ax, V, t, delay, indicies, offset=None, ylim=None, co
     :param offset: y offset for the markers
     """
     if not offset: offset = max(V)
-    ax.plot(t, V[indicies].T, '-', color=color)
+    ax.plot(t, V[indicies].T, '-', color=color, label=label)
     ax.scatter(delay[indicies], offset * np.ones(7), marker='^', s=100, edgecolor='None', facecolor=color)
     ax.set_xlim((min(t), max(t)))
     if ylim: ax.set_ylim(ylim)

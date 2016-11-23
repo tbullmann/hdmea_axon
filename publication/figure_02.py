@@ -171,7 +171,7 @@ def figure02():
     ax1.set_ylabel(r'V [$\mu$V]')
     ax1.set_xlabel(r'$\Delta$t [ms]')
     without_spines_and_ticks(ax1)
-    label_subplot(ax1, 'A', xoffset=-0.035, yoffset=-0.015)
+    label_subplot(ax1, 'A', xoffset=-0.04, yoffset=-0.015)
 
     # subplot delay map
     ax2 = plt.subplot(332)
@@ -181,7 +181,7 @@ def figure02():
     h2.set_ticks(np.linspace(-4, 4, num=9))
     add_AIS_and_example_neighborhoods(ax2, x, y, index_AIS, indicies_background, indicies_foreground)
     set_axis_hidens(ax2, pos)
-    label_subplot(ax2, 'B', xoffset=-0.015, yoffset=-0.01)
+    label_subplot(ax2, 'B', xoffset=-0.015, yoffset=-0.015)
 
     # subplot histogram of delays
     ax3 = plt.subplot(333)
@@ -196,23 +196,25 @@ def figure02():
     ax3.set_xlabel(r'$\tau$ [ms]')
     without_spines_and_ticks(ax3)
     shrink_axes(ax3, xshrink=0.01)
-    label_subplot(ax3, 'C', xoffset=-0.04, yoffset=-0.01)
+    label_subplot(ax3, 'C', xoffset=-0.04, yoffset=-0.015)
 
     # ------------- second row
 
     # Subplot neighborhood with uncorrelated negative peaks
     ax4 = plt.subplot(637)
-    plot_traces_and_delays(ax4, V, t, t_min, indicies_background, offset=-2, ylim=(-10, 5), color=background_color)
-    ax4.text(-3.5, -7.5, r'$s_{\tau}$ = %0.3f ms' % std_delay[index_background_example])
+    plot_traces_and_delays(ax4, V, t, t_min, indicies_background, offset=-2, ylim=(-10, 5), color=background_color, label='no axon')
+    ax4.text(-3.5, -7.5, r'$s_{\tau}$ = %0.3f ms' % std_delay[index_background_example], color=background_color)
     ax4.set_yticks([-10,-5,0,5])
-    label_subplot(ax4, 'D', xoffset=-0.035, yoffset=-0.015)
+    legend_without_multiple_labels(ax4, loc=4, frameon=False)
+    label_subplot(ax4, 'D', xoffset=-0.04, yoffset=-0.015)
 
     # Subplot neighborhood with correlated negative peaks
     ax5 = fig.add_subplot(6, 3, 10)
-    plot_traces_and_delays(ax5, V, t, t_min, indicies_foreground, offset=-20, ylim=(-30, 10), color=foreground_color)
-    ax5.text(-3.5, -22, r'$s_{\tau}$ = %0.3f ms' % std_delay[index_foreground_example])
+    plot_traces_and_delays(ax5, V, t, t_min, indicies_foreground, offset=-20, ylim=(-30, 10), color=foreground_color, label='axon')
+    ax5.text(-3.5, -22, r'$s_{\tau}$ = %0.3f ms' % std_delay[index_foreground_example], color=foreground_color)
     ax5.set_yticks([-30,-20,-10,0,10])
-    label_subplot(ax5, 'F', xoffset=-0.035, yoffset=-0.015)
+    legend_without_multiple_labels(ax5, loc=4, frameon=False)
+    label_subplot(ax5, 'F', xoffset=-0.04, yoffset=-0.015)
 
     # subplot std_delay map
     ax6 = plt.subplot(335)
@@ -226,8 +228,8 @@ def figure02():
 
     # subplot std_delay histogram
     ax7 = plt.subplot(336)
-    ax7.hist(std_delay, bins=np.arange(0, max(t_min), step=DELAY_EPSILON), facecolor='gray', edgecolor='gray', label='background')
-    ax7.hist(std_delay, bins=np.arange(0, thr, step=DELAY_EPSILON), facecolor='k', edgecolor='k', label='foreground')
+    ax7.hist(std_delay, bins=np.arange(0, max(t_min), step=DELAY_EPSILON), facecolor='gray', edgecolor='gray', label='no axons')
+    ax7.hist(std_delay, bins=np.arange(0, thr, step=DELAY_EPSILON), facecolor='k', edgecolor='k', label='axons')
     ax7.scatter(std_delay[index_foreground_example], 25, marker='v', s=100, edgecolor='None', facecolor=foreground_color, zorder=10)
     ax7.scatter(std_delay[index_background_example], 25, marker='v', s=100, edgecolor='None', facecolor=background_color, zorder=10)
     ax7.scatter(expected_std_delay, 25, marker='v', s=100, edgecolor='black', facecolor='gray', zorder=10)
