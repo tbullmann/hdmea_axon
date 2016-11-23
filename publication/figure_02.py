@@ -2,12 +2,11 @@ import logging
 
 import numpy as np
 from matplotlib import pyplot as plt
-from scipy.spatial.distance import squareform, pdist
 
 from hana.matlab import load_traces, load_positions
 from hana.plotting import annotate_x_bar, set_axis_hidens
-from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain, MAXIMUM_NEIGHBORS, NEIGHBORHOOD_RADIUS, \
-    DELAY_EPSILON, neighborhood
+from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain, DELAY_EPSILON, neighborhood, \
+    __segment_axon, axonal_delay, electrode_neighborhoods
 from publication.plotting import FIGURE_NEURON_FILE, FIGURE_ELECTRODES_FILE, without_spines_and_ticks, cross_hair, \
     legend_without_multiple_labels, label_subplot, plot_traces_and_delays, shrink_axes
 
@@ -245,111 +244,6 @@ def figure02():
     label_subplot(ax10, 'J', xoffset=-0.005, yoffset=-0.01)
 
     plt.show()
-
-
-def __segment_axon(V, t, neighbors):
-    """
-    Verbose segment axon function for figures.
-    :param V:
-    :param t:
-    :param neighbors:
-    :return: all internal variables
-    """
-    delay = find_peaks(V, t)
-    index_AIS = find_AIS(V)
-    mean_delay, std_delay = neighborhood_statistics(delay, neighbors)
-    expected_std_delay = mean_std_for_random_delays(delay)
-    thr = find_valley(std_delay, expected_std_delay)
-    valid_delay = std_delay < thr
-    positive_delay = mean_delay > delay[index_AIS]
-    axon = np.multiply(positive_delay, valid_delay)
-    return delay, mean_delay, std_delay, expected_std_delay, thr, valid_delay, index_AIS, positive_delay, axon
-
-
-def segment_axon(V, t, neighbors):
-    """
-    Verbose segment axon function for figures.
-    :param V:
-    :param t:
-    :param neighbors:
-    :return: all internal variables
-    """
-    _, mean_delay, _, _, _, _, _, _, axon = __segment_axon(V, t, neighbors)
-    delay = axonal_delay(axon, mean_delay)
-    return delay
-
-
-def axonal_delay(axon, mean_delay):
-    """
-    Return mean_delay for axon, NaN otherwise.
-    :param axon: boolean array
-    :param mean_delay: array
-    :return: delay: array
-    """
-    delay = mean_delay
-    delay[np.where(np.logical_not(axon))] = np.NAN
-    return delay
-
-
-def find_valley(std_delay, expected_std_delay):
-    # Find valley between peak for axons and peak for random peak at expected_std_delay
-    hist, bin_edges = np.histogram(std_delay, bins=np.arange(0, expected_std_delay, step=DELAY_EPSILON))
-    index_thr = np.argmin(hist)
-    thr = bin_edges[index_thr + 1]
-    return thr
-
-
-def mean_std_for_random_delays(delay):
-    # Calculated expected_std_delay assuming a uniform delay distribution
-    expected_std_delay = (max(delay) - min(delay)) / np.sqrt(12)
-    return expected_std_delay
-
-
-def neighborhood_statistics(delay, neighbors):
-    # Calculate mean delay, and std_delay
-    sum_neighbors = sum(neighbors)
-    mean_delay = np.divide(np.dot(delay, neighbors), sum_neighbors)
-    diff_delay = delay - mean_delay
-    var_delay = np.divide(np.dot(np.power(diff_delay, 2), neighbors), sum_neighbors)
-    std_delay = np.sqrt(var_delay)
-    return mean_delay, std_delay
-
-
-def find_AIS(V):
-    """
-    Electrode with most minimal V corresponding to (proximal) AIS
-    :param V: recorded traces
-    :return: electrode_index: index of the electrode near to the AIS
-    """
-    electrode_AIS = np.unravel_index(np.argmin(V), V.shape)[0]
-    return electrode_AIS
-
-
-def find_peaks(V, t, negative_peaks=True):
-    """
-    Find timing of negative (positive) peaks.
-    :param V: matrix containing the trace for each electrode
-    :param t: time
-    :param negative_peaks: detect negative peaks if true, positive peak otherwise
-    :return: delays: delay for each electrode
-    """
-    indices = np.argmin(V, axis=1) if negative_peaks else np.argmax(V, axis=1)
-    delay = t[indices]
-    return delay
-
-
-def electrode_neighborhoods(pos):
-    """
-    Calculate neighbor matrix from distances between electrodes.
-    :param pos: electrode coordinates
-    :return: neighbors: square matrix
-    """
-    pos_as_array = np.asarray(zip(pos.x, pos.y))
-    distances = squareform(pdist(pos_as_array, metric='euclidean'))
-    neighbors = distances < NEIGHBORHOOD_RADIUS
-    sum_neighbors = sum(neighbors)
-    assert (max(sum_neighbors)) <= MAXIMUM_NEIGHBORS  # sanity check
-    return neighbors
 
 
 def add_AIS_and_example_neighborhoods(ax6, x, y, index_AIS, indicies_background, indicies_foreground):
