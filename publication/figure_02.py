@@ -18,10 +18,8 @@ logging.basicConfig(level=logging.DEBUG)
 def testing_load_traces():
     V, t, x, y, trigger, neuron = load_traces(FIGURE_NEURON_FILE)
     Vtrigger = V[int(trigger)]
-
     hpw = half_peak_width(t, Vtrigger)
     print hpw
-
     ppw = peak_peak_width(t, Vtrigger)
     print ppw
 
@@ -137,7 +135,7 @@ def figure02():
     ax1.plot(t, V.T,'-', color='gray', label='all' )
     ax1.plot(t, V[index_AIS], 'r-', label='AIS')
     ax1.scatter(delay[index_AIS], -550, marker='^', s=100, edgecolor='None', facecolor='red')
-    # annotate_x_bar(peak_peak_domain(t, V_AIS), min(V_AIS)/2, text=' $\delta_p$ = %0.3f ms' % peak_peak_width(t, V_AIS))
+    annotate_x_bar(peak_peak_domain(t, V_AIS), 100, text=' $\delta_p$ = %0.3f ms' % peak_peak_width(t, V_AIS))
     legend_without_multiple_labels(ax1, loc=4, frameon=False)
     ax1.set_xlim((-4,4))
     ax1.set_ylabel(r'V [$\mu$V]')
@@ -159,7 +157,6 @@ def figure02():
     ax3 = plt.subplot(333)
     ax3.hist(delay, bins=len(t), facecolor='gray', edgecolor='gray', label='measured')
     ax3.scatter(delay[index_AIS], 10, marker='v', s=100, edgecolor='None', facecolor='red', zorder=10)
-    # ax3.vlines(0, 0, 180, color='k', linestyles=':')
     ax3.hlines(len(x)/len(t), min(t), max(t), color='k', linestyles='--', label='uniform')
     ax3.legend(frameon=False)
     ax3.set_ylim((0,200))
@@ -208,7 +205,6 @@ def figure02():
     ax7.text(expected_std_delay, 30, r'$\frac{8}{\sqrt{12}}$ ms',  horizontalalignment='center', verticalalignment='bottom', zorder=10)
     ax7.legend(frameon=False)
     ax7.vlines(0, 0, 180, color='k', linestyles=':')
-    # ax7.hlines(len(x) / len(t), min(t), max(t), color='k', linestyles='--')
     ax7.set_ylim((0, 600))
     ax7.set_xlim((0, 4))
     ax7.set_ylabel(r'count')
@@ -252,5 +248,4 @@ def add_AIS_and_example_neighborhoods(ax6, x, y, index_AIS, indicies_background,
     ax6.scatter(x[indicies_foreground], y[indicies_foreground], s=10, marker='o', edgecolor='None', facecolor='blue')
 
 
-# testing_load_traces()
 figure02()
