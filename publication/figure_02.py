@@ -106,53 +106,30 @@ def figure02_original(testing=False):
 def figure02():
     fig = plt.figure('Figure 2', figsize=(18,14))
 
+    # Load electrode coordinates
     pos = load_positions(FIGURE_ELECTRODES_FILE)
+    neighbors = electrode_neighborhoods(pos)
+
+    # Load example data
     V, t, x, y, trigger, neuron = load_traces(FIGURE_NEURON_FILE)
     t *= 1000  # convert to ms
 
-    # Electrode with most minimal V corresponding to (proximal) AIS
-    index_AIS = np.unravel_index(np.argmin(V), V.shape)[0]
+    # Verbose axon segmentation function
+    delay, mean_delay, std_delay, expected_std_delay, thr, valid_delay, index_AIS, positive_delay, axon \
+        = __segment_axon(V, t, neighbors)
 
-    # Find delays of negative peaks
-    indicies_min = np.argmin(V,axis=1)
-    delay = t[indicies_min]
-    delay_AIS = delay[index_AIS]
-
-    # Calculate distance and choose neighbors
-    pos_as_array = np.asarray(zip(pos.x, pos.y))
-    distances = squareform(pdist(pos_as_array, metric='euclidean'))
-    neighbors = distances < NEIGHBORHOOD_RADIUS
-    sum_neighbors = sum(neighbors)
-    assert (max(sum_neighbors)) <= MAXIMUM_NEIGHBORS  # sanity check
-
-    # Calculate mean delay, and std_delay
-    mean_delay = np.divide(np.dot(delay, neighbors), sum_neighbors)
-    diff_delay = delay - mean_delay
-    var_delay = np.divide(np.dot(np.power(diff_delay, 2), neighbors), sum_neighbors)
-    std_delay = np.sqrt(var_delay)
-
-    # Calculated expected_std_delay assuming a uniform delay distribution
-    expected_std_delay = (max(delay) - min(delay)) / np.sqrt(12)
-
-    # Find valay between peak for axons and peak for random peak at expected_std_delay
-    hist, bin_edges = np.histogram(std_delay, bins=np.arange(0, expected_std_delay, step=DELAY_EPSILON))
-    index_thr = np.argmin(hist)
-    thr = bin_edges[index_thr + 1]
-
-    # Segment axon
-    valid_delay = std_delay < thr
-    positive_delay = mean_delay > delay_AIS
-    axon = np.multiply(positive_delay, valid_delay)
+    logging.info ('Axonal delays:')
+    logging.info (axonal_delay(axon, mean_delay))
 
     # -------------- Plots
 
     # Define examples
     background_color = 'green'
     index_background_example = 500
-    indicies_background = neighborhood(neighbors, index_background_example)
+    indices_background = neighborhood(neighbors, index_background_example)
     foreground_color = 'blue'
     index_foreground_example = 8624
-    indicies_foreground = neighborhood(neighbors, index_foreground_example)
+    indices_foreground = neighborhood(neighbors, index_foreground_example)
 
     # -------------- first row
 
@@ -175,7 +152,7 @@ def figure02():
     h2 = plt.colorbar(h1)
     h2.set_label(r'$\tau$ [ms]')
     h2.set_ticks(np.linspace(-4, 4, num=9))
-    add_AIS_and_example_neighborhoods(ax2, x, y, index_AIS, indicies_background, indicies_foreground)
+    add_AIS_and_example_neighborhoods(ax2, x, y, index_AIS, indices_background, indices_foreground)
     set_axis_hidens(ax2, pos)
     label_subplot(ax2, 'B', xoffset=-0.015, yoffset=-0.015)
 
@@ -198,7 +175,7 @@ def figure02():
 
     # Subplot neighborhood with uncorrelated negative peaks
     ax4 = plt.subplot(637)
-    plot_traces_and_delays(ax4, V, t, delay, indicies_background, offset=-2, ylim=(-10, 5), color=background_color, label='no axon')
+    plot_traces_and_delays(ax4, V, t, delay, indices_background, offset=-2, ylim=(-10, 5), color=background_color, label='no axon')
     ax4.text(-3.5, -7.5, r'$s_{\tau}$ = %0.3f ms' % std_delay[index_background_example], color=background_color)
     ax4.set_yticks([-10,-5,0,5])
     legend_without_multiple_labels(ax4, loc=4, frameon=False)
@@ -206,7 +183,7 @@ def figure02():
 
     # Subplot neighborhood with correlated negative peaks
     ax5 = fig.add_subplot(6, 3, 10)
-    plot_traces_and_delays(ax5, V, t, delay, indicies_foreground, offset=-20, ylim=(-30, 10), color=foreground_color, label='axon')
+    plot_traces_and_delays(ax5, V, t, delay, indices_foreground, offset=-20, ylim=(-30, 10), color=foreground_color, label='axon')
     ax5.text(-3.5, -22, r'$s_{\tau}$ = %0.3f ms' % std_delay[index_foreground_example], color=foreground_color)
     ax5.set_yticks([-30,-20,-10,0,10])
     legend_without_multiple_labels(ax5, loc=4, frameon=False)
@@ -218,7 +195,7 @@ def figure02():
     h2 = plt.colorbar(h1, boundaries=np.linspace(0,4,num=256))
     h2.set_label(r'$s_{\tau}$ [ms]')
     h2.set_ticks(np.arange(0, 4.5, step=0.5))
-    add_AIS_and_example_neighborhoods(ax6, x, y, index_AIS, indicies_background, indicies_foreground)
+    add_AIS_and_example_neighborhoods(ax6, x, y, index_AIS, indices_background, indices_foreground)
     set_axis_hidens(ax6, pos)
     label_subplot(ax6, 'F', xoffset=-0.015, yoffset=-0.01)
 
@@ -246,7 +223,7 @@ def figure02():
     # plot map of delay greater zero
     ax8 = plt.subplot(337)
     ax8.scatter(x, y, c=positive_delay, s=10, marker='o', edgecolor='None', cmap='gray_r')
-    add_AIS_and_example_neighborhoods(ax8, x, y, index_AIS, indicies_background, indicies_foreground)
+    add_AIS_and_example_neighborhoods(ax8, x, y, index_AIS, indices_background, indices_foreground)
     ax8.text(300, 300, r'$\tau > \tau_{AIS}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     set_axis_hidens(ax8, pos)
     label_subplot(ax8, 'H', xoffset=-0.005, yoffset=-0.01)
@@ -255,7 +232,7 @@ def figure02():
     ax9 = plt.subplot(338)
     ax9.scatter(x, y, c=valid_delay, s=10, marker='o', edgecolor='None', cmap='gray_r')
     ax9.text(300, 300, r'$s_{\tau} < s_{min}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
-    add_AIS_and_example_neighborhoods(ax9, x, y, index_AIS, indicies_background, indicies_foreground)
+    add_AIS_and_example_neighborhoods(ax9, x, y, index_AIS, indices_background, indices_foreground)
     set_axis_hidens(ax9, pos)
     label_subplot(ax9, 'I', xoffset=-0.005, yoffset=-0.01)
 
@@ -263,12 +240,116 @@ def figure02():
     ax10 = plt.subplot(339)
     ax10.scatter(x, y, c=axon, s=10, marker='o', edgecolor='None', cmap='gray_r')
     ax10.text(300, 300, 'axon', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
-    add_AIS_and_example_neighborhoods(ax10, x, y, index_AIS, indicies_background, indicies_foreground)
+    add_AIS_and_example_neighborhoods(ax10, x, y, index_AIS, indices_background, indices_foreground)
     set_axis_hidens(ax10, pos)
     label_subplot(ax10, 'J', xoffset=-0.005, yoffset=-0.01)
 
-
     plt.show()
+
+
+def __segment_axon(V, t, neighbors):
+    """
+    Verbose segment axon function for figures.
+    :param V:
+    :param t:
+    :param neighbors:
+    :return: all internal variables
+    """
+    delay = find_peaks(V, t)
+    index_AIS = find_AIS(V)
+    mean_delay, std_delay = neighborhood_statistics(delay, neighbors)
+    expected_std_delay = mean_std_for_random_delays(delay)
+    thr = find_valley(std_delay, expected_std_delay)
+    valid_delay = std_delay < thr
+    positive_delay = mean_delay > delay[index_AIS]
+    axon = np.multiply(positive_delay, valid_delay)
+    return delay, mean_delay, std_delay, expected_std_delay, thr, valid_delay, index_AIS, positive_delay, axon
+
+
+def segment_axon(V, t, neighbors):
+    """
+    Verbose segment axon function for figures.
+    :param V:
+    :param t:
+    :param neighbors:
+    :return: all internal variables
+    """
+    _, mean_delay, _, _, _, _, _, _, axon = __segment_axon(V, t, neighbors)
+    delay = axonal_delay(axon, mean_delay)
+    return delay
+
+
+def axonal_delay(axon, mean_delay):
+    """
+    Return mean_delay for axon, NaN otherwise.
+    :param axon: boolean array
+    :param mean_delay: array
+    :return: delay: array
+    """
+    delay = mean_delay
+    delay[np.where(np.logical_not(axon))] = np.NAN
+    return delay
+
+
+def find_valley(std_delay, expected_std_delay):
+    # Find valley between peak for axons and peak for random peak at expected_std_delay
+    hist, bin_edges = np.histogram(std_delay, bins=np.arange(0, expected_std_delay, step=DELAY_EPSILON))
+    index_thr = np.argmin(hist)
+    thr = bin_edges[index_thr + 1]
+    return thr
+
+
+def mean_std_for_random_delays(delay):
+    # Calculated expected_std_delay assuming a uniform delay distribution
+    expected_std_delay = (max(delay) - min(delay)) / np.sqrt(12)
+    return expected_std_delay
+
+
+def neighborhood_statistics(delay, neighbors):
+    # Calculate mean delay, and std_delay
+    sum_neighbors = sum(neighbors)
+    mean_delay = np.divide(np.dot(delay, neighbors), sum_neighbors)
+    diff_delay = delay - mean_delay
+    var_delay = np.divide(np.dot(np.power(diff_delay, 2), neighbors), sum_neighbors)
+    std_delay = np.sqrt(var_delay)
+    return mean_delay, std_delay
+
+
+def find_AIS(V):
+    """
+    Electrode with most minimal V corresponding to (proximal) AIS
+    :param V: recorded traces
+    :return: electrode_index: index of the electrode near to the AIS
+    """
+    electrode_AIS = np.unravel_index(np.argmin(V), V.shape)[0]
+    return electrode_AIS
+
+
+def find_peaks(V, t, negative_peaks=True):
+    """
+    Find timing of negative (positive) peaks.
+    :param V: matrix containing the trace for each electrode
+    :param t: time
+    :param negative_peaks: detect negative peaks if true, positive peak otherwise
+    :return: delays: delay for each electrode
+    """
+    indices = np.argmin(V, axis=1) if negative_peaks else np.argmax(V, axis=1)
+    delay = t[indices]
+    return delay
+
+
+def electrode_neighborhoods(pos):
+    """
+    Calculate neighbor matrix from distances between electrodes.
+    :param pos: electrode coordinates
+    :return: neighbors: square matrix
+    """
+    pos_as_array = np.asarray(zip(pos.x, pos.y))
+    distances = squareform(pdist(pos_as_array, metric='euclidean'))
+    neighbors = distances < NEIGHBORHOOD_RADIUS
+    sum_neighbors = sum(neighbors)
+    assert (max(sum_neighbors)) <= MAXIMUM_NEIGHBORS  # sanity check
+    return neighbors
 
 
 def add_AIS_and_example_neighborhoods(ax6, x, y, index_AIS, indicies_background, indicies_foreground):
