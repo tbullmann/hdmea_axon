@@ -9,7 +9,7 @@ from hana.plotting import annotate_x_bar, set_axis_hidens
 from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain, MAXIMUM_NEIGHBORS, NEIGHBORHOOD_RADIUS, \
     DELAY_EPSILON, neighborhood
 from publication.plotting import FIGURE_NEURON_FILE, FIGURE_ELECTRODES_FILE, without_spines_and_ticks, cross_hair, \
-    legend_without_multiple_labels, label_subplot, plot_traces_and_delays
+    legend_without_multiple_labels, label_subplot, plot_traces_and_delays, shrink_axes
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -171,7 +171,7 @@ def figure02():
     ax1.set_ylabel(r'V [$\mu$V]')
     ax1.set_xlabel(r'$\Delta$t [ms]')
     without_spines_and_ticks(ax1)
-    label_subplot(ax1, 'A', xoffset=-0.035, yoffset=-0.01)
+    label_subplot(ax1, 'A', xoffset=-0.035, yoffset=-0.015)
 
     # subplot delay map
     ax2 = plt.subplot(332)
@@ -194,6 +194,7 @@ def figure02():
     ax3.set_ylabel(r'count')
     ax3.set_xlabel(r'$\tau$ [ms]')
     without_spines_and_ticks(ax3)
+    shrink_axes(ax, xshrink=0.01)
     label_subplot(ax3, 'C', xoffset=-0.04, yoffset=-0.01)
 
     # ------------- second row
@@ -203,14 +204,14 @@ def figure02():
     plot_traces_and_delays(ax4, V, t, t_min, indicies_background, offset=-2, ylim=(-10, 5), color=background_color)
     ax4.text(-3.5, -7.5, r'$s_{\tau}$ = %0.3f ms' % std_delay[index_background_example])
     ax4.set_yticks([-10,-5,0,5])
-    label_subplot(ax4, 'D', xoffset=-0.035, yoffset=-0.01)
+    label_subplot(ax4, 'D', xoffset=-0.035, yoffset=-0.015)
 
     # Subplot neighborhood with correlated negative peaks
     ax5 = fig.add_subplot(6, 3, 10)
     plot_traces_and_delays(ax5, V, t, t_min, indicies_foreground, offset=-20, ylim=(-30, 10), color=foreground_color)
     ax5.text(-3.5, -22, r'$s_{\tau}$ = %0.3f ms' % std_delay[index_foreground_example])
     ax5.set_yticks([-30,-20,-10,0,10])
-    label_subplot(ax5, 'F', xoffset=-0.035, yoffset=-0.01)
+    label_subplot(ax5, 'F', xoffset=-0.035, yoffset=-0.015)
 
     # subplot std_delay map
     ax6 = plt.subplot(335)
@@ -237,6 +238,7 @@ def figure02():
     ax7.set_ylabel(r'count')
     ax7.set_xlabel(r'$s_{\tau}$ [ms]')
     without_spines_and_ticks(ax7)
+    shrink_axes(ax, xshrink=0.01)
     label_subplot(ax7, 'G', xoffset=-0.04, yoffset=-0.01)
 
     # ------------- third row
@@ -252,7 +254,7 @@ def figure02():
     # plot map of delay greater zero
     ax9 = plt.subplot(338)
     ax9.scatter(x, y, c=valid_delay, s=10, marker='o', edgecolor='None', cmap='gray_r')
-    ax9.text(300, 300, r'$s_{\tau} > s_{min}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
+    ax9.text(300, 300, r'$s_{\tau} < s_{min}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     add_AIS_and_example_neighborhoods(ax9, x, y, index_AIS, indicies_background, indicies_foreground)
     set_axis_hidens(ax9, pos)
     label_subplot(ax9, 'I', xoffset=-0.005, yoffset=-0.01)
