@@ -1,13 +1,16 @@
-from hana.matlab import load_traces, load_positions
-from hana.plotting import annotate_x_bar, set_axis_hidens
-from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain
-from publication.plotting import FIGURE_NEURON_FILE, FIGURE_ELECTRODES_FILE, without_spines_and_ticks, cross_hair, \
-    legend_without_multiple_labels, label_subplot
+import logging
 
 import numpy as np
 from matplotlib import pyplot as plt
+from scipy.spatial.distance import squareform, pdist
 
-import logging
+from hana.matlab import load_traces, load_positions
+from hana.plotting import annotate_x_bar, set_axis_hidens
+from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain, MAXIMUM_NEIGHBORS, NEIGHBORHOOD_RADIUS, \
+    DELAY_EPSILON, neighborhood
+from publication.plotting import FIGURE_NEURON_FILE, FIGURE_ELECTRODES_FILE, without_spines_and_ticks, cross_hair, \
+    legend_without_multiple_labels, label_subplot, plot_traces_and_delays
+
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -24,40 +27,42 @@ def testing_load_traces():
     print ppw
 
 
-# Final figure 2
+# Previous figure 2
 
-def figure02(testing=False):
-    fig = plt.figure('Figure 2', figsize=(12,9))
+def figure02_original(testing=False):
+    plt.figure('Figure 2', figsize=(12, 9))
 
     pos = load_positions(FIGURE_ELECTRODES_FILE)  # only used for set_axis_hidens
-
     V, t, x, y, trigger, neuron = load_traces(FIGURE_NEURON_FILE)
     t *= 1000  # convert to ms
 
     # Electrode with most minimal V corresponding to proximal AIS, get coordinates and recorded voltage trace
-    ais = np.unravel_index(np.argmin(V), V.shape)[0]
-    xais = x[ais]
-    yais = y[ais]
-    Vais = V[int(ais)]
+    index_AIS = np.unravel_index(np.argmin(V), V.shape)[0]
+    x_AIS = x[index_AIS]
+    y_AIS = y[index_AIS]
+    V_AIS = V[int(index_AIS)]
 
     if testing:  # matplotlib is slow, plotting all traces takes 30 sec
-        V = V[range(ais-10,ais)+range(ais+1,ais+11)]       # 20 traces only
-        ais = np.unravel_index(np.argmin(V), V.shape)[0]   # get "new" AIS index because old one is shifted
+        V = V[range(index_AIS - 10, index_AIS) + range(index_AIS + 1, index_AIS + 11)]  # 20 traces only
+        index_AIS = np.unravel_index(np.argmin(V), V.shape)[0]  # get "new" AIS index because old one is shifted
 
-    # align negative peak
-    indicies_neg_peak = np.argmin(V,axis=1)
-    t_neg_peak = t[indicies_neg_peak]
-    index_ais_neg_peak = indicies_neg_peak[ais]
-    Vshifted = np.array([np.roll(row, shift) for row, shift in zip(V, index_ais_neg_peak - indicies_neg_peak - 1 )])
-    Vshiftedais = Vshifted[ais]
+    # find negative peak
+    indicies_min = np.argmin(V, axis=1)
+    t_min = t[indicies_min]
+    index_ais_neg_peak = indicies_min[index_AIS]
+
+    # align traces
+    V_aligned = np.array([np.roll(row, shift) for row, shift in zip(V, index_ais_neg_peak - indicies_min - 1)])
+    V_aligned_AIS = V_aligned[index_AIS]
 
     # subplot original unaligned traces
     ax1 = plt.subplot(221)
-    ax1.plot(t, V.T,'-', color='gray', label='unaligned')
-    ax1.plot(t, Vais, 'k-', label='(proximal) AIS')
-    annotate_x_bar(peak_peak_domain(t, Vais), min(Vais)/2, text=' $\delta_p$ = %0.3f ms' % peak_peak_width(t, Vais))
+    ax1.plot(t, V.T, '-', color='gray', label='unaligned')
+    ax1.plot(t, V_AIS, 'k-', label='(proximal) AIS')
+    annotate_x_bar(peak_peak_domain(t, V_AIS), min(V_AIS) / 2,
+                   text=' $\delta_p$ = %0.3f ms' % peak_peak_width(t, V_AIS))
     legend_without_multiple_labels(ax1, loc=4, frameon=False)
-    ax1.set_xlim((-0.5,4))
+    ax1.set_xlim((-0.5, 4))
     ax1.set_ylabel(r'V [$\mu$V]')
     ax1.set_xlabel(r'$\Delta$t [ms]')
     without_spines_and_ticks(ax1)
@@ -65,35 +70,193 @@ def figure02(testing=False):
 
     # subplot delay map
     ax2 = plt.subplot(222)
-    h1 = ax2.scatter(x, y, c=t_neg_peak, s=10, marker='o', edgecolor='None', cmap='gray')
+    h1 = ax2.scatter(x, y, c=t_min, s=10, marker='o', edgecolor='None', cmap='gray')
     h2 = plt.colorbar(h1)
     h2.set_label(r'$\tau$ [ms]')
-    cross_hair(ax2, xais, yais)
+    cross_hair(ax2, x_AIS, y_AIS)
     set_axis_hidens(ax2, pos)
     label_subplot(ax2, 'B', xoffset=-0.02)
 
-
-    # subplot original unaligned traces
+    # subplot aligned traces
     ax3 = plt.subplot(223)
-    ax3.plot(t, Vshifted.T,'-', color='gray', label='aligned')
-    ax3.plot(t, Vshiftedais, 'k-', label='(proximal) AIS')
+    ax3.plot(t, V_aligned.T, '-', color='gray', label='aligned')
+    ax3.plot(t, V_aligned_AIS, 'k-', label='(proximal) AIS')
     legend_without_multiple_labels(ax3, loc=4, frameon=False)
-    ax3.set_xlim((-0.5,4))
+    ax3.set_xlim((-0.5, 4))
     ax3.set_ylabel(r'V [$\mu$V]')
     ax3.set_xlabel(r'$\Delta$t [ms]')
     without_spines_and_ticks(ax3)
     label_subplot(ax3, 'C')
 
-
     # subplot histogram of delays
     ax4 = plt.subplot(224)
-    ax4.hist(t_neg_peak, bins=len(t), facecolor='gray', edgecolor='gray')
+    ax4.hist(t_min, bins=len(t), facecolor='gray', edgecolor='gray')
     ax4.vlines(0, 0, 180, color='k', linestyles=':')
-    ax4.hlines(len(x)/len(t), min(t), max(t), color='k', linestyles='--')
+    ax4.hlines(len(x) / len(t), min(t), max(t), color='k', linestyles='--')
     ax4.set_ylabel(r'count')
     ax4.set_xlabel(r'$\Delta$t [ms]')
     without_spines_and_ticks(ax4)
     label_subplot(ax4, 'D')
+
+    plt.show()
+
+
+# Final figure 2
+
+def figure02():
+    fig = plt.figure('Figure 2', figsize=(18,14))
+
+    pos = load_positions(FIGURE_ELECTRODES_FILE)  # only used for set_axis_hidens
+    V, t, x, y, trigger, neuron = load_traces(FIGURE_NEURON_FILE)
+    t *= 1000  # convert to ms
+
+    # Electrode with most minimal V corresponding to proximal AIS, get coordinates and recorded voltage trace
+    index_AIS = np.unravel_index(np.argmin(V), V.shape)[0]
+    x_AIS = x[index_AIS]
+    y_AIS = y[index_AIS]
+    V_AIS = V[int(index_AIS)]
+
+    # find negative peak
+    indicies_min = np.argmin(V,axis=1)
+    t_min = t[indicies_min]
+    # index_ais_neg_peak = indicies_min[index_AIS]
+
+    # calculate distance and choose neighbors
+    pos_as_array = np.asarray(zip(pos.x, pos.y))
+    distances = squareform(pdist(pos_as_array, metric='euclidean'))
+    neighbors = distances < NEIGHBORHOOD_RADIUS
+    sum_neighbors = sum(neighbors)
+    assert (max(sum_neighbors)) <= MAXIMUM_NEIGHBORS  # sanity check
+
+    # # find negative peak
+    # indicies_min = np.argmin(V, axis=1)
+    # t_min = t[indicies_min]
+
+    # calculate mean delay, and std_delay
+    mean_delay = np.divide(np.dot(t_min, neighbors), sum_neighbors)
+    diff_delay = t_min - mean_delay
+    var_delay = np.divide(np.dot(np.power(diff_delay, 2), neighbors), sum_neighbors)
+    std_delay = np.sqrt(var_delay)
+
+    # calculated expected_std_delay assuming a uniform delay distribution
+    expected_std_delay = (max(t_min) - min(t_min)) / np.sqrt(12)
+
+    # find valay between peak for axons and peak for random peak at expected_std_delay
+    hist, bin_edges = np.histogram(std_delay, bins=np.arange(0, expected_std_delay, step=DELAY_EPSILON))
+    index_thr = np.argmin(hist)
+    thr = bin_edges[index_thr + 1]
+
+    valid_delay = std_delay < thr
+    positive_delay = mean_delay > 0
+    axon = np.multiply(positive_delay, valid_delay)
+
+    # -------------- first row
+
+    # subplot original unaligned traces
+    ax1 = plt.subplot(331)
+    ax1.plot(t, V.T,'-', color='gray', label='all' )
+    ax1.plot(t, V_AIS, 'k-', label='AIS')
+    ax1.scatter(t_min[index_AIS], -550, marker='^', s=100, edgecolor='None', facecolor='red')
+    # annotate_x_bar(peak_peak_domain(t, V_AIS), min(V_AIS)/2, text=' $\delta_p$ = %0.3f ms' % peak_peak_width(t, V_AIS))
+    legend_without_multiple_labels(ax1, loc=4, frameon=False)
+    ax1.set_xlim((-4,4))
+    ax1.set_ylabel(r'V [$\mu$V]')
+    ax1.set_xlabel(r'$\Delta$t [ms]')
+    without_spines_and_ticks(ax1)
+    label_subplot(ax1, 'A', xoffset=-0.035, yoffset=-0.01)
+
+    # subplot delay map
+    ax2 = plt.subplot(332)
+    h1 = ax2.scatter(x, y, c=t_min, s=10, marker='o', edgecolor='None', cmap='gray')
+    h2 = plt.colorbar(h1)
+    h2.set_label(r'$\tau$ [ms]')
+    cross_hair(ax2, x_AIS, y_AIS)
+    set_axis_hidens(ax2, pos)
+    label_subplot(ax2, 'B', xoffset=-0.015, yoffset=-0.01)
+
+
+    # subplot histogram of delays
+    ax3 = plt.subplot(333)
+    ax3.hist(t_min, bins=len(t), facecolor='gray', edgecolor='gray')
+    ax3.scatter(t_min[index_AIS], 120, marker='v', s=100, edgecolor='None', facecolor='red')
+    # ax3.vlines(0, 0, 180, color='k', linestyles=':')
+    ax3.hlines(len(x)/len(t), min(t), max(t), color='k', linestyles='--')
+    ax3.set_ylim((0,200))
+    ax3.set_xlim((min(t),max(t)))
+    ax3.set_ylabel(r'count')
+    ax3.set_xlabel(r'$\tau$ [ms]')
+    without_spines_and_ticks(ax3)
+    label_subplot(ax3, 'C', xoffset=-0.04, yoffset=-0.01)
+
+    # ------------- second row
+
+    background_color = 'green'
+    example_background_index = 500
+    background_indicies = neighborhood(neighbors, example_background_index)
+    foreground_color = 'blue'
+    example_foreground_index = 8624
+    foreground_indicies = neighborhood(neighbors, example_foreground_index)
+
+    # Subplot neighborhood with uncorrelated negative peaks
+    ax4 = plt.subplot(637)
+    plot_traces_and_delays(ax4, V, t, t_min, background_indicies, offset=-2, ylim=(-10, 5), color=background_color)
+    ax4.text(-3.5, -7.5, r'$s_{\tau}$ = %0.3f ms' % std_delay[example_background_index])
+    ax4.set_yticks([-10,-5,0,5])
+    label_subplot(ax4, 'D', xoffset=-0.035, yoffset=-0.01)
+
+    # Subplot neighborhood with correlated negative peaks
+    ax5 = fig.add_subplot(6, 3, 10)
+    plot_traces_and_delays(ax5, V, t, t_min, foreground_indicies, offset=-20, ylim=(-30, 10), color=foreground_color)
+    ax5.text(-3.5, -22, r'$s_{\tau}$ = %0.3f ms' % std_delay[example_foreground_index])
+    ax5.set_yticks([-30,-20,-10,0,10])
+    label_subplot(ax5, 'F', xoffset=-0.035, yoffset=-0.01)
+
+    # subplot std_delay map
+    ax6 = plt.subplot(335)
+    h1 = ax6.scatter(x, y, c=std_delay, s=10, marker='o', edgecolor='None', cmap='gray')
+    h2 = plt.colorbar(h1)
+    h2.set_label(r'$s_{\tau}$ [ms]')
+    cross_hair(ax6, x_AIS, y_AIS)
+    ax6.scatter(x[background_indicies], y[background_indicies], s=10, marker='o', edgecolor='None', facecolor='green')
+    ax6.scatter(x[foreground_indicies], y[foreground_indicies], s=10, marker='o', edgecolor='None', facecolor='blue')
+    set_axis_hidens(ax6, pos)
+    label_subplot(ax6, 'F', xoffset=-0.015, yoffset=-0.01)
+
+    # subplot std_delay histogram
+    ax7 = plt.subplot(336)
+    ax7.hist(std_delay, bins=np.arange(0, max(t_min), step=DELAY_EPSILON), facecolor='gray', edgecolor='gray')
+    ax7.hist(std_delay, bins=np.arange(0, thr, step=DELAY_EPSILON), facecolor='k', edgecolor='k')
+    ax7.vlines(0, 0, 180, color='k', linestyles=':')
+    # ax7.hlines(len(x) / len(t), min(t), max(t), color='k', linestyles='--')
+    ax7.set_xlim((0, 4))
+    ax7.set_ylabel(r'count')
+    ax7.set_xlabel(r'$s_{\tau}$ [ms]')
+    without_spines_and_ticks(ax7)
+    label_subplot(ax7, 'G', xoffset=-0.04, yoffset=-0.01)
+
+    # ------------- third row
+
+    # plot map of delay greater zero
+    ax8 = plt.subplot(337)
+    ax8.scatter(x, y, c=positive_delay, s=10, marker='o', edgecolor='None', cmap='gray_r')
+    cross_hair(ax8, x_AIS, y_AIS)
+    set_axis_hidens(ax8, pos)
+    label_subplot(ax8, 'H', xoffset=-0.005, yoffset=-0.01)
+
+    # plot map of delay greater zero
+    ax9 = plt.subplot(338)
+    ax9.scatter(x, y, c=valid_delay, s=10, marker='o', edgecolor='None', cmap='gray_r')
+    cross_hair(ax9, x_AIS, y_AIS)
+    set_axis_hidens(ax9, pos)
+    label_subplot(ax9, 'I', xoffset=-0.005, yoffset=-0.01)
+
+    # plot map of delay greater zero
+    ax10 = plt.subplot(339)
+    ax10.scatter(x, y, c=axon, s=10, marker='o', edgecolor='None', cmap='gray_r')
+    cross_hair(ax10, x_AIS, y_AIS)
+    set_axis_hidens(ax10, pos)
+    label_subplot(ax10, 'J', xoffset=-0.005, yoffset=-0.01)
+
 
     plt.show()
 
