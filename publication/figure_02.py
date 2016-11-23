@@ -178,6 +178,7 @@ def figure02():
     h1 = ax2.scatter(x, y, c=t_min, s=10, marker='o', edgecolor='None', cmap='gray')
     h2 = plt.colorbar(h1)
     h2.set_label(r'$\tau$ [ms]')
+    h2.set_ticks(np.linspace(-4, 4, num=9))
     add_AIS_and_example_neighborhoods(ax2, x, y, index_AIS, indicies_background, indicies_foreground)
     set_axis_hidens(ax2, pos)
     label_subplot(ax2, 'B', xoffset=-0.015, yoffset=-0.01)
@@ -216,8 +217,9 @@ def figure02():
     # subplot std_delay map
     ax6 = plt.subplot(335)
     h1 = ax6.scatter(x, y, c=std_delay, s=10, marker='o', edgecolor='None', cmap='gray')
-    h2 = plt.colorbar(h1)
+    h2 = plt.colorbar(h1, boundaries=np.linspace(0,4,num=256))
     h2.set_label(r'$s_{\tau}$ [ms]')
+    h2.set_ticks(np.arange(0, 4.5, step=0.5))
     add_AIS_and_example_neighborhoods(ax6, x, y, index_AIS, indicies_background, indicies_foreground)
     set_axis_hidens(ax6, pos)
     label_subplot(ax6, 'F', xoffset=-0.015, yoffset=-0.01)
