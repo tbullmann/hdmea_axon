@@ -134,10 +134,10 @@ def plot_traces_and_delays(ax, V, t, delay, indicies, offset=None, ylim=None, co
     ax.set_ylabel(r'V [$\mu$V]')
     ax.set_xlabel(r'$\Delta$t [ms]')
     without_spines_and_ticks(ax)
-    shrink_yaxis(ax)
+    shrink_axes(ax, yshrink = 0.01)
 
 
-def shrink_yaxis(ax, yshrink = 0.01):
+def shrink_axes(ax, yshrink = 0, xshrink = 0):
     """
     Shrink height to fit with surrounding plots.
     :param ax: axis handle
@@ -146,4 +146,6 @@ def shrink_yaxis(ax, yshrink = 0.01):
     position = ax.get_position()
     position.y0 += yshrink
     position.y1 -= yshrink
+    position.x0 += xshrink
+    position.x1 -= xshrink
     ax.set_position(position)
