@@ -101,7 +101,6 @@ def figure02_original(testing=False):
 # Final figure 2
 
 def figure02():
-    fig = plt.figure('Figure 2', figsize=(18,14))
 
     # Load electrode coordinates
     pos = load_positions(FIGURE_ELECTRODES_FILE)
@@ -118,9 +117,9 @@ def figure02():
     logging.info ('Axonal delays:')
     logging.info (axonal_delay(axon, mean_delay))
 
-
-
-    # -------------- Plots
+    # Making figure
+    fig = plt.figure('Figure 2', figsize=(18,14))
+    fig.suptitle('Figure 2. Segmentation of the axon based on negative peak at neighboring electrodes', fontsize=14, fontweight='bold')
 
     # Define examples
     background_color = 'green'
@@ -135,10 +134,12 @@ def figure02():
     # subplot original unaligned traces
     ax1 = plt.subplot(331)
     V_AIS = V[index_AIS]  # Showing AIS trace in different color
+    V_axons = V[np.where(axon)]   # Showing AIS trace in different color
     ax1.plot(t, V.T,'-', color='gray', label='all' )
+    ax1.plot(t, V_axons.T,'-', color='black', label='axons' )
     ax1.plot(t, V_AIS, 'r-', label='AIS')
     ax1.scatter(delay[index_AIS], -550, marker='^', s=100, edgecolor='None', facecolor='red')
-    annotate_x_bar(peak_peak_domain(t, V_AIS), 150, text=' $\delta_p$ = %0.3f ms' % peak_peak_width(t, V_AIS))
+    # annotate_x_bar(peak_peak_domain(t, V_AIS), 150, text=' $\delta_p$ = %0.3f ms' % peak_peak_width(t, V_AIS))
     legend_without_multiple_labels(ax1, loc=4, frameon=False)
     ax1.set_xlim((-4,4))
     ax1.set_ylabel(r'V [$\mu$V]')
@@ -218,7 +219,7 @@ def figure02():
 
     # ------------- third row
 
-    # plot map of delay greater zero
+    # plot map of delay greater delay of AIS == positive_delay
     ax8 = plt.subplot(337)
     ax8.scatter(x, y, c=positive_delay, s=10, marker='o', edgecolor='None', cmap='gray_r')
     add_AIS_and_example_neighborhoods(ax8, x, y, index_AIS, indices_background, indices_foreground)
@@ -226,7 +227,7 @@ def figure02():
     set_axis_hidens(ax8, pos)
     label_subplot(ax8, 'H', xoffset=-0.005, yoffset=-0.01)
 
-    # plot map of delay greater zero
+    # plot map of thresholded std_delay
     ax9 = plt.subplot(338)
     ax9.scatter(x, y, c=valid_delay, s=10, marker='o', edgecolor='None', cmap='gray_r')
     ax9.text(300, 300, r'$s_{\tau} < s_{min}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
@@ -234,7 +235,7 @@ def figure02():
     set_axis_hidens(ax9, pos)
     label_subplot(ax9, 'I', xoffset=-0.005, yoffset=-0.01)
 
-    # plot map of delay greater zero
+    # plot map of axon
     ax10 = plt.subplot(339)
     ax10.scatter(x, y, c=axon, s=10, marker='o', edgecolor='None', cmap='gray_r')
     ax10.text(300, 300, 'axon', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
