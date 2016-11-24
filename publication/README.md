@@ -2,7 +2,13 @@
 
 ## Figure 1. Experiment overview (made with )
 
-## Figure 2~5. Data preparation (with matlab)
+## Figure 2. Segmentation of axon based on neighboring negative peaks
+ 
+## Figure 3. Distribution of standard deviation of random samples
+
+## Figure 4. Segmentation of dendrite based on neighboring positive peaks
+
+## Figure 5. Voltage peaks in axons and dendrites
 
 ## figure 6. Structual connectivity
 
