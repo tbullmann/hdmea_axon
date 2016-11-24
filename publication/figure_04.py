@@ -12,7 +12,7 @@ from publication.plotting import FIGURE_NEURON_FILE, FIGURE_ELECTRODES_FILE, wit
 logging.basicConfig(level=logging.DEBUG)
 
 
-# Final figure 2
+# Final figure 4
 
 def figure04():
 
