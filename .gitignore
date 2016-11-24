@@ -1,5 +1,4 @@
-.idea/*
-.idea/workspace.xml
+workspace.xml
 .DS_Store
 hana/data/*.*
 publication/temp/*.*
