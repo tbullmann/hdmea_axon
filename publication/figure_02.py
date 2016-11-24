@@ -113,10 +113,12 @@ def figure02():
 
     # Verbose axon segmentation function
     delay, mean_delay, std_delay, expected_std_delay, thr, valid_delay, index_AIS, positive_delay, axon \
-        = __segment_axon(V, t, neighbors)
+        = __segment_axon(t, V, neighbors)
 
     logging.info ('Axonal delays:')
     logging.info (axonal_delay(axon, mean_delay))
+
+
 
     # -------------- Plots
 
