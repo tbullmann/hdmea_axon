@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from hana.matlab import load_traces, load_positions
 from hana.plotting import annotate_x_bar, set_axis_hidens
 from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain, DELAY_EPSILON, neighborhood, \
-    __segment_axon, axonal_delay, electrode_neighborhoods
+    __segment_axon, restrict_to_compartment, electrode_neighborhoods
 from publication.plotting import FIGURE_NEURON_FILE, FIGURE_ELECTRODES_FILE, without_spines_and_ticks, cross_hair, \
     legend_without_multiple_labels, label_subplot, plot_traces_and_delays, shrink_axes
 
@@ -115,7 +115,7 @@ def figure02():
         = __segment_axon(t, V, neighbors)
 
     logging.info ('Axonal delays:')
-    logging.info (axonal_delay(axon, mean_delay))
+    logging.info (restrict_to_compartment(mean_delay, axon))
 
     # Making figure
     fig = plt.figure('Figure 2', figsize=(18,14))

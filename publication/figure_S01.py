@@ -5,13 +5,14 @@ from matplotlib import pyplot as plt
 
 from hana.matlab import load_traces, load_positions
 from hana.plotting import set_axis_hidens
-from hana.recording import electrode_neighborhoods, __segment_dendrite, __segment_axon
+from hana.recording import electrode_neighborhoods, find_AIS, segment_dendrite, segment_axon
 from publication.plotting import FIGURE_ELECTRODES_FILE, FIGURE_NEURON_FILE_FORMAT, FIGURE_NEURONS, \
     cross_hair, shrink_axes
 
 logging.basicConfig(level=logging.DEBUG)
 
 MAX_AXON_ELECTRODES = 5000  #TODO: Maybe over 50% of all electrodes is a good cutoff
+
 
 
 # figure S1
@@ -34,8 +35,11 @@ def figureS1(neurons = None):
         t *= 1000  # convert to ms
 
         # Segment axon and dendrite
-        _, _, _, _, _, _, index_AIS, _, axon = __segment_axon(t, V, neighbors)
-        _, _, _, _, _, _, _, _, _, _, dendrite = __segment_dendrite(t, V, neighbors)
+        index_AIS = find_AIS(V)
+        axonal_delay = segment_axon(t, V, neighbors)
+        axon = np.isfinite(axonal_delay)
+        dendrite_return_current = segment_dendrite(t, V, neighbors)
+        dendrite = np.isfinite(dendrite_return_current)
         number_axon_electrodes = sum(axon)
         number_dendrite_electrodes = sum(dendrite)
         logging.info('%d electrodes near axons, %d electrodes near dendrites' % (number_axon_electrodes, number_dendrite_electrodes))
@@ -75,7 +79,6 @@ def figureS1(neurons = None):
     plt.show()
     logging.info('Plotted neurons:')
     logging.info(plotted_neurons)
-
 
 # figureS1()  # Plots all neurons
 figureS1(FIGURE_NEURONS)
