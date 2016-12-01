@@ -1,12 +1,14 @@
-from hana.matlab import load_traces, load_positions
-from hana.plotting import set_axis_hidens
-from hana.recording import electrode_neighborhoods, __segment_dendrite, __segment_axon
-from publication.plotting import FIGURE_ELECTRODES_FILE, cross_hair, shrink_axes
+import logging
 
 import numpy as np
 from matplotlib import pyplot as plt
 
-import logging
+from hana.matlab import load_traces, load_positions
+from hana.plotting import set_axis_hidens
+from hana.recording import electrode_neighborhoods, __segment_dendrite, __segment_axon
+from publication.plotting import FIGURE_ELECTRODES_FILE, FIGURE_NEURON_FILE_FORMAT, FIGURE_NEURONS, \
+    cross_hair, shrink_axes
+
 logging.basicConfig(level=logging.DEBUG)
 
 MAX_AXON_ELECTRODES = 5000  #TODO: Maybe over 50% of all electrodes is a good cutoff
@@ -14,16 +16,21 @@ MAX_AXON_ELECTRODES = 5000  #TODO: Maybe over 50% of all electrodes is a good cu
 
 # figure S1
 
-def figureS1():
+def figureS1(neurons = None):
 
     # Load electrode coordinates
     pos = load_positions(FIGURE_ELECTRODES_FILE)
     neighbors = electrode_neighborhoods(pos)
 
+    # If nothing specified, plot everything TODO: Something more flexible like reading actual filelist
+    if not neurons: neurons = range(2, 63)
+
     index_plot = 0
-    for neuron in range(2, 63):
+    plotted_neurons = list()
+
+    for neuron in neurons:
         # Load  data
-        V, t, x, y, trigger, neuron = load_traces('data/neuron%d.h5' % (neuron))
+        V, t, x, y, trigger, neuron = load_traces(FIGURE_NEURON_FILE_FORMAT % (neuron))
         t *= 1000  # convert to ms
 
         # Segment axon and dendrite
@@ -34,6 +41,8 @@ def figureS1():
         logging.info('%d electrodes near axons, %d electrodes near dendrites' % (number_axon_electrodes, number_dendrite_electrodes))
 
         if number_dendrite_electrodes>0 and number_axon_electrodes>7 and number_axon_electrodes<MAX_AXON_ELECTRODES:
+
+            plotted_neurons.append(int(neuron))
 
             # New figure every 6 plots
             if index_plot % 6 == 0:
@@ -64,6 +73,9 @@ def figureS1():
             logging.info ('Nothing to plot.')
 
     plt.show()
+    logging.info('Plotted neurons:')
+    logging.info(plotted_neurons)
 
 
-figureS1()
+# figureS1()  # Plots all neurons
+figureS1(FIGURE_NEURONS)
