@@ -124,3 +124,6 @@ def extract_compartments(t, V, neighbors):
 
 # figureS1(range(2, 63))  # Plots all neurons
 figureS1(FIGURE_NEURONS)
+
+
+# TODO: recordings.extract_neurites (extract and save as hdf5),  recordings.load_neurites, compare structure with  matlab.load_neurites
