@@ -1,6 +1,6 @@
 from hana.matlab import load_neurites
 from hana.structure import all_overlaps
-from publication.plotting import plot_parameter_dependency, FIGURE_ARBORS_FILE
+from publication.plotting import plot_parameter_dependency, FIGURE_ARBORS_MATFILE
 
 import numpy as np
 import networkx as nx
@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.DEBUG)
 # Data preparation
 
 def explore_parameter_space_for_structural_connectivity():
-    axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_FILE)
+    axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_MATFILE)
 
     resolution = 3
     alpha = np.float64(range(-5*resolution,5*resolution+1))/resolution

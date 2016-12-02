@@ -2,7 +2,7 @@ from hana.matlab import load_neurites, load_positions
 from hana.structure import find_overlap, all_overlaps
 from hana.plotting import plot_axon, plot_dendrite, plot_neuron_points, plot_neuron_pair, plot_network, set_axis_hidens
 from hana.misc import unique_neurons
-from publication.plotting import FIGURE_ARBORS_FILE, FIGURE_ELECTRODES_FILE
+from publication.plotting import FIGURE_ARBORS_MATFILE, FIGURE_ELECTRODES_FILE
 
 from matplotlib import pyplot as plt
 
@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 def test_plot_all_axonal_fields():
     """Display axonal field for each neuron, good examples are 3605, 9952, 3093"""
-    axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_FILE)
+    axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_MATFILE)
     pos = load_positions(FIGURE_ELECTRODES_FILE)
     for neuron in axon_delay :
         ax=plt.subplot(111)
@@ -28,7 +28,7 @@ def test_plot_all_axonal_fields():
 def test_plot_all_dendritic_fields_vs_one_axonal_field (presynaptic_neuron):
     """Display dendritic field for each neuron,
     good examples are 3605->7374,5242,4972,not 6271,6294,8060; 9952->not3605,7374,4972,5242;3093->3605, not7374,5242,4972"""
-    axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_FILE)
+    axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_MATFILE)
     pos = load_positions(FIGURE_ELECTRODES_FILE)
     for postsynaptic_neuron in dendrite_peak :
         ax=plt.subplot(111)
@@ -43,7 +43,7 @@ def test_plot_all_dendritic_fields_vs_one_axonal_field (presynaptic_neuron):
 
 def Figure06_only_overlap():
     """Plot overlap between axonal and dendritic fields of a presumably pre- and post-synaptic neuron pair"""
-    axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_FILE)
+    axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_MATFILE)
     pos = load_positions(FIGURE_ELECTRODES_FILE)
     presynaptic_neuron = 3605
     postsynaptic_neuron = 4972
@@ -59,7 +59,7 @@ def Figure06_only_overlap():
 # Final version
 
 def Figure06():
-    axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_FILE)
+    axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_MATFILE)
     pos = load_positions(FIGURE_ELECTRODES_FILE)
 
     presynaptic_neuron = 3605

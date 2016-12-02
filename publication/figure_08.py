@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from hana.matlab import load_neurites, load_events, load_positions, events_to_timeseries
 from hana.polychronous import filter, combine, group, plot, plot_pcg_on_network, plot_pcg
 from hana.structure import all_overlaps
-from publication.plotting import FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, FIGURE_ELECTRODES_FILE, plot_loglog_fit
+from publication.plotting import FIGURE_ARBORS_MATFILE, FIGURE_EVENTS_FILE, FIGURE_ELECTRODES_FILE, plot_loglog_fit
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -40,7 +40,7 @@ def testing_algorithm():
 
 def figure08():
     if not os.path.isfile('temp/all_delays.p'):
-        axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_FILE)
+        axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_MATFILE)
         _, all_delays = all_overlaps(axon_delay, dendrite_peak)
         pickle.dump(all_delays, open('temp/all_delays.p', 'wb'))
 
