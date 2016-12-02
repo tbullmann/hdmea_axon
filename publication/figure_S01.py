@@ -1,17 +1,13 @@
 import logging
-
+import os
 import numpy as np
 from matplotlib import pyplot as plt
 
 from hana.matlab import load_traces, load_positions
 from hana.plotting import set_axis_hidens
-from hana.recording import electrode_neighborhoods, find_AIS, segment_dendrite, segment_axon
-from publication.plotting import FIGURE_ELECTRODES_FILE, FIGURE_NEURON_FILE_FORMAT, FIGURE_NEURONS, \
-    cross_hair, shrink_axes
-
-MIN_DENDRITE_ELECTRODES = 0  #TODO: Maybe at least one electrode
-MIN_AXON_ELECTRODES = 7  #TODO: Maybe at least one neighborhood
-MAX_AXON_ELECTRODES = 5000  #TODO: Maybe over 50% of all electrodes is a good cutoff
+from hana.structure import load_neurites, extract_neurites
+from publication.plotting import FIGURE_ELECTRODES_FILE, cross_hair, shrink_axes, \
+    FIGURE_ARBORS_FILE, FIGURE_NEURONS, FIGURE_NEURON_FILE_FORMAT
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -27,12 +23,15 @@ def figureS1(neurons):
     x = pos.x
     y = pos.y
 
-    all_triggers, all_AIS, all_axonal_delays, all_dendritic_return_currents = extract_all_compartments(neurons)
+    # all_triggers, all_AIS, all_axonal_delays, all_dendritic_return_currents = extract_all_compartments(neurons)
+    if not os.path.isfile(FIGURE_ARBORS_FILE):
+        extract_neurites(FIGURE_NEURON_FILE_FORMAT, FIGURE_ARBORS_FILE)
+    all_triggers, all_AIS, all_axonal_delays, all_dendritic_return_currents = load_neurites(FIGURE_ARBORS_FILE)
 
     index_plot = 0
     plotted_neurons = []
 
-    for neuron in neurons:
+    for neuron in all_axonal_delays.keys():
 
         plotted_neurons.append(int(neuron))
 
@@ -68,62 +67,25 @@ def figureS1(neurons):
     logging.info(plotted_neurons)
 
 
-def extract_all_compartments(neurons):
+# Testing extraction
 
-    # Load electrode coordinates and calculate neighborhood
-    pos = load_positions(FIGURE_ELECTRODES_FILE)
-    neighbors = electrode_neighborhoods(pos)
+def test_neurite_extraction():
+    extract_neurites(FIGURE_NEURON_FILE_FORMAT, FIGURE_ARBORS_FILE)
 
-    # Initialize dictionaries
-    extracted_neurons = []
-    all_triggers = {}
-    all_AIS = {}
-    all_axonal_delays = {}
-    all_dendritic_return_currents = {}
+    trigger, AIS, delay, positive_peak = load_neurites(FIGURE_ARBORS_FILE)
+    print('NEW: neuron indices as keys')
+    print(trigger.keys())
 
-    for neuron in neurons:
-        # Load  data
-        V, t, x, y, trigger, _ = load_traces(FIGURE_NEURON_FILE_FORMAT % (neuron))
-        t *= 1000  # convert to ms
+    # old version (extraction was done in matlab)
+    import hana
+    from publication.plotting import FIGURE_ARBORS_MATFILE
 
-        axon, dendrite, axonal_delay, dendrite_return_current, index_AIS, number_axon_electrodes, \
-        number_dendrite_electrodes = extract_compartments(t, V, neighbors)
-
-        if number_dendrite_electrodes> MIN_DENDRITE_ELECTRODES \
-                and number_axon_electrodes>MIN_AXON_ELECTRODES and number_axon_electrodes<MAX_AXON_ELECTRODES:
-
-            extracted_neurons.append(int(neuron))
-            all_triggers[neuron] = trigger
-            all_AIS[neuron] = index_AIS
-            all_axonal_delays[neuron] = axonal_delay
-            all_dendritic_return_currents[neuron] = dendrite_return_current
-        else:
-            logging.info('No axonal and dendritic compartment(s).')
-
-    plt.show()
-    logging.info('Neurons with axonal and dendritic arbors:')
-    logging.info(extracted_neurons)
-
-    return all_triggers, all_AIS, all_axonal_delays, all_dendritic_return_currents
+    delay2, positive_peak2 = hana.matlab.load_neurites(FIGURE_ARBORS_MATFILE)
+    print('OLD: electrode indices as keys')
+    print (delay2.keys())
 
 
-def extract_compartments(t, V, neighbors):
-    # Segment axon and dendrite
-    index_AIS = find_AIS(V)
-    axonal_delay = segment_axon(t, V, neighbors)
-    axon = np.isfinite(axonal_delay)
-    dendrite_return_current = segment_dendrite(t, V, neighbors)
-    dendrite = np.isfinite(dendrite_return_current)
-    number_axon_electrodes = sum(axon)
-    number_dendrite_electrodes = sum(dendrite)
-    logging.info(
-        '%d electrodes near axons, %d electrodes near dendrites' % (number_axon_electrodes, number_dendrite_electrodes))
-    return axon, dendrite, axonal_delay, dendrite_return_current, index_AIS, number_axon_electrodes, number_dendrite_electrodes
-
-
-
+# test_neurite_extraction()
 # figureS1(range(2, 63))  # Plots all neurons
 figureS1(FIGURE_NEURONS)
 
-
-# TODO: recordings.extract_neurites (extract and save as hdf5),  recordings.load_neurites, compare structure with  matlab.load_neurites
