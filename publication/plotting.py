@@ -7,7 +7,7 @@ from scipy.optimize import curve_fit
 logging.basicConfig(level=logging.DEBUG)
 
 
-FIGURE_ARBORS_FILE = 'data/hidens2018at35C_arbors.mat'
+FIGURE_ARBORS_MATFILE = 'data/hidens2018at35C_arbors.mat'
 FIGURE_EVENTS_FILE = 'data/hidens2018at35C_events.mat'
 FIGURE_ELECTRODES_FILE = 'data/hidens_electrodes.mat'
 FIGURE_NEURON_FILE = 'data/neuron5.h5'
@@ -151,3 +151,6 @@ def shrink_axes(ax, yshrink = 0, xshrink = 0):
     position.x0 += xshrink
     position.x1 -= xshrink
     ax.set_position(position)
+
+
+FIGURE_ARBORS_FILE = 'temp/all_neurites.h5'
