@@ -3,11 +3,10 @@ import os
 import numpy as np
 from matplotlib import pyplot as plt
 
-from hana.matlab import load_traces, load_positions
+from hana.recording import load_positions, HIDENS_ELETRODES_FILE
 from hana.plotting import set_axis_hidens
 from hana.structure import load_neurites, extract_neurites
-from publication.plotting import FIGURE_ELECTRODES_FILE, cross_hair, shrink_axes, \
-    FIGURE_ARBORS_FILE, FIGURE_NEURONS, FIGURE_NEURON_FILE_FORMAT
+from publication.plotting import cross_hair, shrink_axes, FIGURE_ARBORS_FILE, FIGURE_NEURONS, FIGURE_NEURON_FILE_FORMAT
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -19,7 +18,7 @@ logging.basicConfig(level=logging.DEBUG)
 def figureS1(neurons):
 
     # Load electrode coordinates and calculate neighborhood
-    pos = load_positions(FIGURE_ELECTRODES_FILE)
+    pos = load_positions(HIDENS_ELETRODES_FILE)
     x = pos.x
     y = pos.y
 
