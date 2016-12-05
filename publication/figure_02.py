@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from hana.plotting import annotate_x_bar, set_axis_hidens
 from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain, DELAY_EPSILON, neighborhood, \
     __segment_axon, restrict_to_compartment, electrode_neighborhoods, load_traces, load_positions, HIDENS_ELECTRODES_FILE
-from publication.plotting import FIGURE_NEURON_FILE, FIGURE_ELECTRODES_MATFILE, without_spines_and_ticks, cross_hair, \
+from publication.plotting import FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
     legend_without_multiple_labels, label_subplot, plot_traces_and_delays, shrink_axes
 
 logging.basicConfig(level=logging.DEBUG)

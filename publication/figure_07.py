@@ -4,16 +4,17 @@ import os
 from matplotlib import pyplot as plt
 
 from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks, timelag_standardscore
-from hana.matlab import load_events, events_to_timeseries, load_positions
+from hana.structure import load_compartments, neuron_position_from_trigger_electrode
+from hana.recording import load_timeseries, load_positions, HIDENS_ELECTRODES_FILE
+# from hana.matlab import load_events, events_to_timeseries, load_positions
 from hana.plotting import plot_network, plot_neuron_points, plot_neuron_id, set_axis_hidens, \
     plot_timeseries_hist_and_surrogates, plot_std_score_and_peaks, highlight_connection
 from hana.misc import unique_neurons
-from publication.plotting import FIGURE_EVENTS_FILE
+from publication.plotting import FIGURE_EVENTS_FILE, FIGURE_ARBORS_FILE
 
 
 def detect_function_networks():
-    events = load_events (FIGURE_EVENTS_FILE)
-    timeseries = events_to_timeseries(events)
+    timeseries = load_timeseries(FIGURE_EVENTS_FILE)
     timeseries_surrogates = timeseries_to_surrogates(timeseries)
     timelags, std_score_dict, timeseries_hist_dict = all_timelag_standardscore(timeseries, timeseries_surrogates)
 
@@ -121,20 +122,26 @@ def Figure07(thr =20):
     neuron pairs within the network"""
     timeseries, timeseries_surrogates = pickle.load(open( 'temp/timeseries_and_surrogates.p','rb'))
     timelags, std_score_dict, timeseries_hist_dict = pickle.load(open( 'temp/standardscores.p','rb'))
-    pos = load_positions('data/hidens_electrodes.mat')
-    pre, post  = 4972, 3240   # pre, post = 8060,7374
+
+    trigger, _, axon_delay, dendrite_peak = load_compartments(FIGURE_ARBORS_FILE)
+    pos = load_positions(HIDENS_ELECTRODES_FILE)
+    neuron_pos = neuron_position_from_trigger_electrode (pos, trigger)
+
+    # for k,v in trigger.iteritems(): print (k,v)  # show neuron -> trigger electrode index
+    pre, post  = 10, 4 # electrodes 4972, 3240
+    # pre, post = 37, 31 #  pre, post = 8060,7374
     plt.figure('Figure 7', figsize=(16, 16))
     # Plotting forward
     ax1 = plt.subplot(222)
     ax2 = plt.subplot(421)
     ax3 = plt.subplot(423)
-    plot_func_example_and_network(ax1, ax2, ax3, pre, post, 'forward', thr, pos, std_score_dict,
+    plot_func_example_and_network(ax1, ax2, ax3, pre, post, 'forward', thr, neuron_pos, std_score_dict,
                                   timelags, timeseries, timeseries_surrogates)
     # Plotting reverse
     ax4 = plt.subplot(224)
     ax5 = plt.subplot(425)
     ax6 = plt.subplot(427)
-    plot_func_example_and_network(ax4, ax5, ax6, pre, post, 'reverse', thr, pos, std_score_dict,
+    plot_func_example_and_network(ax4, ax5, ax6, pre, post, 'reverse', thr, neuron_pos, std_score_dict,
                                   timelags, timeseries, timeseries_surrogates)
     plt.show()
 

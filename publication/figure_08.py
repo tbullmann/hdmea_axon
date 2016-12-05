@@ -3,10 +3,12 @@ import pickle
 
 from matplotlib import pyplot as plt
 
-from hana.matlab import load_neurites, load_events, load_positions, events_to_timeseries
+# from hana.matlab import load_neurites, load_events, load_positions, events_to_timeseries
+from hana.recording import load_positions, load_timeseries, HIDENS_ELECTRODES_FILE
+from hana.structure import load_neurites, load_compartments, neuron_position_from_trigger_electrode
 from hana.polychronous import filter, combine, group, plot, plot_pcg_on_network, plot_pcg
 from hana.structure import all_overlaps
-from publication.plotting import FIGURE_ARBORS_MATFILE, FIGURE_EVENTS_FILE, FIGURE_ELECTRODES_FILE, plot_loglog_fit
+from publication.plotting import FIGURE_ARBORS_FILE, plot_loglog_fit, FIGURE_EVENTS_FILE
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -38,16 +40,37 @@ def testing_algorithm():
 
 # Final figure 8
 
+def interval_timeseries (timeseries):
+    first, last = [], []
+    for neuron in timeseries:
+        first.append (min(timeseries[neuron]))
+        last.append(max(timeseries[neuron]))
+    return min(first), max(last)
+
+def partial_timeseries (timeseries, interval=0.1):
+
+    begin, end = interval_timeseries(timeseries)
+
+    if interval is not tuple:
+        partial_begin, partial_end = (begin, (end-begin) * interval)
+    else:
+        partial_begin, partial_end = interval
+
+    for neuron in timeseries:
+        timeseries[neuron] = timeseries[neuron][np.logical_and(timeseries[neuron]>partial_begin,timeseries[neuron]<partial_end)]
+
+    logging.info('Partial timeseries spanning %d~%d [s] of total %d~%d [s]' % (partial_begin, partial_end, begin, end))
+    return timeseries
+
 def figure08():
     if not os.path.isfile('temp/all_delays.p'):
-        axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_MATFILE)
+        axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_FILE)
         _, all_delays = all_overlaps(axon_delay, dendrite_peak)
         pickle.dump(all_delays, open('temp/all_delays.p', 'wb'))
 
     if not os.path.isfile('temp/partial_timeseries.p'):
-        events = load_events(FIGURE_EVENTS_FILE)
-        events = events[0:10000] # for figures
-        timeseries = events_to_timeseries(events)
+        timeseries = load_timeseries(FIGURE_EVENTS_FILE)
+        timeseries = partial_timeseries(timeseries)
         pickle.dump(timeseries, open('temp/partial_timeseries.p', 'wb'))
 
     if not os.path.isfile('temp/connected_events.p'):
@@ -88,9 +111,11 @@ def figure08():
 
     # plot example of a single polychronous group onto network
     ax4 = plt.subplot(224)
-    pos = load_positions(FIGURE_ELECTRODES_FILE)
+    trigger, _, axon_delay, dendrite_peak = load_compartments(FIGURE_ARBORS_FILE)
+    pos = load_positions(HIDENS_ELECTRODES_FILE)
+    neuron_pos = neuron_position_from_trigger_electrode (pos, trigger)
     all_delay = pickle.load(open('temp/all_delays.p', 'rb'))
-    plot_pcg_on_network(ax4, polychronous_group, all_delay, pos)
+    plot_pcg_on_network(ax4, polychronous_group, all_delay, neuron_pos)
     ax4.set_title('network activation by polychronous group')
 
 

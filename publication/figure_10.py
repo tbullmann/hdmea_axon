@@ -1,5 +1,5 @@
 from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks
-from hana.matlab import load_events, events_to_timeseries
+from hana.recording import load_timeseries
 from publication.plotting import plot_parameter_dependency, FIGURE_EVENTS_FILE
 
 import networkx as nx
@@ -13,8 +13,7 @@ logging.basicConfig(level=logging.DEBUG)
 # Data preparation
 
 def prepare_timeseries_for_figures():
-    events = load_events(FIGURE_EVENTS_FILE)
-    timeseries = events_to_timeseries(events)
+    timeseries =load_timeseries(FIGURE_EVENTS_FILE)
     pickle.dump((timeseries), open('temp/timeseries.p', 'wb'))
 
 
