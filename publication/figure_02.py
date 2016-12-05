@@ -3,11 +3,10 @@ import logging
 import numpy as np
 from matplotlib import pyplot as plt
 
-from hana.matlab import load_traces, load_positions
 from hana.plotting import annotate_x_bar, set_axis_hidens
 from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain, DELAY_EPSILON, neighborhood, \
-    __segment_axon, restrict_to_compartment, electrode_neighborhoods
-from publication.plotting import FIGURE_NEURON_FILE, FIGURE_ELECTRODES_FILE, without_spines_and_ticks, cross_hair, \
+    __segment_axon, restrict_to_compartment, electrode_neighborhoods, load_traces, load_positions, HIDENS_ELETRODES_FILE
+from publication.plotting import FIGURE_NEURON_FILE, FIGURE_ELECTRODES_MATFILE, without_spines_and_ticks, cross_hair, \
     legend_without_multiple_labels, label_subplot, plot_traces_and_delays, shrink_axes
 
 logging.basicConfig(level=logging.DEBUG)
@@ -29,7 +28,7 @@ def testing_load_traces():
 def figure02_original(testing=False):
     plt.figure('Figure 2', figsize=(12, 9))
 
-    pos = load_positions(FIGURE_ELECTRODES_FILE)  # only used for set_axis_hidens
+    pos = load_positions(FIGURE_ELECTRODES_MATFILE)  # only used for set_axis_hidens
     V, t, x, y, trigger, neuron = load_traces(FIGURE_NEURON_FILE)
     t *= 1000  # convert to ms
 
@@ -103,7 +102,7 @@ def figure02_original(testing=False):
 def figure02():
 
     # Load electrode coordinates
-    pos = load_positions(FIGURE_ELECTRODES_FILE)
+    pos = load_positions(HIDENS_ELETRODES_FILE)
     neighbors = electrode_neighborhoods(pos)
 
     # Load example data
