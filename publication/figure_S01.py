@@ -3,9 +3,9 @@ import os
 import numpy as np
 from matplotlib import pyplot as plt
 
-from hana.recording import load_positions, HIDENS_ELETRODES_FILE
+from hana.recording import load_positions, HIDENS_ELECTRODES_FILE
 from hana.plotting import set_axis_hidens
-from hana.structure import load_neurites, extract_neurites
+from hana.structure import load_neurites, extract_neurites, load_compartments
 from publication.plotting import cross_hair, shrink_axes, FIGURE_ARBORS_FILE, FIGURE_NEURONS, FIGURE_NEURON_FILE_FORMAT
 
 logging.basicConfig(level=logging.DEBUG)
@@ -18,14 +18,14 @@ logging.basicConfig(level=logging.DEBUG)
 def figureS1(neurons):
 
     # Load electrode coordinates and calculate neighborhood
-    pos = load_positions(HIDENS_ELETRODES_FILE)
+    pos = load_positions(HIDENS_ELECTRODES_FILE)
     x = pos.x
     y = pos.y
 
     # all_triggers, all_AIS, all_axonal_delays, all_dendritic_return_currents = extract_all_compartments(neurons)
     if not os.path.isfile(FIGURE_ARBORS_FILE):
         extract_neurites(FIGURE_NEURON_FILE_FORMAT, FIGURE_ARBORS_FILE)
-    all_triggers, all_AIS, all_axonal_delays, all_dendritic_return_currents = load_neurites(FIGURE_ARBORS_FILE)
+    all_triggers, all_AIS, all_axonal_delays, all_dendritic_return_currents = load_compartments(FIGURE_ARBORS_FILE)
 
     index_plot = 0
     plotted_neurons = []
