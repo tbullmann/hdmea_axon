@@ -75,6 +75,7 @@ def figure08():
     plt.subplot(221)
     plot(graph_of_connected_events)
     plt.xlim((590,700))
+    plt.ylim((0,60))
 
     # plot size distribution
     ax2 = plt.subplot(222)
@@ -85,6 +86,8 @@ def figure08():
     ax = plt.subplot(223)
     polychronous_group = list_of_polychronous_groups[3]   #10 too complex, 7 highly repetetive
     plot_pcg(ax, polychronous_group)
+    plt.ylim((0,60))
+
 
     # plot example of a single polychronous group onto network
     ax4 = plt.subplot(224)
