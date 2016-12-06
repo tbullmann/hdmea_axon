@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 
 from hana.recording import load_positions, HIDENS_ELECTRODES_FILE
 from hana.plotting import set_axis_hidens
-from hana.structure import load_neurites, load_compartments, extract_neurites
+from hana.structure import load_neurites, load_compartments, extract_and_save_compartments
 from publication.plotting import cross_hair, shrink_axes, FIGURE_ARBORS_FILE, FIGURE_NEURONS, FIGURE_NEURON_FILE_FORMAT
 
 logging.basicConfig(level=logging.DEBUG)
@@ -24,7 +24,7 @@ def figureS1(neurons):
 
     # all_triggers, all_AIS, all_axonal_delays, all_dendritic_return_currents = extract_all_compartments(neurons)
     if not os.path.isfile(FIGURE_ARBORS_FILE):
-        extract_neurites(FIGURE_NEURON_FILE_FORMAT, FIGURE_ARBORS_FILE)
+        extract_and_save_compartments(FIGURE_NEURON_FILE_FORMAT, FIGURE_ARBORS_FILE)
     all_triggers, all_AIS, all_axonal_delays, all_dendritic_return_currents = load_compartments(FIGURE_ARBORS_FILE)
 
     index_plot = 0
@@ -69,7 +69,7 @@ def figureS1(neurons):
 # Testing extraction
 
 def test_neurite_extraction():
-    extract_neurites(FIGURE_NEURON_FILE_FORMAT, FIGURE_ARBORS_FILE)
+    extract_and_save_compartments(FIGURE_NEURON_FILE_FORMAT, FIGURE_ARBORS_FILE)
 
     trigger, AIS, delay, positive_peak = load_neurites(FIGURE_ARBORS_FILE)
     print('NEW: neuron indices as keys')

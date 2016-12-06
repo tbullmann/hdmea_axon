@@ -7,14 +7,12 @@ from scipy.optimize import curve_fit
 logging.basicConfig(level=logging.DEBUG)
 
 
-# FIGURE_ARBORS_MATFILE = 'data/hidens2018at35C_arbors.mat'
-# FIGURE_EVENTS_FILE = 'data/hidens2018at35C_events.mat'
 FIGURE_EVENTS_FILE = 'data/events.h5'
-# FIGURE_ELECTRODES_MATFILE = 'data/hidens_electrodes.mat'
+FIGURE_ARBORS_FILE = 'temp/all_neurites.h5'
 FIGURE_NEURON_FILE = 'data/neuron5.h5'
 FIGURE_NEURON_FILE_FORMAT = 'data/neuron%d.h5'
-# FIGURE_NEURONS = [2, 3, 4, 5, 10, 11, 13, 17, 20, 21, 22, 23, 25, 27, 29, 31, 35, 36, 37, 41, 49, 50, 51, 59, 62]
 FIGURE_NEURONS = [2, 3, 4, 5, 10, 11, 13, 20, 21, 22, 23, 25, 27, 29, 31, 35, 36, 37, 41, 49, 50, 51, 59]
+
 
 def plot_parameter_dependency(ax, Z, x, y, w=None, levels=None, fmt='%d', legend_loc='lower right'):
     """
@@ -26,7 +24,7 @@ def plot_parameter_dependency(ax, Z, x, y, w=None, levels=None, fmt='%d', legend
     :param w: (two) parameter values for overlay, w=None if not applicable
     :param levels: list of Z values, for which contour lines are plotted
     :param fmt: format string for labeling of contour lines
-    :return:
+    :param legend_loc: Placement of legend
     """
     from scipy.ndimage.filters import gaussian_filter
     import matplotlib.patches as mpatches
@@ -153,5 +151,3 @@ def shrink_axes(ax, yshrink = 0, xshrink = 0):
     position.x1 -= xshrink
     ax.set_position(position)
 
-
-FIGURE_ARBORS_FILE = 'temp/all_neurites.h5'
