@@ -24,7 +24,8 @@ def explore_parameter_space_for_functional_connectivity():
     resolution = 4
     resolution = 1 # for testing
     factors = list(2**(np.float(exp)/resolution) for exp in range(6*resolution+1))
-    logging.info('Factors: ', factors)
+    logging.info('Factors: ')
+    logging.info(factors)
     resolution = 2 # for testing
     thresholds = list(2**(np.float(exp)/resolution) for exp in range(6*resolution+1))
     directions = ('forward','reverse')
