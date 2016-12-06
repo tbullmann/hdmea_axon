@@ -1,4 +1,4 @@
-from hana.structure import load_neurites
+from hana.segmentation import load_neurites
 from hana.structure import all_overlaps
 from publication.plotting import plot_parameter_dependency, FIGURE_ARBORS_FILE
 

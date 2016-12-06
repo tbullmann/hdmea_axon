@@ -1,13 +1,12 @@
-import logging
+from hana.plotting import annotate_x_bar, set_axis_hidens
+from hana.recording import half_peak_width, half_peak_domain, electrode_neighborhoods, DELAY_EPSILON, load_positions, load_traces, HIDENS_ELECTRODES_FILE
+from hana.segmentation import __segment_dendrite
+from publication.plotting import FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
+    legend_without_multiple_labels, label_subplot, shrink_axes
 
 import numpy as np
 from matplotlib import pyplot as plt
-
-from hana.plotting import annotate_x_bar, set_axis_hidens
-from hana.recording import half_peak_width, half_peak_domain, electrode_neighborhoods, __segment_dendrite, DELAY_EPSILON, load_positions, load_traces, HIDENS_ELECTRODES_FILE
-from publication.plotting import FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
-    legend_without_multiple_labels, label_subplot, plot_traces_and_delays, shrink_axes
-
+import logging
 logging.basicConfig(level=logging.DEBUG)
 
 

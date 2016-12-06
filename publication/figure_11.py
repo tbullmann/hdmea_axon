@@ -4,7 +4,6 @@ from publication.plotting import plot_parameter_dependency
 from numpy import linspace, zeros, ones
 from scipy.stats import pearsonr
 from matplotlib import pyplot as plt
-
 import os, pickle, logging
 logging.basicConfig(level=logging.DEBUG)
 

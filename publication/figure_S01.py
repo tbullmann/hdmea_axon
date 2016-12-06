@@ -1,13 +1,12 @@
-import logging
+from hana.recording import load_positions, HIDENS_ELECTRODES_FILE
+from hana.plotting import set_axis_hidens
+from hana.segmentation import extract_and_save_compartments, load_compartments, load_neurites
+from publication.plotting import cross_hair, shrink_axes, FIGURE_ARBORS_FILE, FIGURE_NEURONS, FIGURE_NEURON_FILE_FORMAT
+
 import os
 import numpy as np
 from matplotlib import pyplot as plt
-
-from hana.recording import load_positions, HIDENS_ELECTRODES_FILE
-from hana.plotting import set_axis_hidens
-from hana.structure import load_neurites, load_compartments, extract_and_save_compartments
-from publication.plotting import cross_hair, shrink_axes, FIGURE_ARBORS_FILE, FIGURE_NEURONS, FIGURE_NEURON_FILE_FORMAT
-
+import logging
 logging.basicConfig(level=logging.DEBUG)
 
 

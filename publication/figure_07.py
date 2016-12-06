@@ -1,16 +1,14 @@
-import pickle
-import os
-
-from matplotlib import pyplot as plt
-
 from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks, timelag_standardscore
-from hana.structure import load_compartments, neuron_position_from_trigger_electrode
+from hana.segmentation import load_compartments, neuron_position_from_trigger_electrode
 from hana.recording import load_timeseries, load_positions, HIDENS_ELECTRODES_FILE
-# from hana.matlab import load_events, events_to_timeseries, load_positions
 from hana.plotting import plot_network, plot_neuron_points, plot_neuron_id, set_axis_hidens, \
     plot_timeseries_hist_and_surrogates, plot_std_score_and_peaks, highlight_connection
 from hana.misc import unique_neurons
 from publication.plotting import FIGURE_EVENTS_FILE, FIGURE_ARBORS_FILE
+
+import pickle
+import os
+from matplotlib import pyplot as plt
 
 
 def detect_function_networks():
