@@ -1,13 +1,15 @@
-from hana.recording import load_positions, load_timeseries, HIDENS_ELECTRODES_FILE
-from hana.segmentation import load_compartments, load_neurites, neuron_position_from_trigger_electrode
+import logging
+import os
+import pickle
+
+from matplotlib import pyplot as plt
+
 from hana.polychronous import filter, combine, group, plot, plot_pcg_on_network, plot_pcg
+from hana.recording import load_positions, load_timeseries, HIDENS_ELECTRODES_FILE, partial_timeseries
+from hana.segmentation import load_compartments, load_neurites, neuron_position_from_trigger_electrode
 from hana.structure import all_overlaps
 from publication.plotting import FIGURE_ARBORS_FILE, plot_loglog_fit, FIGURE_EVENTS_FILE
 
-import os
-import pickle
-from matplotlib import pyplot as plt
-import logging
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -36,28 +38,6 @@ def testing_algorithm():
 
 
 # Final figure 8
-
-def interval_timeseries (timeseries):
-    first, last = [], []
-    for neuron in timeseries:
-        first.append (min(timeseries[neuron]))
-        last.append(max(timeseries[neuron]))
-    return min(first), max(last)
-
-def partial_timeseries (timeseries, interval=0.1):
-
-    begin, end = interval_timeseries(timeseries)
-
-    if interval is not tuple:
-        partial_begin, partial_end = (begin, (end-begin) * interval)
-    else:
-        partial_begin, partial_end = interval
-
-    for neuron in timeseries:
-        timeseries[neuron] = timeseries[neuron][np.logical_and(timeseries[neuron]>partial_begin,timeseries[neuron]<partial_end)]
-
-    logging.info('Partial timeseries spanning %d~%d [s] of total %d~%d [s]' % (partial_begin, partial_end, begin, end))
-    return timeseries
 
 def figure08():
     if not os.path.isfile('temp/all_delays.p'):
