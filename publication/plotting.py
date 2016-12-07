@@ -47,7 +47,7 @@ def plot_parameter_dependency(ax, Z, x, y, w=None, levels=None, fmt='%d', legend
         plt.legend(loc=legend_loc, handles=[black_patch, red_patch])
 
 
-def plot_loglog_fit(ax, y, title = 'size distribution', datalabel = 'data', xlabel = 'rank', ylabel = 'size'):
+def plot_loglog_fit(ax, y, title = 'size distribution', datalabel = 'data', xlabel = 'rank', ylabel = 'size', rank_threshold=0):
     """
     Log log plot of size distributions with power law fitted.
     :param ax: axis handle
@@ -71,7 +71,7 @@ def plot_loglog_fit(ax, y, title = 'size distribution', datalabel = 'data', xlab
     def f(x, a, b): return a * np.power(x, b)
 
     # Fit curve to data and predict y
-    popt, pcov = curve_fit(f, x, y)
+    popt, pcov = curve_fit(f, x[rank_threshold:], y[rank_threshold:])
     fitted_y = f(fitted_x, *popt)
 
     # Plot data and legend
