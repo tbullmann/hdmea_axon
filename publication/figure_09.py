@@ -16,22 +16,23 @@ def explore_parameter_space_for_structural_connectivity():
 
     resolution = 3
     alpha = np.float64(range(-5*resolution,5*resolution+1))/resolution
-    thresholds_overlap = list((2**alpha)/(2**alpha+1))
+    thresholds_ratio = list((2**alpha)/(2**alpha+1))
     resolution = resolution*2
     thresholds_peak  = list(2**(np.float(exp+1)/resolution)-1 for exp in range(5*resolution+1))
 
     logging.info('Total', len(thresholds_peak), 'thresholds for peak ', thresholds_peak)
-    logging.info('Total', len(thresholds_overlap), 'thresholds for overlap = ', thresholds_overlap)
+    logging.info('Total', len(thresholds_ratio), 'thresholds for overlap = ', thresholds_ratio)
 
     networks = []
 
     for thr_peak in thresholds_peak:
-        for thr_overlap in thresholds_overlap:
-            logging.info('Connections for peak > %1.1f mV and overlap > = %1.2f' % (thr_peak, thr_overlap))
-            all_overlap, all_ratio, all_delay = all_overlaps(axon_delay, dendrite_peak, thr_peak=thr_peak, thr_overlap=thr_overlap)
+        for thr_ratio in thresholds_ratio:
+            logging.info('Connections for peak > %1.1f mV and overlap > = %1.2f' % (thr_peak, thr_ratio))
+            all_overlap, all_ratio, all_delay = all_overlaps(axon_delay, dendrite_peak, thr_peak=thr_peak,
+                                                             thr_ratio=thr_ratio)
             k = len(all_ratio)
             logging.info('Network connection k = %d' % k)
-            networks.append(((thr_peak, thr_overlap), {'overlap ratio': all_ratio, 'delay': all_delay}))
+            networks.append(((thr_peak, thr_ratio), {'overlap ratio': all_ratio, 'delay': all_delay}))
 
     logging.info('Finished exploring %d different parameter sets' % len(networks))
 
@@ -42,18 +43,18 @@ def explore_parameter_space_for_structural_connectivity():
 
 def analyse_structural_networks():
     network = pickle.load(open('temp/structural_networks.p', 'rb'))
-    thresholds_peak, thresholds_overlap = (list(sorted(set(index)) for index in zip(*list(network))))
+    thresholds_peak, thresholds_ratio = (list(sorted(set(index)) for index in zip(*list(network))))
 
-    k = np.zeros((len(thresholds_peak), len(thresholds_overlap)))
-    C = np.zeros((len(thresholds_peak), len(thresholds_overlap)))
-    L = np.zeros((len(thresholds_peak), len(thresholds_overlap)))
-    D = np.zeros((len(thresholds_peak), len(thresholds_overlap)))
+    k = np.zeros((len(thresholds_peak), len(thresholds_ratio)))
+    C = np.zeros((len(thresholds_peak), len(thresholds_ratio)))
+    L = np.zeros((len(thresholds_peak), len(thresholds_ratio)))
+    D = np.zeros((len(thresholds_peak), len(thresholds_ratio)))
     G = nx.DiGraph()
 
     for i,thr_peak in enumerate(thresholds_peak):
-        for j,thr_overlap in enumerate(thresholds_overlap):
-                logging.info('Analyse Graph for thr_peak=%1.3f, thr_overlap=%1.3f' % (thr_peak, thr_overlap))
-                edges = list(key for key in network[(thr_peak, thr_overlap)]['overlap ratio'])
+        for j,thr_ratio in enumerate(thresholds_ratio):
+                logging.info('Analyse Graph for thr_peak=%1.3f, thr_overlap=%1.3f' % (thr_peak, thr_ratio))
+                edges = list(key for key in network[(thr_peak, thr_ratio)]['overlap ratio'])
                 G.clear()
                 G.add_edges_from(edges)
                 logging.info('k=%d', len(edges))
@@ -69,7 +70,7 @@ def analyse_structural_networks():
                     L[i, j] = average_shortest_path_length
                     D[i, j] = average_degree
 
-    pickle.dump((k, C, L, D, thresholds_peak, thresholds_overlap), open('temp/structural_networks_parameters.p', 'wb'))
+    pickle.dump((k, C, L, D, thresholds_peak, thresholds_ratio), open('temp/structural_networks_parameters.p', 'wb'))
 
 
 # Final version
@@ -83,30 +84,30 @@ def scale_and_label(ax, line_x_coordinates, line_y_coordinates):
 def figure09():
     plt.figure('Figure 9', figsize=(12,12))
 
-    k, C, L, D, thr_peak, thr_overlap = pickle.load(open('temp/structural_networks_parameters.p', 'rb'))
+    k, C, L, D, thr_peak, thr_ratio = pickle.load(open('temp/structural_networks_parameters.p', 'rb'))
 
     line_x_coordiantes = (thr_peak[14], thr_peak[14])  # see figure_11.compare_structural_and_functional_networks
-    line_y_coordinates = (min(thr_overlap), max(thr_overlap))
+    line_y_coordinates = (min(thr_ratio), max(thr_ratio))
 
     logging.info('Plotting results for %d paramter sets' % len(k)**2)
 
     ax = plt.subplot(221)
-    plot_parameter_dependency(ax, k, thr_peak, thr_overlap, levels=(5, 10, 20, 50, 100, 250, 500))
+    plot_parameter_dependency(ax, k, thr_peak, thr_ratio, levels=(5, 10, 20, 50, 100, 250, 500))
     ax.set_title('number of edges, k')
     scale_and_label(ax, line_x_coordiantes, line_y_coordinates)
 
     ax = plt.subplot(222)
-    plot_parameter_dependency(ax, C, thr_peak, thr_overlap, fmt='%1.1f')
+    plot_parameter_dependency(ax, C, thr_peak, thr_ratio, fmt='%1.1f')
     ax.set_title('average clustering coefficient, C')
     scale_and_label(ax, line_x_coordiantes, line_y_coordinates)
 
     ax = plt.subplot(223)
-    plot_parameter_dependency(ax, L, thr_peak, thr_overlap, fmt='%1.1f')
+    plot_parameter_dependency(ax, L, thr_peak, thr_ratio, fmt='%1.1f')
     ax.set_title('average maximum pathlength, L')
     scale_and_label(ax, line_x_coordiantes, line_y_coordinates)
 
     ax = plt.subplot(224)
-    plot_parameter_dependency(ax, D, thr_peak, thr_overlap, fmt='%1.1f')
+    plot_parameter_dependency(ax, D, thr_peak, thr_ratio, fmt='%1.1f')
     ax.set_title('average node degree, D')
     scale_and_label(ax, line_x_coordiantes, line_y_coordinates)
 
