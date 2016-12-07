@@ -56,6 +56,33 @@ def Figure06_only_overlap():
     plt.show()
 
 
+def Figure06_2plots():
+    trigger, _, axon_delay, dendrite_peak = load_compartments(FIGURE_ARBORS_FILE)
+    pos = load_positions(HIDENS_ELECTRODES_FILE)
+    neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
+
+    presynaptic_neuron = 5 # electrode 3605
+    postsynaptic_neuron = 10 #electrode 4972
+    thr_peak = 5
+    thr_overlap = 0.05
+
+    overlap, ratio, delay = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron, thr_peak, thr_overlap)
+
+    plt.figure('Figure 6', figsize=(12, 6))
+    ax1 = plt.subplot(121)
+    plot_neuron_pair(ax1, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron, presynaptic_neuron, delay)
+    set_axis_hidens(ax1,pos)
+    ax1.set_title ('neuron pair %d $\longrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron))
+
+    ax2 = plt.subplot(122)
+    all_overlap, all_ratio, all_delay = all_overlaps(axon_delay, dendrite_peak)
+    plot_neuron_points(ax2, unique_neurons(all_delay), neuron_pos)
+    plot_neuron_id(ax2, trigger, neuron_pos)
+    plot_network (ax2, all_delay, neuron_pos)
+    set_axis_hidens(ax2, pos)
+    ax2.set_title ('structural connectivity graph')
+    plt.show()
+
 # Final version
 
 def Figure06():
@@ -68,16 +95,20 @@ def Figure06():
     thr_peak = 5
     thr_overlap = 0.05
 
-    ratio, delay = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron, thr_peak, thr_overlap)
+    overlap, ratio, delay = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron, thr_peak, thr_overlap)
 
-    plt.figure('Figure 6', figsize=(12, 6))
-    ax1 = plt.subplot(121)
+    # Making figure
+    fig = plt.figure('Figure 6', figsize=(18, 9))
+    fig.suptitle('Figure 6. Voltage peaks in axons and dendrites', fontsize=14, fontweight='bold')
+
+
+    ax1 = plt.subplot(131)
     plot_neuron_pair(ax1, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron, presynaptic_neuron, delay)
     set_axis_hidens(ax1,pos)
     ax1.set_title ('neuron pair %d $\longrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron))
 
-    ax2 = plt.subplot(122)
-    all_ratio, all_delay = all_overlaps(axon_delay, dendrite_peak)
+    ax1 = plt.subplot(133)
+    all_overlap, all_ratio, all_delay = all_overlaps(axon_delay, dendrite_peak)
     plot_neuron_points(ax2, unique_neurons(all_delay), neuron_pos)
     plot_neuron_id(ax2, trigger, neuron_pos)
     plot_network (ax2, all_delay, neuron_pos)

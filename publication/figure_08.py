@@ -42,7 +42,7 @@ def testing_algorithm():
 def figure08():
     if not os.path.isfile('temp/all_delays.p'):
         axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_FILE)
-        _, all_delays = all_overlaps(axon_delay, dendrite_peak)
+        _, _, all_delays = all_overlaps(axon_delay, dendrite_peak)
         pickle.dump(all_delays, open('temp/all_delays.p', 'wb'))
 
     if not os.path.isfile('temp/partial_timeseries.p'):

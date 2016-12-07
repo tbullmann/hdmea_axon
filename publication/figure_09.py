@@ -28,7 +28,7 @@ def explore_parameter_space_for_structural_connectivity():
     for thr_peak in thresholds_peak:
         for thr_overlap in thresholds_overlap:
             logging.info('Connections for peak > %1.1f mV and overlap > = %1.2f' % (thr_peak, thr_overlap))
-            all_ratio, all_delay = all_overlaps(axon_delay, dendrite_peak, thr_peak=thr_peak, thr_overlap=thr_overlap)
+            all_overlap, all_ratio, all_delay = all_overlaps(axon_delay, dendrite_peak, thr_peak=thr_peak, thr_overlap=thr_overlap)
             k = len(all_ratio)
             logging.info('Network connection k = %d' % k)
             networks.append(((thr_peak, thr_overlap), {'overlap ratio': all_ratio, 'delay': all_delay}))
