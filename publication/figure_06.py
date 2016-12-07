@@ -1,9 +1,9 @@
 from hana.misc import unique_neurons
-from hana.plotting import plot_axon, plot_dendrite, plot_neuron_points, plot_neuron_id, plot_neuron_pair, plot_network, set_axis_hidens
+from hana.plotting import plot_axon, plot_dendrite, plot_neuron_points, plot_neuron_id, plot_neuron_pair, plot_network, set_axis_hidens, highlight_connection
 from hana.recording import load_positions, HIDENS_ELECTRODES_FILE
 from hana.structure import find_overlap, all_overlaps
 from hana.segmentation import load_compartments, load_neurites, neuron_position_from_trigger_electrode
-from publication.plotting import FIGURE_ARBORS_FILE
+from publication.plotting import FIGURE_ARBORS_FILE, label_subplot, shrink_axes
 
 from matplotlib import pyplot as plt
 import logging
@@ -66,7 +66,8 @@ def Figure06_2plots():
     thr_peak = 5
     thr_overlap = 0.05
 
-    overlap, ratio, delay = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron, thr_peak, thr_overlap)
+    overlap, ratio, delay = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron, thr_peak,
+                                         thr_overlap)
 
     plt.figure('Figure 6', figsize=(12, 6))
     ax1 = plt.subplot(121)
@@ -90,31 +91,66 @@ def Figure06():
     pos = load_positions(HIDENS_ELECTRODES_FILE)
     neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
 
-    presynaptic_neuron = 5 # electrode 3605
-    postsynaptic_neuron = 10 #electrode 4972
+    presynaptic_neuron = 5
+    postsynaptic_neuron = 10
+    postsynaptic_neuron2 = 49  # or 50
     thr_peak = 5
     thr_overlap = 0.05
 
-    overlap, ratio, delay = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron, thr_peak, thr_overlap)
+    overlap, ratio, delay = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron, thr_peak,
+                                         thr_overlap)
+    overlap2, ratio2, delay2 = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron2, thr_peak,
+                                         thr_overlap)
 
     # Making figure
-    fig = plt.figure('Figure 6', figsize=(18, 9))
-    fig.suptitle('Figure 6. Voltage peaks in axons and dendrites', fontsize=14, fontweight='bold')
+    fig = plt.figure('Figure 6', figsize=(16, 9))
+    fig.suptitle('Figure 6. Structural connectivity', fontsize=14, fontweight='bold')
 
-
-    ax1 = plt.subplot(131)
+    ax1 = plt.subplot(221)
     plot_neuron_pair(ax1, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron, presynaptic_neuron, delay)
     set_axis_hidens(ax1,pos)
     ax1.set_title ('neuron pair %d $\longrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron))
+    plot_two_colorbars(ax1)
+    shrink_axes(ax1,yshrink=0.01)
+    label_subplot(ax1, 'A', xoffset=-0.005, yoffset=-0.01)
 
-    ax1 = plt.subplot(133)
-    all_overlap, all_ratio, all_delay = all_overlaps(axon_delay, dendrite_peak)
-    plot_neuron_points(ax2, unique_neurons(all_delay), neuron_pos)
-    plot_neuron_id(ax2, trigger, neuron_pos)
-    plot_network (ax2, all_delay, neuron_pos)
+    ax2 = plt.subplot(223)
+    plot_neuron_pair(ax2, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron2, presynaptic_neuron, delay2)
     set_axis_hidens(ax2, pos)
-    ax2.set_title ('structural connectivity graph')
+    ax2.set_title('neuron pair %d $\dashrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron2))
+    plot_two_colorbars(ax2)
+    shrink_axes(ax2,yshrink=0.01)
+    label_subplot(ax2, 'B', xoffset=-0.005, yoffset=-0.01)
+
+    # Whole network
+    ax3 = plt.subplot(122)
+    all_overlap, all_ratio, all_delay = all_overlaps(axon_delay, dendrite_peak)
+    plot_neuron_points(ax3, unique_neurons(all_delay), neuron_pos)
+    plot_neuron_id(ax3, trigger, neuron_pos)
+    plot_network (ax3, all_delay, neuron_pos)
+    highlight_connection(ax3, (presynaptic_neuron, postsynaptic_neuron), neuron_pos)
+    highlight_connection(ax3, (presynaptic_neuron, postsynaptic_neuron2), neuron_pos, connected=False)
+    set_axis_hidens(ax3, pos)
+    ax3.set_title ('structural connectivity graph')
+    label_subplot(ax3, 'C', xoffset=-0.05, yoffset=-0.05)
+
     plt.show()
+
+
+def plot_two_colorbars(ax1):
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    divider = make_axes_locatable(ax1)
+    cax1 = divider.append_axes("right", size="10%", pad=0.2)
+    cax2 = divider.append_axes("left", size="10%", pad=1.0)
+    import matplotlib as mpl
+    cb1 = mpl.colorbar.ColorbarBase(cax1, cmap=plt.cm.summer, norm=plt.Normalize(vmin=0, vmax=2),
+                                    orientation='vertical')
+    cb1.set_label(r'axonal delay $\tau$ [ms]')
+    cb2 = mpl.colorbar.ColorbarBase(cax2, cmap=plt.cm.gray_r, norm=plt.Normalize(vmin=0, vmax=50),
+                                    orientation='vertical')
+    cb2.set_label(r'dendrite positive peak $V_p$ [$\mu$V]')
+    cb2.ax.yaxis.set_ticks_position('left')
+    cb2.ax.yaxis.set_label_position('left')
 
 
 # test_plot_all_axonal_fields()
