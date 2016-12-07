@@ -4,7 +4,7 @@ from hana.recording import load_timeseries, load_positions, HIDENS_ELECTRODES_FI
 from hana.plotting import plot_network, plot_neuron_points, plot_neuron_id, set_axis_hidens, \
     plot_timeseries_hist_and_surrogates, plot_std_score_and_peaks, highlight_connection
 from hana.misc import unique_neurons
-from publication.plotting import FIGURE_EVENTS_FILE, FIGURE_ARBORS_FILE
+from publication.plotting import FIGURE_EVENTS_FILE, FIGURE_ARBORS_FILE, label_subplot, shrink_axes
 
 import pickle
 import os
@@ -64,8 +64,8 @@ def plot_func_example_and_network(ax1, ax2, ax3, pre, post, direction, thr, pos,
     peak_score, peak_timelag, _, _ = all_peaks(timelags, std_score_dict, thr=thr, direction=direction)
     # Plot histograms for single neuron pair
     plot_timeseries_hist_and_surrogates(ax2, timelags, timeseries_hist, surrogates_mean, surrogates_std)
-    if direction == 'forward': ax2.set_title('%d $\longrightarrow$ %d' % (pre, post), loc='left')
-    if direction == 'reverse': ax2.set_title('%d $\longleftarrow$ %d' % (post, pre), loc='left')
+    if direction == 'forward': ax2.set_title('neuron pair %d $\longrightarrow$ %d' % (pre, post), loc='left')
+    if direction == 'reverse': ax2.set_title('neuron pair %d $\longleftarrow$ %d' % (post, pre), loc='left')
 
     if (pre, post) in peak_timelag:
         peak = peak_timelag[(pre, post)]
@@ -79,8 +79,8 @@ def plot_func_example_and_network(ax1, ax2, ax3, pre, post, direction, thr, pos,
     plot_neuron_points(ax1, neuron_dict, pos)
     plot_neuron_id(ax1, neuron_dict, pos)
     set_axis_hidens(ax1, pos)
-    if direction == 'forward': ax1.set_title(r'pre$\longrightarrow$post if post fired after pre')
-    if direction == 'reverse': ax1.set_title('pre$\longrightarrow$post if pre fired before post')
+    if direction == 'forward': ax1.set_title(r'pre-synaptic spike followed by post-synaptic spike')
+    if direction == 'reverse': ax1.set_title(r'post-synaptic spike preceded by pre-synaptic spike ')
     if peak is not None: highlight_connection(ax1, (pre, post), pos)
     set_axis_hidens(ax1, pos)
 
@@ -128,19 +128,35 @@ def Figure07(thr =20):
     # for k,v in trigger.iteritems(): print (k,v)  # show neuron -> trigger electrode index
     pre, post  = 10, 4 # electrodes 4972, 3240
     # pre, post = 37, 31 #  pre, post = 8060,7374
-    plt.figure('Figure 7', figsize=(16, 16))
+
+    # Making figure
+    fig = plt.figure('Figure 7', figsize=(16, 16))
+    fig.suptitle('Figure 7. Functional connectivity', fontsize=14, fontweight='bold')
+
     # Plotting forward
     ax1 = plt.subplot(222)
     ax2 = plt.subplot(421)
     ax3 = plt.subplot(423)
     plot_func_example_and_network(ax1, ax2, ax3, pre, post, 'forward', thr, neuron_pos, std_score_dict,
                                   timelags, timeseries, timeseries_surrogates)
+    shrink_axes(ax2,yshrink=0.01)
+    shrink_axes(ax3,yshrink=0.01)
+    label_subplot(ax1, 'C', xoffset=-0.03, yoffset=-0.01)
+    label_subplot(ax2, 'A', xoffset=-0.05, yoffset=-0.01)
+    label_subplot(ax3, 'B', xoffset=-0.05, yoffset=-0.01)
+
     # Plotting reverse
     ax4 = plt.subplot(224)
     ax5 = plt.subplot(425)
     ax6 = plt.subplot(427)
     plot_func_example_and_network(ax4, ax5, ax6, pre, post, 'reverse', thr, neuron_pos, std_score_dict,
                                   timelags, timeseries, timeseries_surrogates)
+    shrink_axes(ax5,yshrink=0.01)
+    shrink_axes(ax6,yshrink=0.01)
+    label_subplot(ax4, 'F', xoffset=-0.03, yoffset=-0.01)
+    label_subplot(ax5, 'D', xoffset=-0.05, yoffset=-0.01)
+    label_subplot(ax6, 'E', xoffset=-0.05, yoffset=-0.01)
+
     plt.show()
 
 
