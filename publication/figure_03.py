@@ -18,11 +18,12 @@ def figure03(test=True):
     else:
         s,p  = get_distributions(N_all=1000000)
 
+    # Making figure
+    fig = plt.figure('Figure 3', figsize=(18, 9))
+    fig.suptitle('Figure 3. Distinguishing signals from noise using neighboring electrodes in high-density electrode arrays', fontsize=14,
+                 fontweight='bold')
 
-
-    fig = plt.figure('Figure 3', figsize=(18,9))
     ax1 = plt.subplot(231)
-
     for N in p.keys():
         ax1.plot (s ,p[N], label = 'N=%d' % N)
     sqrt_twelth = np.sqrt(1.0 / 12)
