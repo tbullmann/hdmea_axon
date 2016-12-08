@@ -151,3 +151,9 @@ def shrink_axes(ax, yshrink = 0, xshrink = 0):
     position.x1 -= xshrink
     ax.set_position(position)
 
+
+def voltage_color_bar(plot_handle, vmin=-20, vmax=20, vstep=5):
+    plot_handle.set_clim(vmin=vmin, vmax=vmax)
+    colorbar_handle = plt.colorbar(plot_handle, boundaries=np.linspace(vmin, vmax, num=int(vmax-vmin+1)), extend='both', extendfrac='auto', )
+    colorbar_handle.set_label(r'min $V$ [$\mu$V]')
+    colorbar_handle.set_ticks(np.arange(vmin, vmax+vstep, step=vstep))

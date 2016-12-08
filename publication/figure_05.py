@@ -1,11 +1,13 @@
-from hana.plotting import set_axis_hidens
-from hana.recording import electrode_neighborhoods, load_traces, load_positions, HIDENS_ELECTRODES_FILE
-from hana.segmentation import __segment_dendrite, __segment_axon
-from publication.plotting import FIGURE_NEURON_FILE, cross_hair, label_subplot
+import logging
 
 import numpy as np
 from matplotlib import pyplot as plt
-import logging
+
+from hana.plotting import set_axis_hidens
+from hana.recording import electrode_neighborhoods, load_traces, load_positions, HIDENS_ELECTRODES_FILE
+from hana.segmentation import __segment_dendrite, __segment_axon
+from publication.plotting import FIGURE_NEURON_FILE, cross_hair, label_subplot, voltage_color_bar
+
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -45,10 +47,7 @@ def figure05():
     ax1 = plt.subplot(231)
     ax1_h1 = ax1.scatter(x, y, c=min_V, s=10, marker='o', edgecolor='None', cmap='seismic')
     ax1.text(300, 300, 'negative peak', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
-    ax1_h1.set_clim(vmin=-20, vmax=20)
-    ax1_h2 = plt.colorbar(ax1_h1, boundaries=np.linspace(-20, 20, num=256))
-    ax1_h2.set_label(r'min $V$ [$\mu$V]')
-    ax1_h2.set_ticks(np.arange(-20, 20, step=5))
+    voltage_color_bar(ax1_h1)
     cross_hair(ax1, x_AIS, y_AIS, color='white')
     set_axis_hidens(ax1)
     label_subplot(ax1, 'A', xoffset=-0.005, yoffset=-0.01)
@@ -82,10 +81,7 @@ def figure05():
     ax4 = plt.subplot(234)
     ax4_h1 = ax4.scatter(x, y, c=max_V, s=10, marker='o', edgecolor='None', cmap='seismic')
     ax4.text(300, 300, 'positive peak', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
-    ax4_h1.set_clim(vmin=-20, vmax=20)
-    ax4_h2 = plt.colorbar(ax4_h1, boundaries=np.linspace(-20, 20, num=256))
-    ax4_h2.set_label(r'max $V$ [$\mu$V]')
-    ax4_h2.set_ticks(np.arange(-20, 20, step=5))
+    voltage_color_bar(ax4_h1)
     cross_hair(ax4, x_AIS, y_AIS, color='white')
     set_axis_hidens(ax4)
     label_subplot(ax4, 'D', xoffset=-0.005, yoffset=-0.01)
