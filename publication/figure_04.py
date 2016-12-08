@@ -57,7 +57,7 @@ def figure04():
     h2.set_label(r'$s_{\tau}$ [ms]')
     h2.set_ticks(np.arange(0, 4.5, step=0.5))
     cross_hair(ax2, x_AIS, y_AIS)
-    set_axis_hidens(ax2, pos)
+    set_axis_hidens(ax2)
     label_subplot(ax2, 'B', xoffset=-0.015, yoffset=-0.01)
 
     # subplot std_delay histogram
@@ -85,7 +85,7 @@ def figure04():
     ax4.scatter(x, y, c=return_current_delay, s=10, marker='o', edgecolor='None', cmap='gray_r')
     cross_hair(ax4, x_AIS, y_AIS)
     ax4.text(300, 300, r'$\tau \in \delta_h|$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
-    set_axis_hidens(ax4, pos)
+    set_axis_hidens(ax4)
     label_subplot(ax4, 'D', xoffset=-0.005, yoffset=-0.01)
 
     # plot map of thresholded std_delay
@@ -93,7 +93,7 @@ def figure04():
     ax5.scatter(x, y, c=valid_delay, s=10, marker='o', edgecolor='None', cmap='gray_r')
     ax5.text(300, 300, r'$s_{\tau} < s_{min}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     cross_hair(ax5, x_AIS, y_AIS)
-    set_axis_hidens(ax5, pos)
+    set_axis_hidens(ax5)
     label_subplot(ax5, 'E', xoffset=-0.005, yoffset=-0.01)
 
     # plot map of dendrite
@@ -101,7 +101,7 @@ def figure04():
     ax6.scatter(x, y, c=dendrite, s=10, marker='o', edgecolor='None', cmap='gray_r')
     ax6.text(300, 300, 'dendrite', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     cross_hair(ax6, x_AIS, y_AIS)
-    set_axis_hidens(ax6, pos)
+    set_axis_hidens(ax6)
     label_subplot(ax6, 'F', xoffset=-0.005, yoffset=-0.01)
 
     plt.show()

@@ -19,7 +19,7 @@ def test_plot_all_axonal_fields():
     for neuron in axon_delay :
         ax=plt.subplot(111)
         plot_axon(ax, pos, axon_delay[neuron])
-        set_axis_hidens(ax,pos)
+        set_axis_hidens(ax)
         ax.set_title ('axon for neuron %d' % neuron)
         plt.show()
 
@@ -32,7 +32,7 @@ def test_plot_all_dendritic_fields_vs_one_axonal_field (presynaptic_neuron):
         ax=plt.subplot(111)
         plot_axon(ax, pos, axon_delay[presynaptic_neuron])
         plot_dendrite(ax, pos, dendrite_peak[postsynaptic_neuron])
-        set_axis_hidens(ax,pos)
+        set_axis_hidens(ax)
         ax.set_title ('axon for neuron %d, dendrite for neuron %d' % (presynaptic_neuron, postsynaptic_neuron))
         plt.show()
 
@@ -51,7 +51,7 @@ def Figure06_only_overlap():
     plt.figure('Figure 6', figsize=(16, 8))
     ax=plt.subplot(111)
     plot_neuron_pair(ax, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron, presynaptic_neuron, delay)
-    set_axis_hidens(ax,pos)
+    set_axis_hidens(ax)
     ax.set_title ('neuron pair %d $\longrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron))
     plt.show()
 
@@ -72,7 +72,7 @@ def Figure06_2plots():
     plt.figure('Figure 6', figsize=(12, 6))
     ax1 = plt.subplot(121)
     plot_neuron_pair(ax1, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron, presynaptic_neuron, delay)
-    set_axis_hidens(ax1,pos)
+    set_axis_hidens(ax1)
     ax1.set_title ('neuron pair %d $\longrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron))
 
     ax2 = plt.subplot(122)
@@ -80,7 +80,7 @@ def Figure06_2plots():
     plot_neuron_points(ax2, unique_neurons(all_delay), neuron_pos)
     plot_neuron_id(ax2, trigger, neuron_pos)
     plot_network (ax2, all_delay, neuron_pos)
-    set_axis_hidens(ax2, pos)
+    set_axis_hidens(ax2)
     ax2.set_title ('structural connectivity graph')
     plt.show()
 
@@ -108,7 +108,7 @@ def Figure06():
 
     ax1 = plt.subplot(221)
     plot_neuron_pair(ax1, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron, presynaptic_neuron, delay)
-    set_axis_hidens(ax1,pos)
+    set_axis_hidens(ax1)
     ax1.set_title ('neuron pair %d $\longrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron))
     plot_two_colorbars(ax1)
     shrink_axes(ax1,yshrink=0.01)
@@ -116,7 +116,7 @@ def Figure06():
 
     ax2 = plt.subplot(223)
     plot_neuron_pair(ax2, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron2, presynaptic_neuron, delay2)
-    set_axis_hidens(ax2, pos)
+    set_axis_hidens(ax2)
     ax2.set_title('neuron pair %d $\dashrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron2))
     plot_two_colorbars(ax2)
     shrink_axes(ax2,yshrink=0.01)
@@ -130,7 +130,7 @@ def Figure06():
     plot_network (ax3, all_delay, neuron_pos)
     highlight_connection(ax3, (presynaptic_neuron, postsynaptic_neuron), neuron_pos)
     highlight_connection(ax3, (presynaptic_neuron, postsynaptic_neuron2), neuron_pos, connected=False)
-    set_axis_hidens(ax3, pos)
+    set_axis_hidens(ax3)
     ax3.set_title ('structural connectivity graph')
     label_subplot(ax3, 'C', xoffset=-0.05, yoffset=-0.05)
 

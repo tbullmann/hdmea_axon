@@ -50,7 +50,7 @@ def figure05():
     ax1_h2.set_label(r'min $V$ [$\mu$V]')
     ax1_h2.set_ticks(np.arange(-20, 20, step=5))
     cross_hair(ax1, x_AIS, y_AIS, color='white')
-    set_axis_hidens(ax1, pos)
+    set_axis_hidens(ax1)
     label_subplot(ax1, 'A', xoffset=-0.005, yoffset=-0.01)
 
     # Map of axon
@@ -58,7 +58,7 @@ def figure05():
     ax2.scatter(x, y, c=axon, s=10, marker='o', edgecolor='None', cmap='gray_r')
     ax2.text(300, 300, 'axon', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     cross_hair(ax2, x_AIS, y_AIS, color='white')
-    set_axis_hidens(ax2, pos)
+    set_axis_hidens(ax2)
     label_subplot(ax2, 'B', xoffset=-0.005, yoffset=-0.01)
 
     # Std_delay vs max V for dendrite..
@@ -87,7 +87,7 @@ def figure05():
     ax4_h2.set_label(r'max $V$ [$\mu$V]')
     ax4_h2.set_ticks(np.arange(-20, 20, step=5))
     cross_hair(ax4, x_AIS, y_AIS, color='white')
-    set_axis_hidens(ax4, pos)
+    set_axis_hidens(ax4)
     label_subplot(ax4, 'D', xoffset=-0.005, yoffset=-0.01)
 
     # Map of dendrite
@@ -95,7 +95,7 @@ def figure05():
     ax5.scatter(x, y, c=dendrite, s=10, marker='o', edgecolor='None', cmap='gray_r')
     ax5.text(300, 300, 'dendrite', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     cross_hair(ax5, x_AIS, y_AIS, color='white')
-    set_axis_hidens(ax5, pos)
+    set_axis_hidens(ax5)
     label_subplot(ax5, 'E', xoffset=-0.005, yoffset=-0.01)
 
     # Std_delay vs max V for dendrite..

@@ -39,15 +39,15 @@ def plot_func_network_forward_vs_reverse(thr, pos, timelags, std_score_dict):
     neuron_dict = unique_neurons(score_forward)
     plot_neuron_points(ax1, neuron_dict, pos)
     plot_neuron_id(ax1, neuron_dict, pos)
-    set_axis_hidens(ax1, pos)
+    set_axis_hidens(ax1)
     ax1.set_title(r'pre$\longrightarrow$post if post fired after pre')
     plot_network(ax2, score_reverse, pos)
     neuron_dict = unique_neurons(score_reverse)
     plot_neuron_points(ax2, neuron_dict, pos)
     plot_neuron_id(ax2, neuron_dict, pos)
-    set_axis_hidens(ax2, pos)
+    set_axis_hidens(ax2)
     ax2.set_title('pre$\longrightarrow$post if pre fired before post')
-    set_axis_hidens(ax2, pos)
+    set_axis_hidens(ax2)
 
 
 def plot_func_example_and_network(ax1, ax2, ax3, pre, post, direction, thr, pos, std_score_dict, timelags, timeseries,
@@ -78,11 +78,11 @@ def plot_func_example_and_network(ax1, ax2, ax3, pre, post, direction, thr, pos,
     neuron_dict = unique_neurons(peak_score)
     plot_neuron_points(ax1, neuron_dict, pos)
     plot_neuron_id(ax1, neuron_dict, pos)
-    set_axis_hidens(ax1, pos)
+    set_axis_hidens(ax1)
     if direction == 'forward': ax1.set_title(r'pre-synaptic spike followed by post-synaptic spike')
     if direction == 'reverse': ax1.set_title(r'post-synaptic spike preceded by pre-synaptic spike ')
     if peak is not None: highlight_connection(ax1, (pre, post), pos)
-    set_axis_hidens(ax1, pos)
+    set_axis_hidens(ax1)
 
 
 # Previous version

@@ -52,7 +52,7 @@ def figureS1(neurons):
         ax.scatter(x[index_dendrite], y[index_dendrite], c='red', s=20, marker='.', edgecolor='None', label='dendrite',
                    alpha=0.5)
         cross_hair(ax, x[index_AIS], y[index_AIS], color='black')
-        set_axis_hidens(ax, pos)
+        set_axis_hidens(ax)
         ax.set_title('neuron %d' % (neuron))
         # legend_without_multiple_labels(ax)
 
