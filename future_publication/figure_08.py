@@ -69,7 +69,7 @@ def figure08():
             pre, post = zip(*keys)
             new_post = list(post)
             np.random.shuffle(new_post)
-            keys = zip(pre,new_post)
+            keys = zip(pre, new_post)
             print keys
             b = dict(zip(keys, a.values()))
             return b
