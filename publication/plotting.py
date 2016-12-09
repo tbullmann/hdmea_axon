@@ -1,8 +1,10 @@
 import logging
 
+import networkx as nx
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
+from scipy.stats import gaussian_kde
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -157,3 +159,142 @@ def voltage_color_bar(plot_handle, vmin=-20, vmax=20, vstep=5):
     colorbar_handle = plt.colorbar(plot_handle, boundaries=np.linspace(vmin, vmax, num=int(vmax-vmin+1)), extend='both', extendfrac='auto', )
     colorbar_handle.set_label(r'min $V$ [$\mu$V]')
     colorbar_handle.set_ticks(np.arange(vmin, vmax+vstep, step=vstep))
+
+
+TEMPORARY_PICKELED_NETWORKS = 'temp/two_networks.p'
+
+
+def compare_networks(struc, func, nbins=50, scale='linear'):
+    """
+
+    :param struc: containing pairs of neuron and some weigth (overlap or score)
+    :param nbins: if none, than all unique values will be used as threshold, otherwise linspace with nbins
+    :return:
+    """
+
+    structural_thresholds = __get_marginals(struc, nbins=nbins, scale=scale)
+    functional_thresholds = __get_marginals(func, nbins=nbins, scale=scale)
+
+    result_shape = (len(structural_thresholds), len(functional_thresholds))
+
+    intersection_size = np.zeros(result_shape)
+    structural_index = np.zeros(result_shape)
+    jaccard_index = np.zeros(result_shape)
+    functional_index = np.zeros(result_shape)
+
+    for i, structural_threshold in enumerate(structural_thresholds):
+        structural_edges = set(key for key, value in struc.items() if value >= structural_threshold)
+
+        for j, functional_threshold in enumerate(functional_thresholds):
+            functional_edges = set(key for key, value in func.items() if value >= functional_threshold)
+
+            intersection_edges = structural_edges & functional_edges
+            union_edges = structural_edges | functional_edges
+
+            intersection_size[i,j] = len(intersection_edges)
+            if len(union_edges)>0:
+                jaccard_index[i,j] = np.float(len(intersection_edges)) / len (union_edges)
+            if len(structural_edges)>0:
+                structural_index[i,j] = np.float(len(intersection_edges)) / len (structural_edges)
+            if len(functional_edges)>0:
+                functional_index[i,j] = np.float(len(intersection_edges)) / len (functional_edges)
+
+    return structural_thresholds, functional_thresholds, \
+           intersection_size, structural_index, jaccard_index, functional_index
+
+
+def format_parameter_plot(ax):
+    ax.set_xscale('log')
+    ax.set_yscale('log')
+    ax.set_xlabel('overlap > #electrodes')
+    ax.set_ylabel('score > threshold')
+
+
+def __get_marginals(dictionary, nbins, scale='linear'):
+
+    if nbins:
+        min_value = min(dictionary.values())
+        max_value = max(dictionary.values())
+        if scale == 'linear':
+            values = np.linspace(min_value, max_value, nbins)
+        elif scale == 'log':
+            max_exp = np.log(max_value / min_value)
+            exponents = np.linspace(1, max_exp, nbins)
+            values = min_value * np.exp(exponents)
+    else:
+        values = np.unique(dictionary.values())
+
+    return values
+
+
+def analyse_networks(dictionary, nbins=None):
+    """
+
+    :param dictionary: containing pairs of neuron and some weigth (overlap or score)
+    :param nbins: if none, than all unique values will be used as threshold, otherwise linspace with nbins
+    :return:
+    """
+
+    values = __get_marginals(dictionary, nbins)
+
+    G = nx.DiGraph()
+
+    n_values = len(values)
+    n = np.zeros(n_values)
+    k = np.zeros(n_values)
+    C = np.zeros(n_values)
+    L = np.zeros(n_values)
+    D = np.zeros(n_values)
+
+    for index, threshold in enumerate(values):
+        edges = [key for key, value in dictionary.items() if value >= threshold]
+        G.clear()
+        G.add_edges_from(edges)
+        if G:
+            giant = max(nx.connected_component_subgraphs(G.to_undirected()), key=len)
+            n[index] = nx.number_of_nodes(giant)
+            k[index] = nx.number_of_edges(giant)
+            C[index] = nx.average_clustering(giant)
+            L[index] = nx.average_shortest_path_length(giant)
+            D[index] = float(k[index]) / n[index]
+    return values, n, k, C, L, D
+
+
+def correlate_two_dicts(xdict, ydict, subset_keys=None):
+    """Find values with the same key in both dictionary and return two arrays of corresponding values"""
+    x, y = [], []
+    both = set(xdict.keys()) & set(ydict.keys())
+    if subset_keys: both = both & set(subset_keys)
+    for pair in both:
+        x.append(xdict[pair])
+        y.append(ydict[pair])
+    x = np.array(x)
+    y = np.array(y)
+    return x, y
+
+
+def kernel_density (ax, data, orientation='vertical', scaling=1, style='k-'):
+    if scaling == 'count':
+        scaling = len(data)
+    density = gaussian_kde(data)
+    xs = np.linspace(min(data), max(data), 200)
+    density.covariance_factor = lambda: .25
+    density._compute_covariance()
+    if orientation=='vertical':
+        ax.plot(xs, density(xs) * scaling, style)
+    elif orientation=='horizontal':
+        ax.plot(density(xs) * scaling, xs, style)
+
+
+def axes_to_3_axes(ax, factor = 0.75, spacing = 0.01):
+    """Convert axis to one for the scatter and two adjacent histograms for marginal distributions."""
+    position = ax.get_position()
+    ax.axis('off')
+    left, width = position.x0, (position.x1 - position.x0) * factor - spacing / 2
+    bottom, height = position.y0, (position.x1 - position.x0) * factor - spacing / 2
+    bottom_h, height_h = bottom + height + spacing, (position.y1 - position.y0) * (1 - factor) - spacing / 2
+    left_h, width_h = left + width + spacing, (position.x1 - position.x0) * (1 - factor) - spacing / 2
+    rect_scatter = [left, bottom, width, height]
+    rect_histx = [left, bottom_h, width, height_h]
+    rect_histy = [left_h, bottom, width_h, height]
+    return rect_histx, rect_histy, rect_scatter
