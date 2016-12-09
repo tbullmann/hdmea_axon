@@ -262,15 +262,21 @@ def analyse_networks(dictionary, nbins=None):
 
 def correlate_two_dicts(xdict, ydict, subset_keys=None):
     """Find values with the same key in both dictionary and return two arrays of corresponding values"""
-    x, y = [], []
+    x, y, _ = __correlate_two_dicts(xdict, ydict, subset_keys)
+    return x, y
+
+
+def __correlate_two_dicts(xdict, ydict, subset_keys=None):
+    x, y, keys = [], [], []
     both = set(xdict.keys()) & set(ydict.keys())
     if subset_keys: both = both & set(subset_keys)
     for pair in both:
         x.append(xdict[pair])
         y.append(ydict[pair])
+        keys.append(pair)
     x = np.array(x)
     y = np.array(y)
-    return x, y
+    return x, y, keys
 
 
 def kernel_density (ax, data, orientation='vertical', scaling=1, style='k-'):
