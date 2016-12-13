@@ -1,5 +1,5 @@
 from hana.plotting import annotate_x_bar, set_axis_hidens
-from hana.recording import half_peak_width, half_peak_domain, electrode_neighborhoods, DELAY_EPSILON, load_positions, load_traces
+from hana.recording import half_peak_width, half_peak_domain, electrode_neighborhoods, DELAY_EPSILON, load_traces
 from hana.segmentation import __segment_dendrite
 from publication.plotting import FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
     legend_without_multiple_labels, label_subplot, shrink_axes
@@ -83,7 +83,7 @@ def figure04():
     ax4 = plt.subplot(234)
     ax4.scatter(x, y, c=return_current_delay, s=10, marker='o', edgecolor='None', cmap='gray_r')
     cross_hair(ax4, x_AIS, y_AIS)
-    ax4.text(300, 300, r'$\tau \in \delta_h|$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
+    ax4.text(300, 300, r'$\tau \in \delta_h$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     set_axis_hidens(ax4)
     label_subplot(ax4, 'D', xoffset=-0.005, yoffset=-0.01)
 
