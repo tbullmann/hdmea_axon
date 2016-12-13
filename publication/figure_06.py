@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.DEBUG)
 def test_plot_all_axonal_fields():
     """Display axonal field for each neuron, good examples are 3605, 9952, 3093"""
     axon_delay, dendrite_peak = load_neurites(FIGURE_ARBORS_FILE)
-    pos = load_positions(HIDENS_ELECTRODES_FILE)
+    pos = load_positions(mea='hidens')
     for neuron in axon_delay :
         ax=plt.subplot(111)
         plot_axon(ax, pos, axon_delay[neuron])
@@ -27,7 +27,7 @@ def test_plot_all_axonal_fields():
 def test_plot_all_dendritic_fields_vs_one_axonal_field (presynaptic_neuron):
     """Display one axon and dendritic field for each neuron, good examples are 5-->10"""
     axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_FILE)
-    pos = load_positions(HIDENS_ELECTRODES_FILE)
+    pos = load_positions(mea='hidens')
     for postsynaptic_neuron in dendrite_peak :
         ax=plt.subplot(111)
         plot_axon(ax, pos, axon_delay[presynaptic_neuron])
@@ -43,7 +43,7 @@ def test_plot_all_dendritic_fields_vs_one_axonal_field (presynaptic_neuron):
 def Figure06_only_overlap():
     """Plot overlap between axonal and dendritic fields of a presumably pre- and post-synaptic neuron pair"""
     trigger, _, axon_delay, dendrite_peak = load_compartments (FIGURE_ARBORS_FILE)
-    pos = load_positions(HIDENS_ELECTRODES_FILE)
+    pos = load_positions(mea='hidens')
     neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
     presynaptic_neuron = 5  # electrode 3605
     postsynaptic_neuron = 10  # electrode 4972
@@ -58,7 +58,7 @@ def Figure06_only_overlap():
 
 def Figure06_2plots():
     trigger, _, axon_delay, dendrite_peak = load_compartments(FIGURE_ARBORS_FILE)
-    pos = load_positions(HIDENS_ELECTRODES_FILE)
+    pos = load_positions(mea='hidens')
     neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
 
     presynaptic_neuron = 5 # electrode 3605
@@ -88,19 +88,18 @@ def Figure06_2plots():
 
 def Figure06():
     trigger, _, axon_delay, dendrite_peak = load_compartments(FIGURE_ARBORS_FILE)
-    pos = load_positions(HIDENS_ELECTRODES_FILE)
+    pos = load_positions(mea='hidens')
     neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
 
     presynaptic_neuron = 5
     postsynaptic_neuron = 10
     postsynaptic_neuron2 = 49  # or 50
-    thr_peak = 5
-    thr_overlap = 0.05
+    thr_overlap = 10
 
-    overlap, ratio, delay = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron, thr_peak,
-                                         thr_overlap)
-    overlap2, ratio2, delay2 = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron2, thr_peak,
-                                         thr_overlap)
+    overlap, ratio, delay = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron,
+                                         thr_overlap=thr_overlap)
+    overlap2, ratio2, delay2 = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron2,
+                                         thr_overlap=thr_overlap)
 
     # Making figure
     fig = plt.figure('Figure 6', figsize=(16, 9))
@@ -110,6 +109,7 @@ def Figure06():
     plot_neuron_pair(ax1, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron, presynaptic_neuron, delay)
     set_axis_hidens(ax1)
     ax1.set_title ('neuron pair %d $\longrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron))
+    ax1.text(200,200,r'$\rho=$%d electrodes' % thr_overlap)
     plot_two_colorbars(ax1)
     shrink_axes(ax1,yshrink=0.01)
     label_subplot(ax1, 'A', xoffset=-0.005, yoffset=-0.01)
@@ -118,18 +118,20 @@ def Figure06():
     plot_neuron_pair(ax2, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron2, presynaptic_neuron, delay2)
     set_axis_hidens(ax2)
     ax2.set_title('neuron pair %d $\dashrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron2))
+    ax2.text(200,200,r'$\rho=$%d electrodes' % thr_overlap)
     plot_two_colorbars(ax2)
     shrink_axes(ax2,yshrink=0.01)
     label_subplot(ax2, 'B', xoffset=-0.005, yoffset=-0.01)
 
     # Whole network
     ax3 = plt.subplot(122)
-    all_overlap, all_ratio, all_delay = all_overlaps(axon_delay, dendrite_peak)
+    all_overlap, all_ratio, all_delay = all_overlaps(axon_delay, dendrite_peak, thr_overlap=thr_overlap)
     plot_neuron_points(ax3, unique_neurons(all_delay), neuron_pos)
     plot_neuron_id(ax3, trigger, neuron_pos)
     plot_network (ax3, all_delay, neuron_pos)
     highlight_connection(ax3, (presynaptic_neuron, postsynaptic_neuron), neuron_pos)
     highlight_connection(ax3, (presynaptic_neuron, postsynaptic_neuron2), neuron_pos, connected=False)
+    ax3.text(200,150,r'$\rho=$%d electrodes' % thr_overlap)
     set_axis_hidens(ax3)
     ax3.set_title ('structural connectivity graph')
     label_subplot(ax3, 'C', xoffset=-0.05, yoffset=-0.05)
