@@ -31,20 +31,24 @@ def figure09 (networks_pickel_name):
 
     ax1 = plt.subplot(121)
     label_subplot(ax1,'A', xoffset=-0.04,yoffset=-0.02)
-    pairs = plot_synapse_delays(ax1, structural_delays, functional_delays, xlim=(0,4), ylim=(-2,5))
-    ax1.set_xlabel ('axonal delays [ms]')
-    ax1.set_ylabel ('spike timing [s]')
+    pairs = plot_synapse_delays(ax1, structural_delays, functional_delays, functional_strengths, ylim=(-2,5))
+    ax1.set_xlabel (r'score $z_{max}$')
+    ax1.set_ylabel (r'estimated synaptic delay $\tau_{synapse}$ [ms]')
 
     ax2 = plt.subplot(122)
     trigger, _, _, _ = load_compartments(FIGURE_ARBORS_FILE)
-    pos = load_positions(HIDENS_ELECTRODES_FILE)
+    pos = load_positions(mea='hidens')
     neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
     plot_neuron_points(ax2, unique_neurons(structural_delays), neuron_pos)
     plot_neuron_id(ax2, trigger, neuron_pos)
     plot_network(ax2, structural_delays, neuron_pos, color='gray')
     plot_network(ax2, pairs, neuron_pos, color='black')
-    ax2.hlines(0,0,0,linestyle='-',color='gray',label='all')
+
+    # Legend by proxy
+    ax2.hlines(0,0,0,linestyle='-',color='gray',label='remaining')
     ax2.hlines(0,0,0,linestyle='-',color='black',label='putative chemical')
+    ax2.text(200,150,r'$\rho=$1 electrode')
+
     plt.legend(frameon=False)
 
     set_axis_hidens(ax2)
@@ -53,19 +57,21 @@ def figure09 (networks_pickel_name):
     plt.show()
 
 
-def plot_synapse_delays(axScatter, xdict, ydict, xlim=None, ylim=None, scaling = 'count'):
+def plot_synapse_delays(axScatter, structural_delay, functional_delay, functional_strength, xlim=None, ylim=None, scaling ='count'):
     """Plot corretion and marginals"""
     # getting the data
-    delay_axon, timing_spike, pairs = __correlate_two_dicts(xdict, ydict)
+    delay_axon, timing_spike, pairs = __correlate_two_dicts(structural_delay, functional_delay)
     delay_synapse = timing_spike - delay_axon
+    __, strength_synapse, __ = __correlate_two_dicts(structural_delay, functional_strength)
 
     # Find putative chemical synapse with synaptic delay > 1ms
     indices = np.where(delay_synapse>1)
     synaptic_pairs = np.array(pairs)[indices]
 
     # scatter plot
-    axScatter.scatter(delay_axon, delay_synapse, color='gray', label='all')
-    axScatter.scatter(delay_axon[indices],delay_synapse[indices],color='black', label='putative chemical')
+    axScatter.scatter(strength_synapse, delay_synapse, color='gray', label='remaining')
+    axScatter.scatter(strength_synapse[indices],delay_synapse[indices],color='black', label='putative chemical')
+    axScatter.set_xscale('log')
     plt.legend(frameon=False)
 
     # density plot
@@ -76,7 +82,8 @@ def plot_synapse_delays(axScatter, xdict, ydict, xlim=None, ylim=None, scaling =
     kernel_density(axHisty, delay_synapse, scaling=scaling, style='k-', orientation='horizontal')
 
     # define limits
-    if not xlim: xlim = (min(delay_axon), max(delay_axon))
+    max_strength_synapse = max(strength_synapse)
+    if not xlim: xlim = (1, max_strength_synapse*2)
     if not ylim: ylim = (min(delay_synapse), max(delay_synapse))
 
     # set limits
@@ -85,9 +92,9 @@ def plot_synapse_delays(axScatter, xdict, ydict, xlim=None, ylim=None, scaling =
     axHisty.set_ylim(axScatter.get_ylim())
 
     # add hlines to Scatter
-    axScatter.hlines(0,0,4,linestyles='--')
-    axScatter.hlines(-1,0,4,linestyles=':')
-    axScatter.hlines(+1,0,4,linestyles=':')
+    axScatter.hlines(0, 0, max_strength_synapse*2, linestyles='--')
+    axScatter.hlines(-1, 0, max_strength_synapse*2, linestyles=':')
+    axScatter.hlines(+1, 0, max_strength_synapse*2, linestyles=':')
 
 
     # no labels
