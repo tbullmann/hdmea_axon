@@ -6,13 +6,28 @@ from publication.plotting import shrink_axes, without_spines_and_ticks, label_su
 
 logging.basicConfig(level=logging.DEBUG)
 
-# Testing code
+# Butterworth filter code
+
+from scipy.signal import butter, lfilter
+
+
+def butter_bandpass(lowcut=100, highcut=3500, fs=20000, order=5):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = butter(order, [low, high], btype='band')
+    return b, a
+
+
+def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
+    b, a = butter_bandpass(lowcut, highcut, fs, order=order)
+    y = lfilter(b, a, data)
+    return y
+
 
 # Final figure 3
 
 def figure03(test=True):
-
-
     if test:
         s, p  = get_distributions()
     else:
@@ -64,7 +79,7 @@ def figure03(test=True):
     ax3.annotate('', (35, 0), (35, 10), arrowprops=dict(shrinkB=0, shrinkA=0, arrowstyle='<->'))
     plt.hlines(10,0,35, color='black', linestyle=':', zorder=10)
     ax3.text(35, 3, r' z', size=15)
-    ax3.text(-45, 65, r'Potential $\Phi(z,r)$', color='gray', size=15, bbox=dict(facecolor='white', pad=5, edgecolor='none'))
+    ax3.text(-45, 65, r'Potential $\Phi(d,r)$', color='gray', size=15, bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     label_subplot(ax3, 'C', xoffset=-0.035, yoffset=-0.015)
 
     # Potential at HDMEA surface
@@ -74,7 +89,7 @@ def figure03(test=True):
         y = attenuation(r, z)
         plt.plot(r,y,label='z=%d$\mu$m' % z)
     plt.legend()
-    ax4.text(-48, 0.88, r'$A \approx \frac{z}{r^2+z^2}$', size=20, bbox=dict(facecolor='white', pad=5, edgecolor='none'))
+    ax4.text(-48, 0.88, r'$A \approx \frac{z}{\sqrt{r^2+z^2}}$', size=20, bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     annotate_r_arrow(ax4, -18)
     annotate_r_arrow(ax4, +18)
     ax4.set_xlabel (r'radius $r$ [$\mu$m]')
@@ -148,10 +163,13 @@ def peak_sd(radii, n_samples, snr, z, signal_index=None):
     time = np.arange(0,1,sampling_rate)
     y = attenuation(radii, z)
     N = len(radii)
+
+    # Background noise and randomly timed signal
     traces = np.random.normal(0, 1, (n_samples, N))
     if not signal_index:
         signal_index = np.random.randint(0, n_samples, 1)
     traces[signal_index, :] = - snr * y
+
     signal_time = signal_index * sampling_rate
     delays = np.argmin(traces, axis=0).astype(np.float) * sampling_rate
     std_delay = np.std(delays)
