@@ -1,7 +1,6 @@
 from __future__ import division
 
 import logging
-import os
 import pickle
 
 import matplotlib.pyplot as plt
@@ -9,11 +8,10 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import numpy as np
 from matplotlib.ticker import NullFormatter
-from scipy.stats import gaussian_kde
 
 from hana.misc import unique_neurons
 from hana.recording import load_positions
-from hana.segmentation import HIDENS_ELECTRODES_FILE, neuron_position_from_trigger_electrode, load_compartments
+from hana.segmentation import neuron_position_from_trigger_electrode, load_compartments
 from hana.plotting import plot_neuron_points, plot_neuron_id, plot_network, set_axis_hidens
 from publication.plotting import FIGURE_ARBORS_FILE, TEMPORARY_PICKELED_NETWORKS, compare_networks, \
     label_subplot, __correlate_two_dicts, kernel_density

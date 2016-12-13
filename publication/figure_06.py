@@ -1,6 +1,6 @@
 from hana.misc import unique_neurons
 from hana.plotting import plot_axon, plot_dendrite, plot_neuron_points, plot_neuron_id, plot_neuron_pair, plot_network, set_axis_hidens, highlight_connection
-from hana.recording import load_positions, HIDENS_ELECTRODES_FILE
+from hana.recording import load_positions
 from hana.structure import find_overlap, all_overlaps
 from hana.segmentation import load_compartments, load_neurites, neuron_position_from_trigger_electrode
 from publication.plotting import FIGURE_ARBORS_FILE, label_subplot, shrink_axes

@@ -4,7 +4,7 @@ from scipy.interpolate import griddata
 from matplotlib import pyplot as plt
 import matplotlib as mpl
 from matplotlib.pyplot import cm
-from hana.recording import load_traces, load_positions, HIDENS_ELECTRODES_FILE
+from hana.recording import load_traces, load_positions
 from hana.plotting import set_axis_hidens, plot_neuron_points, plot_neuron_id
 from hana.segmentation import load_compartments, load_neurites, neuron_position_from_trigger_electrode
 from publication.plotting import FIGURE_NEURON_FILE, FIGURE_NEURON_FILE_FORMAT, FIGURE_NEURONS, FIGURE_ARBORS_FILE, \
@@ -25,7 +25,7 @@ def figure_01():
 
     # ---- Plot AIS signals for each neuron showing no overlap ---
     trigger, AIS_index, axon_delay, dendrite_peak = load_compartments(FIGURE_ARBORS_FILE)
-    pos = load_positions(HIDENS_ELECTRODES_FILE)
+    pos = load_positions(mea='hidens')
     neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
 
     ax2 = plt.subplot2grid((2, 5), (0, 1), rowspan=1, colspan=2)
@@ -34,7 +34,7 @@ def figure_01():
     plot_neuron_id(ax2, trigger, neuron_pos)
     set_axis_hidens(ax2)
     plt.legend(frameon=False)
-    ax2.text(200, 200, r'isocontours for -50$\mu$V', size=15, bbox=dict(facecolor='white', pad=5, edgecolor='none'))
+    ax2.text(200, 200, r'isocontours for -50$\mu$V at 0ms', size=15, bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     label_subplot(ax2, 'B', xoffset=-0.025, yoffset=-0.015)
 
     # ---- Plot traveling signals for one neuron ---

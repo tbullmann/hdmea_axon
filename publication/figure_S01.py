@@ -1,4 +1,4 @@
-from hana.recording import load_positions, HIDENS_ELECTRODES_FILE
+from hana.recording import load_positions
 from hana.plotting import set_axis_hidens
 from hana.segmentation import extract_and_save_compartments, load_compartments, load_neurites
 from publication.plotting import cross_hair, shrink_axes, FIGURE_ARBORS_FILE, FIGURE_NEURONS, FIGURE_NEURON_FILE_FORMAT

@@ -1,5 +1,5 @@
 from hana.plotting import annotate_x_bar, set_axis_hidens
-from hana.recording import half_peak_width, half_peak_domain, electrode_neighborhoods, DELAY_EPSILON, load_positions, load_traces, HIDENS_ELECTRODES_FILE
+from hana.recording import half_peak_width, half_peak_domain, electrode_neighborhoods, DELAY_EPSILON, load_positions, load_traces
 from hana.segmentation import __segment_dendrite
 from publication.plotting import FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
     legend_without_multiple_labels, label_subplot, shrink_axes
@@ -15,8 +15,7 @@ logging.basicConfig(level=logging.DEBUG)
 def figure04():
 
     # Load electrode coordinates
-    pos = load_positions(HIDENS_ELECTRODES_FILE)
-    neighbors = electrode_neighborhoods(pos)
+    neighbors = electrode_neighborhoods(mea='hidens')
 
     # Load example data
     V, t, x, y, trigger, neuron = load_traces(FIGURE_NEURON_FILE)

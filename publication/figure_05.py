@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from hana.plotting import set_axis_hidens
-from hana.recording import electrode_neighborhoods, load_traces, load_positions, HIDENS_ELECTRODES_FILE
+from hana.recording import electrode_neighborhoods, load_traces
 from hana.segmentation import __segment_dendrite, __segment_axon
 from publication.plotting import FIGURE_NEURON_FILE, cross_hair, label_subplot, voltage_color_bar
 
@@ -16,8 +16,7 @@ logging.basicConfig(level=logging.DEBUG)
 def figure05():
 
     # Load electrode coordinates
-    pos = load_positions(HIDENS_ELECTRODES_FILE)
-    neighbors = electrode_neighborhoods(pos)
+    neighbors = electrode_neighborhoods(mea='hidens')
 
     # Load example data
     V, t, x, y, trigger, neuron = load_traces(FIGURE_NEURON_FILE)

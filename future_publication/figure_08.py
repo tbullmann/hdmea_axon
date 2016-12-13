@@ -4,8 +4,8 @@ import pickle
 
 from matplotlib import pyplot as plt
 
-from hana.polychronous import filter, combine, group, plot, plot_pcg_on_network, plot_pcg
-from hana.recording import load_positions, load_timeseries, HIDENS_ELECTRODES_FILE, partial_timeseries
+from future_publication.polychronous import filter, combine, group, plot, plot_pcg_on_network, plot_pcg
+from hana.recording import load_positions, load_timeseries, partial_timeseries
 from hana.segmentation import load_compartments, load_neurites, neuron_position_from_trigger_electrode
 from hana.structure import all_overlaps
 from publication.plotting import FIGURE_ARBORS_FILE, plot_loglog_fit, FIGURE_EVENTS_FILE, label_subplot, shrink_axes
