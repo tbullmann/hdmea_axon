@@ -51,12 +51,14 @@ def figure08 (networks_pickel_name):
     # plot network measures
     ax1 = plt.subplot(4,2,1)
     plot_vs_weigth(ax1, structural_strengths)
-    ax1.set_xlabel('overlap > #electrodes')
+    ax1.set_xlabel(r'overlap threshold $\rho$')
+    ax1.set_title('Structural network')
     label_subplot(ax1,'A')
 
     ax2 = plt.subplot(4,2,3)
     plot_vs_weigth(ax2, functional_strengths)
-    ax2.set_xlabel('score > threshold')
+    ax2.set_xlabel(r'score threshold $\zeta$')
+    ax2.set_title('Functional network')
     label_subplot(ax2,'B')
 
     ax3 = plt.subplot(2,2,2)
@@ -65,15 +67,16 @@ def figure08 (networks_pickel_name):
     plot_parameter_dependency(ax3, structural_index, structural_thresholds, functional_thresholds,
                               fmt='%1.1f', levels=np.linspace(0, 1, 11))
     format_parameter_plot(ax3)
-    ax3.text(3,120, r'Structural index ${|F \cup S|}/{|S|}$', size=15)
+    # ax3.text(3,120, r'Structural index ${|F \cup S|}/{|S|}$', size=15)
+    ax3.set_title(r'Structural index ${|F \cup S|}/{|S|}$')
     shrink_axes(ax3,xshrink=0.01,yshrink=0.01)
     label_subplot(ax3,'C',xoffset=-0.04)
 
     # plot distribution of strength and delays
     ax4 = plt.subplot(223)
     axScatter1 = plot_correlation(ax4, structural_strengths, functional_strengths, xscale='log', yscale='log')
-    axScatter1.set_xlabel ('overlap [#electrodes]')
-    axScatter1.set_ylabel ('score')
+    axScatter1.set_xlabel (r'overlap $|A \cup D|$ [#electrodes]')
+    axScatter1.set_ylabel (r'peak score z_max')
     label_subplot(ax4,'D')
 
     ax5 = plt.subplot(224)
@@ -118,7 +121,7 @@ def plot_vs_weigth(ax1, dictionary):
 
 
 def plot_correlation(ax, xdict, ydict, best_keys=None, xlim = None, ylim = None, dofit=False, xscale='linear', yscale='linear', scaling = 'count'):
-    """Plot corretion and marginals"""
+    """Plot correlation as scatter plot and marginals"""
     # getting the data
     x_all = xdict.values()
     y_all = ydict.values()
@@ -130,7 +133,7 @@ def plot_correlation(ax, xdict, ydict, best_keys=None, xlim = None, ylim = None,
     axHistx = plt.axes(rect_histx)
     axHisty = plt.axes(rect_histy)
     # the scatter plot:
-    axScatter.scatter(x_corr, y_corr, color='gray')
+    axScatter.scatter(x_corr, y_corr, color='black')
     if best_keys: axScatter.scatter(x_best, y_best, color='red')
     # plt.sca(axScatter)
     # plt.legend(frameon=False, loc=2)
@@ -147,7 +150,7 @@ def plot_correlation(ax, xdict, ydict, best_keys=None, xlim = None, ylim = None,
     plt.vlines(0, 0, 0, colors='black', linestyles=':', label='all')
     plt.vlines(0, 0, 0, colors='black', linestyles='--', label='both')
     if best_keys: plt.vlines(0, 0, 0, colors='red', linestyles='-', label='best')
-    plt.vlines(0, 0, 0, colors='black', linestyles='-', label='x=y')
+    plt.vlines(0, 0, 0, colors='black', linestyles='-', label='equal')
     plt.legend(frameon=False)
     # define limits
     if not xlim: xlim = (min(x_corr), max(x_corr))
