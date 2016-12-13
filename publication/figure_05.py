@@ -34,7 +34,8 @@ def figure05():
 
     # Making figure
     fig = plt.figure('Figure 5', figsize=(18,9))
-    fig.suptitle('Figure 5. Voltage peaks in axons and dendrites', fontsize=14, fontweight='bold')
+    fig.suptitle('Figure 5. Using delay distribution at neighboring electrodes is superior to simple peak'
+                 ' thresholding in detection of axonal and dendritic signals', fontsize=14, fontweight='bold')
 
     # Position of the AIS
     x_AIS = x[index_AIS]
