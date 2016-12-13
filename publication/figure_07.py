@@ -63,7 +63,8 @@ def plot_func_example_and_network(ax1, ax2, ax3, pre, post, direction, thr, pos,
                                     timeseries_surrogates[pre])  # calculate for network
     peak_score, peak_timelag, _, _ = all_peaks(timelags, std_score_dict, thr=thr, direction=direction)
     # Plot histograms for single neuron pair
-    plot_timeseries_hist_and_surrogates(ax2, timelags, timeseries_hist, surrogates_mean, surrogates_std)
+    loc = 2 if direction=='forward' else 1
+    plot_timeseries_hist_and_surrogates(ax2, timelags, timeseries_hist, surrogates_mean, surrogates_std,loc=loc)
     if direction == 'forward': ax2.set_title('neuron pair %d $\longrightarrow$ %d' % (pre, post), loc='left')
     if direction == 'reverse': ax2.set_title('neuron pair %d $\longleftarrow$ %d' % (post, pre), loc='left')
 
@@ -72,7 +73,7 @@ def plot_func_example_and_network(ax1, ax2, ax3, pre, post, direction, thr, pos,
         if direction == 'reverse': peak = -peak
     else:
         peak = None
-    plot_std_score_and_peaks(ax3, timelags, std_score, thr=thr, peak=peak)
+    plot_std_score_and_peaks(ax3, timelags, std_score, thr=thr, peak=peak, loc=loc)
     # Plot network and highlight the connection between the single neuron pair
     plot_network(ax1, peak_score, pos)
     neuron_dict = unique_neurons(peak_score)
@@ -82,6 +83,7 @@ def plot_func_example_and_network(ax1, ax2, ax3, pre, post, direction, thr, pos,
     if direction == 'forward': ax1.set_title(r'pre-synaptic spike followed by post-synaptic spike')
     if direction == 'reverse': ax1.set_title(r'post-synaptic spike preceded by pre-synaptic spike ')
     if peak is not None: highlight_connection(ax1, (pre, post), pos)
+    ax1.text(200,150,r'$\zeta=$%d' % thr)
     set_axis_hidens(ax1)
 
 
@@ -122,7 +124,7 @@ def Figure07(thr =20):
     timelags, std_score_dict, timeseries_hist_dict = pickle.load(open( 'temp/standardscores.p','rb'))
 
     trigger, _, axon_delay, dendrite_peak = load_compartments(FIGURE_ARBORS_FILE)
-    pos = load_positions(HIDENS_ELECTRODES_FILE)
+    pos = load_positions(mea='hidens')
     neuron_pos = neuron_position_from_trigger_electrode (pos, trigger)
 
     # for k,v in trigger.iteritems(): print (k,v)  # show neuron -> trigger electrode index
