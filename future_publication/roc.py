@@ -5,7 +5,7 @@ from hana.segmentation import __segment_axon, restrict_to_compartment
 from publication.plotting import FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
     legend_without_multiple_labels, label_subplot, plot_traces_and_delays, shrink_axes
 
-
+from scipy.stats import binom
 import numpy as np
 from matplotlib import pyplot as plt
 from statsmodels import robust
@@ -37,9 +37,9 @@ def roc (N,P, type='greater'):
 
 def test_roc():
     N0 = np.random.normal(loc=1, scale=1.0, size=1000)
-    alpha=0.2
-    N = np.random.normal(loc=1, scale=1.0, size=1000*(1-alpha))
-    P = np.random.normal(loc=2, scale=1.0, size=1000*alpha)
+    gamma=0.2
+    N = np.random.normal(loc=1, scale=1.0, size=1000*(1-gamma))
+    P = np.random.normal(loc=2, scale=1.0, size=1000*gamma)
     MixNP = np.hstack ((N, P))
 
     print (N0)
@@ -53,7 +53,7 @@ def test_roc():
     ax1 = plt.subplot(221)
 
     ax1.plot(FPR,TPR,'b-', label='orig')
-    ax1.plot((0,1),(alpha,1),'b--')
+    ax1.plot((0,1),(gamma,1),'b--')
 
     ax1.legend(loc=4)
     ax1.set_aspect('equal')
@@ -81,55 +81,80 @@ def test_rec():
     Vbefore = V[:, :80]
     Vafter = V[:, 81:]
 
-    # AP detection based on negative peak amplitude above threshold relative to noise level (Bakkum)
-    mnr_N0 = pnr(Vbefore, type='min')
-    mnr_NP = pnr(Vafter, type='min')
 
-    mnr_FPR, mnr_TPR = roc(mnr_N0, mnr_NP)
+    gamma = 0.3
+    pnr_threshold = 5
+    nbins = 200
+
+
+
+
+    # AP detection based on negative peak amplitude above threshold relative to noise level (Bakkum)
+    pnr_N0 = np.log10(pnr(Vbefore, type='min'))
+    pnr_NP = np.log10(pnr(Vafter, type='min'))
+    valid_peaks = pnr_NP > np.log10(pnr_threshold)
+
+    pnr_FPR, pnr_TPR = roc(pnr_N0, pnr_NP)
 
     # AP detection based on neighborhood delays below threshold in valley (Bullmann)
     _, _, std_N0, _, _, _, _, _, _ = __segment_axon(t, Vbefore, neighbors)
     std_N0 = std_N0*2
-    _, _, std_NP, _, _, _, _, _, _ = __segment_axon(t, V, neighbors)
+    _, _, std_NP, _, std_threshold, valid_delay, _, _, axon = __segment_axon(t, V, neighbors)
     std_FPR, std_TPR = roc(std_N0, std_NP, type='smaller')
 
-    alpha =0.3
+    fig = plt.figure('Figure ROC', figsize=(16, 10))
+    fig.suptitle('Figure ROC. Comparison of segmentation methods', fontsize=14,
+                 fontweight='bold')
 
-    ax1 = plt.subplot(221)
-    bins=np.linspace(0,10,num=100)
-    plt.hist(mnr_N0, bins=bins, histtype='step', color='black', label='N')
-    plt.hist(mnr_NP, bins=bins, histtype='step', color='red', label='N+P')
-    plt.legend()
-    ax1.set_ylabel ('count')
-    ax1.set_xlabel ('negative peak/noise')
+    ax1 = plt.subplot(231)
+    bins = np.linspace(-0.5, 2, num=nbins)
+    midpoints, pnr_counts, pnr_gamma = unmix_NP(pnr_N0, pnr_NP, bins)
+    plot_distributions(ax1, midpoints, pnr_counts)
+    ax1.set_ylim((0,500))
+    ax1.set_xlabel (r'$\log_{10}(V_{n}/\sigma_{V})$')
+    ax1.text(-0.3,450, 'I', size=14)
 
-    ax2 = plt.subplot(222)
-    bins = np.linspace(0, 4, num=100)
-    plt.hist(std_N0, bins=bins, histtype='step', color='black', label='N')
-    plt.hist(std_NP, bins=bins, histtype='step', color='red', label='N+P')
-    plt.legend()
-    ax2.set_ylabel ('count')
-    ax2.set_xlabel ('std delay [ms]')
+    ax2 = plt.subplot(232)
+    bins = np.linspace(0, 4, num=nbins)
+    midpoints, std_counts, std_gamma = unmix_NP(std_N0, std_NP, bins)
+    plot_distributions(ax2, midpoints, std_counts)
+    ax2.set_ylim((0,500))
+    ax2.set_xlabel (r'$s_{\tau}$ [ms]')
+    ax2.text(0.3,450, 'II', size=14)
 
-    ax3 = plt.subplot(223)
-    ax3.plot(mnr_FPR,mnr_TPR,'b-', label='max/noise')
-    ax3.plot(std_FPR,std_TPR,'g-', label='std delay')
-    ax3.plot((0,1),(alpha,1),'k--', label='P/M=%1.3f' % alpha)
+    ax3 = plt.subplot(233)
+    ax3.plot((0,1),(gamma,1),'k--', label=r'$\gamma$=%1.3f' % gamma)
+    ax3.plot(pnr_FPR,pnr_TPR,'b-', label='I')
+    ax3.plot((0,1),(pnr_gamma,1),'b--', label=r'$\gamma$=%1.3f' % pnr_gamma)
+    ax3.plot(std_FPR,std_TPR,'g-', label='II')
+    ax3.plot((0,1),(std_gamma,1),'g--', label=r'$\gamma$=%1.3f' % std_gamma)
     ax3.set_xlabel ('FPR')
     ax3.set_ylabel ('"MPR"')
     ax3.legend(loc=4)
     ax3.set_aspect('equal')
     ax3.set_xlim((0,1))
 
-    ax4 = plt.subplot(224)
-    ax4.plot(mnr_FPR, mnr_TPR+(1-mnr_FPR)*(1-alpha),'b-', label='max/noise')
-    ax4.plot(std_FPR, std_TPR+(1-std_FPR)*(1-alpha),'g-', label='std delay')
-    ax4.set_xlabel ('FPR')
-    ax4.set_ylabel ('TPR (estiamted)')
-    ax4.legend(loc=4)
-    ax4.set_aspect('equal')
-    ax4.set_xlim((0,1))
-    ax4.set_ylim((0,1))
+    ax4 = plt.subplot(234)
+    ax4.scatter(x, y, c=valid_peaks, s=10, marker='o', edgecolor='None', cmap='gray_r')
+    ax4.text(300, 300, r'I: $V_{n} > %d\sigma_{V}; \tau > \tau_{AIS}$' % pnr_threshold, bbox=dict(facecolor='white', pad=5, edgecolor='none'), size=14)
+    set_axis_hidens(ax4)
+
+    ax5 = plt.subplot(235)
+    ax5.scatter(x, y, c=axon, s=10, marker='o', edgecolor='None', cmap='gray_r')
+    ax5.text(300, 300, r'II: $s_{\tau} < s_{min}; \tau > \tau_{AIS}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'), size=14)
+    set_axis_hidens(ax5)
+
+    ax6 = plt.subplot(236)
+    ax6.plot(pnr_FPR, pnr_TPR+(1-pnr_FPR)*(1-pnr_gamma),'b:', label=r'I, $\gamma$=%1.3f' % pnr_gamma)
+    ax6.plot(pnr_FPR, pnr_TPR+(1-pnr_FPR)*(1-gamma),'b-', label=r'I, $\gamma$=%1.3f' % gamma)
+    ax6.plot(std_FPR, std_TPR+(1-std_FPR)*(1-std_gamma),'g:', label=r'II, $\gamma$=%1.3f' % std_gamma)
+    ax6.plot(std_FPR, std_TPR+(1-std_FPR)*(1-gamma),'g-', label=r'II, $\gamma$=%1.3f' % gamma)
+    ax6.set_xlabel ('FPR')
+    ax6.set_ylabel ('TPR ($\gamma$)')
+    ax6.legend(loc=4)
+    ax6.set_aspect('equal')
+    ax6.set_xlim((0,1))
+    ax6.set_ylim((0,1))
 
 
 
@@ -138,6 +163,43 @@ def test_rec():
     # # Verbose axon segmentation function
     # delay, mean_delay, std_delay, expected_std_delay, thr, valid_delay, index_AIS, positive_delay, axon \
     #     = __segment_axon(t, V, neighbors)
+
+
+def plot_distributions(ax1, midpoints, counts):
+    # # using lines between midpoints
+    # ax1.plot(midpoints, counts['N0'], color='gray', label='N0')
+    # ax1.plot(midpoints, counts['NP'], color='black', label='N+P')
+    # ax1.plot(midpoints, counts['N'], color='red', label='N')
+    # ax1.plot(midpoints, counts['P'], color='green', label='P')
+    # using steps
+    ax1.step(midpoints, counts['N0'], where='mid', color='gray', label='N0')
+    ax1.step(midpoints, counts['NP'], where='mid', color='black', label='N+P')
+    ax1.step(midpoints, counts['N'], where='mid', color='red', label='N')
+    ax1.step(midpoints, counts['P'], where='mid', color='green', label='P')
+    ax1.legend()
+    ax1.set_ylabel('count')
+
+
+def unmix_NP(N0, NP, bins):
+    counts = {}
+    counts['N0'], midpoints = smoothhist(N0, bins=bins)
+    counts['NP'], midpoints = smoothhist(NP, bins=bins)
+
+    beta = counts['NP'][np.argmax(counts['N0'])] / np.max(counts['N0'])  # fit peaks
+    gamma = 1-beta  # proportion of gamma = P/(N+P)
+
+    counts['N'] = counts['N0'] * beta
+    counts['P'] = counts['NP'] - counts['N']
+    return midpoints, counts, gamma
+
+
+def smoothhist(x, bins=10, kernelsize=1):
+    """histogram smootheed with moving average with binomial distribution as kernel"""
+    midpoints = np.convolve(bins / 2, np.ones(2), mode='valid')
+    count, _ = np.histogram(x, bins)
+    kernel = binom.pmf(np.linspace(0, kernelsize - 1, kernelsize), kernelsize - 1, 0.5)
+    count = np.convolve(count, kernel, mode='same')
+    return count, midpoints
 
 
 def pnr(x, type='max'):
@@ -150,9 +212,9 @@ def pnr(x, type='max'):
     """
     robust_std = robust.mad(x, axis=1) * 1.4826
     if type=='max':
-        peak = np.max(x, axis=1)
+        peak = np.max(x, axis=1)-np.median(x, axis=1)
     if type=='min':
-        peak = -np.min(x, axis=1)
+        peak = -(np.min(x, axis=1)-np.median(x, axis=1))
     return peak / robust_std
 
 
