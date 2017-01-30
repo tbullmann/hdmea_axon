@@ -96,6 +96,8 @@ def fit_distribution():
     plt.subplot(222)
     plt.step(xdata, ydata, where='mid', color='gray', label='NP')
     plt.plot(xdata, func_NP(xdata, locN, scaleN, locP, scaleP, gamma, n), color='gray', label='fit Norm(N) + Norm(P)')
+    plt.plot(xdata, norm.pdf(xdata, locN, scaleN) * (1-gamma) * n, color='red', label='fit Norm(N)')
+    plt.plot(xdata, norm.pdf(xdata, locP, scaleP) * gamma * n, color='green', label='fit Norm(P)')
     plt.legend()
     plt.xlabel (r'$\log_{10}(V_{n}/\sigma_{V})$')
     plt.ylabel ('count')
@@ -112,8 +114,6 @@ def fit_distribution():
 
     def func_N0(x, a, b, n):
         return beta.pdf(x / xmax, a, b) * n
-
-    print func_N0(0.5,10.,10.,100)
 
     popt, pcov = curve_fit(func_N0, xdata, ydata)
     # Constrain the optimization to the region of 0 < a < 10, 0 < b < 10, 0 < n < 11016:
@@ -133,37 +133,6 @@ def fit_distribution():
 
     ydata, xdata = smoothhist(NP, bins=bins)
 
-    # def func_NP (x, a, b, gamma, n):
-    #     return (beta.pdf(x / xmax, a0, b0) * (1-gamma) + beta.pdf(x / xmax, a, b) * gamma) * n
-    #
-    # popt, pcov = curve_fit(func_NP, xdata, ydata)
-    # # Constrain the optimization to the region of 0 < a < 10, 0 < b < 10, 0 < gamma < 1, 0 < n < 11016:
-    # popt, pcov = curve_fit(func_NP, xdata, ydata, bounds=(0, [10., 100., 1., 11016.]))
-    # a, b, gamma, n = popt
-    #
-    # print a0, b0, a, b, gamma, n
-    #
-    #
-    # plt.subplot(222)
-    # plt.step(xdata, ydata, where='mid', color='gray', label='NP')
-    # plt.plot(xdata,func_NP(xdata,a,b,gamma, n), color='gray', label='fit Beta(N0) + Beta(P)')
-    # plt.legend()
-    #
-    # def func_NP2(x, an, bn, ap, bp, gamma, n):
-    #     return (beta.pdf(x / xmax, an, bn) * (1-gamma) + beta.pdf(x / xmax, ap, bp) * gamma) * n
-    #
-    # popt, pcov = curve_fit(func_NP2, xdata, ydata)
-    # # Constrain the optimization to the region of 0 < a < 10, 0 < b < 10, 0 < gamma < 1, 0 < n < 11016:
-    # popt, pcov = curve_fit(func_NP2, xdata, ydata, bounds=(0, [10., 10., 10., 100., 1., 11016.]))
-    # an, bn, ap, bp, gamma, n = popt
-    #
-    # print an, bn, ap, bp, gamma, n
-    #
-    # plt.subplot(223)
-    # plt.step(xdata, ydata, where='mid', color='gray', label='NP')
-    # plt.plot(xdata, func_NP2(xdata, an, bn, ap, bp, gamma, n), color='gray', label='fit Beta(N) + Beta(P)')
-    # plt.legend()
-
     def func_NP3(x, an, bn, loc, scale, gamma, n):
         return (beta.pdf(x / xmax, an, bn) * (1 - gamma) + expon.pdf(x / xmax,-loc,scale) * gamma) * n
 
@@ -177,10 +146,14 @@ def fit_distribution():
     plt.subplot(224)
     plt.step(xdata, ydata, where='mid', color='gray', label='NP')
     plt.plot(xdata, func_NP3(xdata, an, bn, loc, scale, gamma, n), color='gray', label='fit Beta(N) + Expon(P)')
+    plt.plot(xdata, beta.pdf(xdata/xmax, an, bn) * (1 - gamma) * n, color='red', label='fit Beta(N)')
+    plt.plot(xdata, expon.pdf(xdata/xmax, -loc, scale) * gamma * n, color='green', label='fit Expon(P)')
     plt.legend()
     plt.xlabel (r'$s_{\tau}$ [ms]')
     plt.ylabel ('count')
     plt.show()
+
+    #TODO Calculate gamma from sum(P)/(sum(N)+sum(P)); it is not integral expon.pdf = 1 (as for the others)
 
 
 def roc (N,P, type='greater'):
