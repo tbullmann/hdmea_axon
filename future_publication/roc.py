@@ -77,7 +77,7 @@ def fit_distribution():
     plt.xlabel (r'$\log_{10}(V_{n}/\sigma_{V})$')
     plt.ylabel ('count')
 
-    ydata, xdata = smoothhist(NP, bins=bins, kernelsize=5)
+    ydata, xdata = smoothhist(NP, bins=bins)
 
     def func_NP(x, locN, scaleN, locP, scaleP, gamma, n):
         return ( norm.pdf(x, locN, scaleN) * (1-gamma) + norm.pdf(x, locP, scaleP) * gamma) * n
@@ -131,7 +131,7 @@ def fit_distribution():
     plt.ylabel ('count')
 
 
-    ydata, xdata = smoothhist(NP, bins=bins, kernelsize=5)
+    ydata, xdata = smoothhist(NP, bins=bins)
 
     def func_NP3(x, an, bn, scale, gamma, n):
         return (beta.pdf(x / xmax, an, bn) * (1 - gamma) + expon.pdf(x / xmax,0,scale) * gamma) * n
