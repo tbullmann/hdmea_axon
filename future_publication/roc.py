@@ -20,7 +20,7 @@ def fit_distribution():
     neighbors = electrode_neighborhoods(mea='hidens')
 
     # Load example data
-    V, t, x, y, trigger, neuron = load_traces(FIGURE_NEURON_FILE)
+    V, t, x, y, trigger, neuron = load_traces('data/neuron20.h5')
     t *= 1000  # convert to ms
 
     Vbefore = V[:, :80]
@@ -31,129 +31,142 @@ def fit_distribution():
     nbins = 200
 
     # AP detection based on negative peak amplitude above threshold relative to noise level (Bakkum)
-
-    import numpy as np
-
     pnr_N0 = np.log10(pnr(Vbefore, type='min'))
     pnr_NP = np.log10(pnr(Vafter, type='min'))
     valid_peaks = pnr_NP > np.log10(pnr_threshold)
     pnr_thresholds, pnr_FPR, pnr_MPR = roc(pnr_N0, pnr_NP)
 
-    # AP detection based on neighborhood delays below threshold in valley (Bullmann)
-    _, _, std_N0, _, _, _, _, _, _ = __segment_axon(t, Vbefore, neighbors)
-    std_N0 = std_N0 * 2
-    _, _, std_NP, _, std_threshold, valid_delay, _, _, axon = __segment_axon(t, V, neighbors)
-    std_thresholds, std_FPR, std_MPR = roc(std_N0, std_NP, type='smaller')
+    mixture_model(pnr_NP)
+
+    #
+    # # AP detection based on neighborhood delays below threshold in valley (Bullmann)
+    # _, _, std_N0, _, _, _, _, _, _ = __segment_axon(t, Vbefore, neighbors)
+    # std_N0 = std_N0 * 2
+    # _, _, std_NP, _, std_threshold, valid_delay, _, _, axon = __segment_axon(t, V, neighbors)
+    # std_thresholds, std_FPR, std_MPR = roc(std_N0, std_NP, type='smaller')
+    #
+    # fit_method_II(nbins, std_N0, std_NP)
+    #
+    # #TODO Calculate gamma from sum(P)/(sum(N)+sum(P)); it is not integral expon.pdf = 1 (as for the others)
 
 
-
-    # ------------- Method I
-    N0 = pnr_N0
-    NP = pnr_NP
-    bins = np.linspace(-0.5, 2, num=nbins)
-
-    counts = {}
-    ydata, xdata = smoothhist(N0, bins=bins)
-
-    def func_N0(x, loc, scale, n):
-        return norm.pdf(x, loc, scale) * n
-
-    popt, pcov = curve_fit(func_N0, xdata, ydata)
-    # Constrain the optimization to the region of 0 < loc < 10, 0 < b < 10, 0 < n < 11016:
-    popt, pcov = curve_fit(func_N0, xdata, ydata, bounds=([-0.5, 0., 0.], [2., 10., 11016.]))
-    loc0, scale0, n0 = popt
-
-    print loc0, scale0, n0
-
-    # Plotting
-    fig = plt.figure('Figure Fits', figsize=(16, 10))
-    fig.suptitle('Figure 5B. Fits for method I and II', fontsize=14,
-                 fontweight='bold')
-
-    plt.subplot(221)
-    plt.step(xdata, ydata, where='mid', color='gray', label='N0')
-    plt.plot(xdata, func_N0(xdata, loc0, scale0, n0), color='gray', label='fit Norm(N0)')
-    plt.legend()
-    plt.xlabel (r'$\log_{10}(V_{n}/\sigma_{V})$')
-    plt.ylabel ('count')
-
-    ydata, xdata = smoothhist(NP, bins=bins)
-
-    def func_NP(x, locN, scaleN, locP, scaleP, gamma, n):
-        return ( norm.pdf(x, locN, scaleN) * (1-gamma) + norm.pdf(x, locP, scaleP) * gamma) * n
-
-    popt, pcov = curve_fit(func_NP, xdata, ydata)
-    # Constrain the optimization to the region of 0 < loc < 10, 0 < scale < 10, 0 < gamma < 0.5, 0 < n < 11016:
-    popt, pcov = curve_fit(func_NP, xdata, ydata, bounds=([-0.5, 0., -0.5, 0., 0., 0.], [2., 10., 2., 10., 1, 11016.]))
-    locN, scaleN, locP, scaleP, gamma, n = popt
-    if locN>locP:  # if not positives loc > negatives loc then swap
-        locP, locN = locN, locP
-        scaleP, scaleN = scaleN, scaleP
-        gamma = 1-gamma
-
-    print locN, scaleN, locP, scaleP, gamma, n
-
-    plt.subplot(222)
-    plt.step(xdata, ydata, where='mid', color='gray', label='NP')
-    plt.plot(xdata, func_NP(xdata, locN, scaleN, locP, scaleP, gamma, n), color='gray', label='fit Norm(N) + Norm(P)')
-    plt.plot(xdata, norm.pdf(xdata, locN, scaleN) * (1-gamma) * n, color='red', label='fit Norm(N)')
-    plt.plot(xdata, norm.pdf(xdata, locP, scaleP) * gamma * n, color='green', label='fit Norm(P)')
-    plt.legend()
-    plt.xlabel (r'$\log_{10}(V_{n}/\sigma_{V})$')
-    plt.ylabel ('count')
-
+def fit_method_II(nbins, std_N0, std_NP):
     # ------------- Method II
     N0 = std_N0
     NP = std_NP
     bins = np.linspace(0, 4, num=nbins)
-
     counts = {}
     ydata, xdata = smoothhist(N0, bins=bins)
-    xmax = 4    # to rescale x to 0..1
-
+    xmax = 4  # to rescale x to 0..1
 
     def func_N0(x, a, b, n):
         return beta.pdf(x / xmax, a, b) * n
 
     popt, pcov = curve_fit(func_N0, xdata, ydata)
     # Constrain the optimization to the region of 0 < a < 10, 0 < b < 10, 0 < n < 11016:
-    popt, pcov = curve_fit(func_N0, xdata, ydata, bounds=(0, [10.,10.,11016.]))
-    a0,b0,n0 = popt
-
-    print a0,b0,n0
-
-
+    popt, pcov = curve_fit(func_N0, xdata, ydata, bounds=(0, [10., 10., 11016.]))
+    a0, b0, n0 = popt
+    print a0, b0, n0
     plt.subplot(223)
     plt.step(xdata, ydata, where='mid', color='gray', label='N0')
     plt.plot(xdata, func_N0(xdata, a0, b0, n0), color='gray', label='fit Beta(N0)')
     plt.legend()
-    plt.xlabel (r'$s_{\tau}$ [ms]')
-    plt.ylabel ('count')
-
-
+    plt.xlabel(r'$s_{\tau}$ [ms]')
+    plt.ylabel('count')
     ydata, xdata = smoothhist(NP, bins=bins)
 
     def func_NP3(x, an, bn, scale, gamma, n):
-        return (beta.pdf(x / xmax, an, bn) * (1 - gamma) + expon.pdf(x / xmax,0,scale) * gamma) * n
+        return (beta.pdf(x / xmax, an, bn) * (1 - gamma) + expon.pdf(x / xmax, 0, scale) * gamma) * n
 
     popt, pcov = curve_fit(func_NP3, xdata, ydata)
     # Constrain the optimization to the region of 0 < a < 10, 0 < b < 10, 0<-loc<10, 0<scale<1, 0 < gamma < 1, 0 < n < 11016:
     popt, pcov = curve_fit(func_NP3, xdata, ydata, bounds=(0, [10., 10., 1., 1., 11016.]))
     an, bn, scale, gamma, n = popt
-
     print an, bn, scale, gamma, n
-
     plt.subplot(224)
     plt.step(xdata, ydata, where='mid', color='gray', label='NP')
     plt.plot(xdata, func_NP3(xdata, an, bn, scale, gamma, n), color='gray', label='fit Beta(N) + Expon(P)')
-    plt.plot(xdata, beta.pdf(xdata/xmax, an, bn) * (1 - gamma) * n, color='red', label='fit Beta(N)')
-    plt.plot(xdata, expon.pdf(xdata/xmax, 0, scale) * gamma * n, color='green', label='fit Expon(P)')
+    plt.plot(xdata, beta.pdf(xdata / xmax, an, bn) * (1 - gamma) * n, color='red', label='fit Beta(N)')
+    plt.plot(xdata, expon.pdf(xdata / xmax, 0, scale) * gamma * n, color='green', label='fit Expon(P)')
     plt.legend()
-    plt.xlabel (r'$s_{\tau}$ [ms]')
-    plt.ylabel ('count')
+    plt.xlabel(r'$s_{\tau}$ [ms]')
+    plt.ylabel('count')
     plt.show()
 
-    #TODO Calculate gamma from sum(P)/(sum(N)+sum(P)); it is not integral expon.pdf = 1 (as for the others)
+
+class method_I:
+    def __init__(self, N0, NP, nbins=200, min_x = -0.5, max_x = 2., max_n = 11016.):
+        self.N0 = N0
+        self.NP = NP
+        self.min_x = min_x
+        self.max_x = max_x
+        self.max_n = max_n
+        self.bins = np.linspace(min_x, max_x, num=nbins)
+
+        param_keys = 'loc, scale, gamma, n'
+        formula = 'norm.pdf(x, loc, scale) * (1 - gamma) * n'
+        self.func_N = eval('lambda x, %s: %s' % (param_keys, formula))
+
+
+        def func_N0(x, loc, scale, n):
+            return self.func_N(x, loc, scale, 0, n)
+
+        def func_P(x, loc, scale, gamma, n):
+            return norm.pdf(x, loc, scale) * gamma * n
+
+        def func_NP(x, locN, scaleN, locP, scaleP, gamma, n):
+            return self.func_N(x, locN, scaleN, gamma, n) + func_P(x, locP, scaleP, gamma, n)
+
+        # Fitting the Null hypothesis to pure negatives
+        counts_N0, midpoints = smoothhist(self.N0, bins=self.bins)
+        (loc0, scale0, n0), _ = curve_fit(func_N0, midpoints, counts_N0,
+            bounds=([self.min_x, 0., 0.], [self.max_x, 10., self.max_n]))
+
+        # Fitting the mixture of negative and positives
+        counts_NP, _ = smoothhist(self.NP, bins=self.bins)
+        (locN, scaleN, locP, scaleP, gamma, n), _ = curve_fit(func_NP, midpoints, counts_NP,
+                                                              bounds=([min_x, 0., min_x, 0., 0., 0.],
+                                                                      [max_x, 10., max_x, 10., 1, max_n]))
+        if locN > locP:  # if not positives loc > negatives loc then swap
+            locP, locN = locN, locP
+            scaleP, scaleN = scaleN, scaleP
+            gamma = 1 - gamma
+
+        # Results
+        print loc0, scale0, n0
+        print locN, scaleN, locP, scaleP, gamma, n
+
+        # Calculating the fits
+        yfit_N0 = func_N0(midpoints, loc0, scale0, n0)
+        yfit_NP = func_NP(midpoints, locN, scaleN, locP, scaleP, gamma, n)
+        yfit_N = norm.pdf(midpoints, locN, scaleN) * (1 - gamma) * n
+        yfit_P = norm.pdf(midpoints, locP, scaleP) * gamma * n
+
+        # Plotting
+        fig = plt.figure('Figure Fits', figsize=(16, 10))
+        fig.suptitle('Figure 5B. Fits for method I and II', fontsize=14, fontweight='bold')
+
+        plt.subplot(221)
+        plt.step(midpoints, counts_N0, where='mid', color='gray', label='N0')
+        plt.plot(midpoints, yfit_N0, color='gray', label='fit Norm(N0)')
+        plt.legend()
+        plt.xlabel(r'$\log_{10}(V_{n}/\sigma_{V})$')
+        plt.ylabel('count')
+
+        plt.subplot(222)
+        plt.step(midpoints, counts_NP, where='mid', color='gray', label='NP')
+        plt.plot(midpoints, yfit_NP, color='gray', label='fit Norm(N) + Norm(P)')
+        plt.plot(midpoints, yfit_N, color='red', label='fit Norm(N)')
+        plt.plot(midpoints, yfit_P, color='green', label='fit Norm(P)')
+        plt.legend()
+        plt.xlabel(r'$\log_{10}(V_{n}/\sigma_{V})$')
+        plt.ylabel('count')
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+
 
 
 def roc (N,P, type='greater'):
@@ -327,9 +340,16 @@ def unmix_NP(N0, NP, bins, gamma=None ):
 
 
 def smoothhist(x, bins=10, kernelsize=1):
-    """histogram smootheed with moving average with binomial distribution as kernel"""
+    """
+    Histogram smootheed with moving average with binomial distribution as kernel.
+    Note: infinite values are excluded.
+    :param x:
+    :param bins:
+    :param kernelsize: 1 (no smoothin)
+    :return:
+    """
     midpoints = np.convolve(bins / 2, np.ones(2), mode='valid')
-    count, _ = np.histogram(x, bins)
+    count, _ = np.histogram(x[np.where(np.isfinite(x))], bins)
     kernel = binom.pmf(np.linspace(0, kernelsize - 1, kernelsize), kernelsize - 1, 0.5)
     count = np.convolve(count, kernel, mode='same')
     return count, midpoints
@@ -349,6 +369,69 @@ def pnr(x, type='max'):
     if type=='min':
         peak = -(np.min(x, axis=1)-np.median(x, axis=1))
     return peak / robust_std
+
+
+class model:
+    def __init__(self, formula_string = None, bounds_dict=None):
+        self.variable_list = list(bounds_dict.keys())
+        self.variable_string = ",".join(self.variable_list)
+        self.bounds = zip(*bounds_dict.values())
+        self.func = eval('lambda x, %s: %s' % (self.variable_string, formula_string))
+        print (formula_string)
+        print (bounds_dict)
+        print (self.variable_string)
+        print (self.bounds)
+
+    def fit(self, x, y):
+        params, cov = curve_fit(self.func, x, y, bounds=self.bounds)
+        self.parameters = dict(zip(self.variable_list, params))
+        print self.parameters
+
+    def predict(self, x, override=None):
+        params = self.parameters.copy()
+        if override:
+            for key in override.keys():
+                params[key] = override[key]
+        return self.func(x, **params)
+
+def test_fitting_ a_model():
+    model = model(formula_string='n * norm.pdf(x, loc, scale)',
+                  bounds_dict=dict(n=[0, 11016], loc=[-.5, 2.], scale=[0, 10]))
+
+    x = np.linspace(-1,1,15)
+    y = model.func(x,n=1,loc=0,scale=0.2)
+
+    model.fit(x,y)
+
+    xfit = np.linspace(-1,1,100)
+    yfit = model.predict(xfit, override=dict(n=2))
+
+    plt.plot(x,y,'x')
+    plt.plot(xfit,yfit)
+    plt.show()
+
+
+class mixture_model (model):
+    def __init__(self, values, nbins=200, min_x=-0.5, max_x=2., max_n=11016.):
+        model.__init__(self, formula_string='n_N * norm.pdf(x, loc_N, scale_N) + n_P * norm.pdf(x, loc_P, scale_P)',
+                       bounds_dict=dict(n_N=[0, 11016], loc_N=[-.5, 2.], scale_N=[0, 10],
+                                        n_P=[0, 11016], loc_P=[-.5, 2.], scale_P=[0, 10]))
+        bins = np.linspace(min_x, max_x, num=nbins)
+        self.counts, self.midpoints = smoothhist(values, bins=bins)
+        self.fit(self.midpoints, self.counts)
+
+        self.fitted_counts = self.predict(self.midpoints)
+        self.fitted_counts_N_only = self.predict(self.midpoints, override=dict(n_P=0))
+        self.fitted_counts_P_only = self.predict(self.midpoints, override=dict(n_N=0))
+
+        self.plot()
+
+    def plot(self):
+        plt.step(self.midpoints, self.counts, where='mid', color='gray', label='NP')
+        plt.plot(self.midpoints, self.fitted_counts, color='gray', label='fit NP')
+        plt.plot(self.midpoints, self.fitted_counts_N_only, color='red', label='fitted N')
+        plt.plot(self.midpoints, self.fitted_counts_P_only, color='green', label='fitted P')
+        plt.show()
 
 
 
