@@ -394,7 +394,7 @@ class model:
                 params[key] = override[key]
         return self.func(x, **params)
 
-def test_fitting_ a_model():
+def test_fitting_a_model():
     model = model(formula_string='n * norm.pdf(x, loc, scale)',
                   bounds_dict=dict(n=[0, 11016], loc=[-.5, 2.], scale=[0, 10]))
 
