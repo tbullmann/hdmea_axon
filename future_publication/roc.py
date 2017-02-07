@@ -34,20 +34,31 @@ def fit_distribution():
     pnr_N0 = np.log10(pnr(Vbefore, type='min'))
     pnr_NP = np.log10(pnr(Vafter, type='min'))
     valid_peaks = pnr_NP > np.log10(pnr_threshold)
-    pnr_thresholds, pnr_FPR, pnr_MPR = roc(pnr_N0, pnr_NP)
 
-    mixture_model(pnr_NP)
+    pnr_model = mixture_model(pnr_NP)
 
-    #
-    # # AP detection based on neighborhood delays below threshold in valley (Bullmann)
-    # _, _, std_N0, _, _, _, _, _, _ = __segment_axon(t, Vbefore, neighbors)
-    # std_N0 = std_N0 * 2
+    # AP detection based on neighborhood delays below threshold in valley (Bullmann)
     # _, _, std_NP, _, std_threshold, valid_delay, _, _, axon = __segment_axon(t, V, neighbors)
-    # std_thresholds, std_FPR, std_MPR = roc(std_N0, std_NP, type='smaller')
     #
-    # fit_method_II(nbins, std_N0, std_NP)
-    #
-    # #TODO Calculate gamma from sum(P)/(sum(N)+sum(P)); it is not integral expon.pdf = 1 (as for the others)
+    # std_model(std_NP)
+
+    #TODO Calculate gamma from sum(P)/(sum(N)+sum(P)); it is not integral expon.pdf = 1 (as for the others)
+
+
+
+    # Plotting
+    fig = plt.figure('Figure Fits', figsize=(14, 8))
+    fig.suptitle('Figure 5B. Fits for method I and II', fontsize=14, fontweight='bold')
+
+    ax1 = plt.subplot(231)
+    pnr_model.plot(ax1)
+    ax1.legend()
+    ax1.set_xlabel(r'$\log_{10}(V_{n}/\sigma_{V})$')
+    ax1.set_ylabel('count')
+
+    ax3 = plt.subplot(233)
+    pnr_model.plot_ROC(ax3)
+    plt.show()
 
 
 def fit_method_II(nbins, std_N0, std_NP):
@@ -92,75 +103,6 @@ def fit_method_II(nbins, std_N0, std_NP):
     plt.xlabel(r'$s_{\tau}$ [ms]')
     plt.ylabel('count')
     plt.show()
-
-
-class method_I:
-    def __init__(self, N0, NP, nbins=200, min_x = -0.5, max_x = 2., max_n = 11016.):
-        self.N0 = N0
-        self.NP = NP
-        self.min_x = min_x
-        self.max_x = max_x
-        self.max_n = max_n
-        self.bins = np.linspace(min_x, max_x, num=nbins)
-
-        param_keys = 'loc, scale, gamma, n'
-        formula = 'norm.pdf(x, loc, scale) * (1 - gamma) * n'
-        self.func_N = eval('lambda x, %s: %s' % (param_keys, formula))
-
-
-        def func_N0(x, loc, scale, n):
-            return self.func_N(x, loc, scale, 0, n)
-
-        def func_P(x, loc, scale, gamma, n):
-            return norm.pdf(x, loc, scale) * gamma * n
-
-        def func_NP(x, locN, scaleN, locP, scaleP, gamma, n):
-            return self.func_N(x, locN, scaleN, gamma, n) + func_P(x, locP, scaleP, gamma, n)
-
-        # Fitting the Null hypothesis to pure negatives
-        counts_N0, midpoints = smoothhist(self.N0, bins=self.bins)
-        (loc0, scale0, n0), _ = curve_fit(func_N0, midpoints, counts_N0,
-            bounds=([self.min_x, 0., 0.], [self.max_x, 10., self.max_n]))
-
-        # Fitting the mixture of negative and positives
-        counts_NP, _ = smoothhist(self.NP, bins=self.bins)
-        (locN, scaleN, locP, scaleP, gamma, n), _ = curve_fit(func_NP, midpoints, counts_NP,
-                                                              bounds=([min_x, 0., min_x, 0., 0., 0.],
-                                                                      [max_x, 10., max_x, 10., 1, max_n]))
-        if locN > locP:  # if not positives loc > negatives loc then swap
-            locP, locN = locN, locP
-            scaleP, scaleN = scaleN, scaleP
-            gamma = 1 - gamma
-
-        # Results
-        print loc0, scale0, n0
-        print locN, scaleN, locP, scaleP, gamma, n
-
-        # Calculating the fits
-        yfit_N0 = func_N0(midpoints, loc0, scale0, n0)
-        yfit_NP = func_NP(midpoints, locN, scaleN, locP, scaleP, gamma, n)
-        yfit_N = norm.pdf(midpoints, locN, scaleN) * (1 - gamma) * n
-        yfit_P = norm.pdf(midpoints, locP, scaleP) * gamma * n
-
-        # Plotting
-        fig = plt.figure('Figure Fits', figsize=(16, 10))
-        fig.suptitle('Figure 5B. Fits for method I and II', fontsize=14, fontweight='bold')
-
-        plt.subplot(221)
-        plt.step(midpoints, counts_N0, where='mid', color='gray', label='N0')
-        plt.plot(midpoints, yfit_N0, color='gray', label='fit Norm(N0)')
-        plt.legend()
-        plt.xlabel(r'$\log_{10}(V_{n}/\sigma_{V})$')
-        plt.ylabel('count')
-
-        plt.subplot(222)
-        plt.step(midpoints, counts_NP, where='mid', color='gray', label='NP')
-        plt.plot(midpoints, yfit_NP, color='gray', label='fit Norm(N) + Norm(P)')
-        plt.plot(midpoints, yfit_N, color='red', label='fit Norm(N)')
-        plt.plot(midpoints, yfit_P, color='green', label='fit Norm(P)')
-        plt.legend()
-        plt.xlabel(r'$\log_{10}(V_{n}/\sigma_{V})$')
-        plt.ylabel('count')
 
 
 import numpy as np
@@ -401,7 +343,7 @@ def test_fitting_a_model():
     x = np.linspace(-1,1,15)
     y = model.func(x,n=1,loc=0,scale=0.2)
 
-    model.fit(x,y)
+    model.fitvalues(x, y)
 
     xfit = np.linspace(-1,1,100)
     yfit = model.predict(xfit, override=dict(n=2))
@@ -416,24 +358,43 @@ class mixture_model (model):
         model.__init__(self, formula_string='n_N * norm.pdf(x, loc_N, scale_N) + n_P * norm.pdf(x, loc_P, scale_P)',
                        bounds_dict=dict(n_N=[0, 11016], loc_N=[-.5, 2.], scale_N=[0, 10],
                                         n_P=[0, 11016], loc_P=[-.5, 2.], scale_P=[0, 10]))
-        bins = np.linspace(min_x, max_x, num=nbins)
-        self.counts, self.midpoints = smoothhist(values, bins=bins)
-        self.fit(self.midpoints, self.counts)
+        self.values = values
+        self.min_x = min_x
+        self.max_x = max_x
+        self.nbins = nbins
+        self.fitvalues()
+        self.predict_mixture()
+        self.predict_FPR_TPR()
 
+    def predict_mixture(self):
         self.fitted_counts = self.predict(self.midpoints)
         self.fitted_counts_N_only = self.predict(self.midpoints, override=dict(n_P=0))
         self.fitted_counts_P_only = self.predict(self.midpoints, override=dict(n_N=0))
 
-        self.plot()
+    def fitvalues(self):
+        bins = np.linspace(self.min_x, self.max_x, num=self.nbins)
+        self.counts, self.midpoints = smoothhist(self.values, bins=bins)
+        self.fit(self.midpoints, self.counts)
 
-    def plot(self):
-        plt.step(self.midpoints, self.counts, where='mid', color='gray', label='NP')
-        plt.plot(self.midpoints, self.fitted_counts, color='gray', label='fit NP')
-        plt.plot(self.midpoints, self.fitted_counts_N_only, color='red', label='fitted N')
-        plt.plot(self.midpoints, self.fitted_counts_P_only, color='green', label='fitted P')
-        plt.show()
+    def plot(self, ax):
+        ax.step(self.midpoints, self.counts, where='mid', color='gray', label='NP')
+        ax.plot(self.midpoints, self.fitted_counts, color='gray', label='fit NP')
+        ax.plot(self.midpoints, self.fitted_counts_N_only, color='red', label='fitted N')
+        ax.plot(self.midpoints, self.fitted_counts_P_only, color='green', label='fitted P')
+
+    def plot_ROC(self,ax, label = 'ROC'):
+        ax.plot(self.FPR, self.TPR, label=label)
+        ax.set_xlabel ('FPR')
+        ax.set_ylabel ('TPR')
+
+    def predict_FPR_TPR(self):
+        self.FPR = 1 - normcum(self.fitted_counts_N_only)
+        self.TPR = 1 - normcum(self.fitted_counts_P_only)
 
 
+def normcum(x):
+    FPR = np.cumsum(x) / sum(x)
+    return FPR
 
 
 fit_distribution()
