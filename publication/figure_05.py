@@ -19,10 +19,8 @@ def figure05():
     neighbors = electrode_neighborhoods(mea='hidens')
 
     # Load example data
-    # filename = 'data/neuron20.h5'
-    # filename = 'data/neuron11.h5'
-    filename = 'data/neuron5.h5'
-    # filename = 'data/neuron25.h5'
+    neuron = 5  # other neurons 5, 10, 11, 20, 25, 2, 31, 41
+    filename = FIGURE_NEURON_FILE_FORMAT % neuron
 
     V, t, x, y, trigger, neuron = load_traces(filename)
     t *= 1000  # convert to ms
@@ -39,7 +37,7 @@ def figure05():
     print (Model2.summary(subject=filename, method='Bullmann'))
 
     # Plotting Frames A~E
-    fig = plt.figure('Figure 5', figsize=(16, 10))
+    fig = plt.figure('Figure 5 neuron %d' % neuron, figsize=(16, 10))
     fig.suptitle('Figure 5. Comparison of segmentation methods', fontsize=14, fontweight='bold')
 
     ax1 = plt.subplot(231)
@@ -333,11 +331,11 @@ class ModelDiscriminatorBakkum(ModelDiscriminator):
     Discriminator as described in Bakkum et al, 2013, Nat Commun
     """
 
-    def __init__(self, nbins=200, min_x=-0.5, max_x=2., max_n=11016):
+    def __init__(self, nbins=200, min_x=-0.5, max_x=2., max_n=11016, pnr_threshold=5):
         ModelDiscriminator.__init__(self,
             formula_string='amp_N * norm.pdf(x, loc_N, scale_N) + amp_P * norm.pdf(x, loc_P, scale_P)',
-            bounds_dict=dict(amp_N=[0, max_n], loc_N=[min_x, max_x], scale_N=[0, 10],
-                            amp_P=[0, max_n], loc_P=[min_x, max_x], scale_P=[0, 10]),
+            bounds_dict=dict(amp_N=[0, max_n], loc_N=[0, max_x], scale_N=[0, 10],
+                            amp_P=[0, max_n], loc_P=[0.4, max_x], scale_P=[0, 10]),
             min_x=min_x, max_x=max_x, nbins=nbins)
 
     def fit(self, t, V):
