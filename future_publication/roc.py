@@ -7,10 +7,10 @@ from publication.plotting import FIGURE_NEURON_FILE, without_spines_and_ticks, c
 
 from scipy.stats import binom, beta, expon, norm
 from scipy.optimize import curve_fit
-
 import numpy as np
 from matplotlib import pyplot as plt
 from statsmodels import robust
+
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -23,91 +23,32 @@ def fit_distribution():
     V, t, x, y, trigger, neuron = load_traces('data/neuron20.h5')
     t *= 1000  # convert to ms
 
-    Vbefore = V[:, :80]
-    Vafter = V[:, 81:]
-
-    gamma = 0.3
-    pnr_threshold = 5
-    nbins = 200
-
-    # AP detection based on negative peak amplitude above threshold relative to noise level (Bakkum)
-    pnr_N0 = np.log10(pnr(Vbefore, type='min'))
-    pnr_NP = np.log10(pnr(Vafter, type='min'))
-    valid_peaks = pnr_NP > np.log10(pnr_threshold)
-
-    pnr_model = mixture_model(pnr_NP)
-
-    # AP detection based on neighborhood delays below threshold in valley (Bullmann)
-    # _, _, std_NP, _, std_threshold, valid_delay, _, _, axon = __segment_axon(t, V, neighbors)
-    #
-    # std_model(std_NP)
-
-    #TODO Calculate gamma from sum(P)/(sum(N)+sum(P)); it is not integral expon.pdf = 1 (as for the others)
-
-
+    Model1 = ModelDiscriminatorBakkum(t, V, pnr_threshold=5)
+    Model2 = ModelDiscriminatorBullmann(t, V, neighbors)
 
     # Plotting
     fig = plt.figure('Figure Fits', figsize=(14, 8))
     fig.suptitle('Figure 5B. Fits for method I and II', fontsize=14, fontweight='bold')
 
     ax1 = plt.subplot(231)
-    pnr_model.plot(ax1)
+    Model1.plot(ax1)
     ax1.legend()
     ax1.set_xlabel(r'$\log_{10}(V_{n}/\sigma_{V})$')
     ax1.set_ylabel('count')
 
     ax3 = plt.subplot(233)
-    pnr_model.plot_ROC(ax3)
+    Model1.plot_ROC(ax3)
+
+    ax4 = plt.subplot(234)
+    Model1.plot_Map(ax4, x, y)
+    ax4.text(300, 300, r'I: $V_{n} > %d\sigma_{V}; \tau > \tau_{AIS}$' % 5,
+            bbox=dict(facecolor='white', pad=5, edgecolor='none'), size=14)
+    set_axis_hidens(ax4)
+
     plt.show()
 
 
-def fit_method_II(nbins, std_N0, std_NP):
-    # ------------- Method II
-    N0 = std_N0
-    NP = std_NP
-    bins = np.linspace(0, 4, num=nbins)
-    counts = {}
-    ydata, xdata = smoothhist(N0, bins=bins)
-    xmax = 4  # to rescale x to 0..1
 
-    def func_N0(x, a, b, n):
-        return beta.pdf(x / xmax, a, b) * n
-
-    popt, pcov = curve_fit(func_N0, xdata, ydata)
-    # Constrain the optimization to the region of 0 < a < 10, 0 < b < 10, 0 < n < 11016:
-    popt, pcov = curve_fit(func_N0, xdata, ydata, bounds=(0, [10., 10., 11016.]))
-    a0, b0, n0 = popt
-    print a0, b0, n0
-    plt.subplot(223)
-    plt.step(xdata, ydata, where='mid', color='gray', label='N0')
-    plt.plot(xdata, func_N0(xdata, a0, b0, n0), color='gray', label='fit Beta(N0)')
-    plt.legend()
-    plt.xlabel(r'$s_{\tau}$ [ms]')
-    plt.ylabel('count')
-    ydata, xdata = smoothhist(NP, bins=bins)
-
-    def func_NP3(x, an, bn, scale, gamma, n):
-        return (beta.pdf(x / xmax, an, bn) * (1 - gamma) + expon.pdf(x / xmax, 0, scale) * gamma) * n
-
-    popt, pcov = curve_fit(func_NP3, xdata, ydata)
-    # Constrain the optimization to the region of 0 < a < 10, 0 < b < 10, 0<-loc<10, 0<scale<1, 0 < gamma < 1, 0 < n < 11016:
-    popt, pcov = curve_fit(func_NP3, xdata, ydata, bounds=(0, [10., 10., 1., 1., 11016.]))
-    an, bn, scale, gamma, n = popt
-    print an, bn, scale, gamma, n
-    plt.subplot(224)
-    plt.step(xdata, ydata, where='mid', color='gray', label='NP')
-    plt.plot(xdata, func_NP3(xdata, an, bn, scale, gamma, n), color='gray', label='fit Beta(N) + Expon(P)')
-    plt.plot(xdata, beta.pdf(xdata / xmax, an, bn) * (1 - gamma) * n, color='red', label='fit Beta(N)')
-    plt.plot(xdata, expon.pdf(xdata / xmax, 0, scale) * gamma * n, color='green', label='fit Expon(P)')
-    plt.legend()
-    plt.xlabel(r'$s_{\tau}$ [ms]')
-    plt.ylabel('count')
-    plt.show()
-
-
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
 
 
 
@@ -313,21 +254,21 @@ def pnr(x, type='max'):
     return peak / robust_std
 
 
-class model:
+class ModelFunction (object):
     def __init__(self, formula_string = None, bounds_dict=None):
         self.variable_list = list(bounds_dict.keys())
         self.variable_string = ",".join(self.variable_list)
         self.bounds = zip(*bounds_dict.values())
         self.func = eval('lambda x, %s: %s' % (self.variable_string, formula_string))
-        print (formula_string)
-        print (bounds_dict)
-        print (self.variable_string)
-        print (self.bounds)
+        # print (formula_string)
+        # print (bounds_dict)
+        # print (self.variable_string)
+        # print (self.bounds)
 
     def fit(self, x, y):
         params, cov = curve_fit(self.func, x, y, bounds=self.bounds)
         self.parameters = dict(zip(self.variable_list, params))
-        print self.parameters
+        # print (self.parameters)
 
     def predict(self, x, override=None):
         params = self.parameters.copy()
@@ -335,6 +276,7 @@ class model:
             for key in override.keys():
                 params[key] = override[key]
         return self.func(x, **params)
+
 
 def test_fitting_a_model():
     model = model(formula_string='n * norm.pdf(x, loc, scale)',
@@ -353,43 +295,88 @@ def test_fitting_a_model():
     plt.show()
 
 
-class mixture_model (model):
-    def __init__(self, values, nbins=200, min_x=-0.5, max_x=2., max_n=11016.):
-        model.__init__(self, formula_string='n_N * norm.pdf(x, loc_N, scale_N) + n_P * norm.pdf(x, loc_P, scale_P)',
-                       bounds_dict=dict(n_N=[0, 11016], loc_N=[-.5, 2.], scale_N=[0, 10],
-                                        n_P=[0, 11016], loc_P=[-.5, 2.], scale_P=[0, 10]))
+class ModelDiscriminator(ModelFunction):
+
+    def fit(self, values, min_x, max_x, nbins):
         self.values = values
-        self.min_x = min_x
-        self.max_x = max_x
-        self.nbins = nbins
-        self.fitvalues()
-        self.predict_mixture()
-        self.predict_FPR_TPR()
-
-    def predict_mixture(self):
-        self.fitted_counts = self.predict(self.midpoints)
-        self.fitted_counts_N_only = self.predict(self.midpoints, override=dict(n_P=0))
-        self.fitted_counts_P_only = self.predict(self.midpoints, override=dict(n_N=0))
-
-    def fitvalues(self):
-        bins = np.linspace(self.min_x, self.max_x, num=self.nbins)
+        bins = np.linspace(min_x, max_x, num=nbins)
         self.counts, self.midpoints = smoothhist(self.values, bins=bins)
-        self.fit(self.midpoints, self.counts)
+        ModelFunction.fit(self, self.midpoints, self.counts)
 
-    def plot(self, ax):
+    def predict(self, threshold):
+        self.threshold = threshold
+        self.fitted_counts = ModelFunction.predict(self, self.midpoints)
+        self.fitted_counts_N_only = ModelFunction.predict(self, self.midpoints, override=dict(n_P=0))
+        self.fitted_counts_P_only = ModelFunction.predict(self, self.midpoints, override=dict(n_N=0))
+        self.FPR = 1 - normcum(self.fitted_counts_N_only)
+        self.TPR = 1 - normcum(self.fitted_counts_P_only)
+
+    def plot(self, ax, xlabel = 'value', ylabel = 'counts'):
         ax.step(self.midpoints, self.counts, where='mid', color='gray', label='NP')
         ax.plot(self.midpoints, self.fitted_counts, color='gray', label='fit NP')
         ax.plot(self.midpoints, self.fitted_counts_N_only, color='red', label='fitted N')
         ax.plot(self.midpoints, self.fitted_counts_P_only, color='green', label='fitted P')
+        ax.legend()
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
 
     def plot_ROC(self,ax, label = 'ROC'):
         ax.plot(self.FPR, self.TPR, label=label)
         ax.set_xlabel ('FPR')
         ax.set_ylabel ('TPR')
 
-    def predict_FPR_TPR(self):
-        self.FPR = 1 - normcum(self.fitted_counts_N_only)
-        self.TPR = 1 - normcum(self.fitted_counts_P_only)
+    def plot_Map(self, ax, x, y):
+        if any(self.axon):
+            ax.scatter(x, y, c=self.axon, s=10, marker='o', edgecolor='None', cmap='gray_r')
+
+class ModelDiscriminatorBakkum(ModelDiscriminator):
+    def __init__(self, t, V, pnr_threshold=5, nbins=200, min_x=-0.5, max_x=2., max_n=11016.):
+        ModelDiscriminator.__init__(self,
+                               formula_string='n_N * norm.pdf(x, loc_N, scale_N) + n_P * norm.pdf(x, loc_P, scale_P)',
+                               bounds_dict=dict(n_N=[0, max_n], loc_N=[min_x, max_x], scale_N=[0, 10],
+                                                n_P=[0, max_n], loc_P=[min_x, max_x], scale_P=[0, 10])
+                               )
+        # Calculate
+        V_after_spike = V[:, np.where(t>0)]
+        values = np.log10(pnr(V_after_spike, type='min'))   # log10(amplitude negative peak / signal noise)
+
+        # Fit and predict
+        self.fit(values, min_x, max_x, nbins)
+        self.predict(threshold = np.log10(pnr_threshold))
+        self.axon = self.values > self.threshold
+
+
+_, _, values, _, std_threshold, _, _, _, axon = __segment_axon(t, V, neighbors)
+
+
+class ModelDiscriminatorBullmann(ModelDiscriminator):
+    def __init__(self, t, V, neighbors, nbins=200, min_x=0, max_x=4, max_n=11016.):
+        ModelDiscriminator.__init__(self,
+                                    formula_string='n_N * beta.pdf(x / %f, a_N, b_N) + n_P * expon.pdf(x / %f, 0, scale_P)' % (max_x, max_x),
+                                    bounds_dict=dict(n_N=[0, max_n], a_N=[0, 10], b_N=[0, 10],
+                                                     n_P=[0, max_n], scale_P=[0, 1])
+                                    )
+        # Calculate
+        _, _, values, _, std_threshold, _, _, _, axon = __segment_axon(t, V, neighbors)
+
+        restrict_to_compartment()
+
+        # Fit and predict
+        self.fit(values, min_x, max_x, nbins)
+        self.predict(threshold=std_threshold)
+        self.axon = axon
+
+
+    # std_model(std_NP)
+    #    def func_NP3(x, an, bn, scale, gamma, n):
+    #     return (beta.pdf(x / xmax, an, bn) * (1 - gamma) + expon.pdf(x / xmax, 0, scale) * gamma) * n
+    #
+    # popt, pcov = curve_fit(func_NP3, xdata, ydata)
+    # # Constrain the optimization to the region of 0 < a < 10, 0 < b < 10, 0<-loc<10, 0<scale<1, 0 < gamma < 1, 0 < n < 11016:
+    # popt, pcov = curve_fit(func_NP3, xdata, ydata, bounds=(0, [10., 10., 1., 1., 11016.]))
+    # an, bn, scale, gamma, n = popt
+    # print an, bn, scale, gamma, n
+
 
 
 def normcum(x):
