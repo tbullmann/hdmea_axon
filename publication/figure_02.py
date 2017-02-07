@@ -1,7 +1,7 @@
 from hana.plotting import annotate_x_bar, set_axis_hidens
 from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain, DELAY_EPSILON, neighborhood, \
     electrode_neighborhoods, load_traces, load_positions
-from hana.segmentation import __segment_axon, restrict_to_compartment
+from hana.segmentation import segment_axon_verbose, restrict_to_compartment
 from publication.plotting import FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
     legend_without_multiple_labels, label_subplot, plot_traces_and_delays, shrink_axes
 
@@ -109,7 +109,7 @@ def figure02():
 
     # Verbose axon segmentation function
     delay, mean_delay, std_delay, expected_std_delay, thr, valid_delay, index_AIS, positive_delay, axon \
-        = __segment_axon(t, V, neighbors)
+        = segment_axon_verbose(t, V, neighbors)
 
     logging.info ('Axonal delays:')
     logging.info (restrict_to_compartment(mean_delay, axon))

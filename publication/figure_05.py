@@ -1,4 +1,4 @@
-from hana.segmentation import __segment_dendrite, __segment_axon
+from hana.segmentation import segment_dendrite_verbose, segment_axon_verbose
 from publication.plotting import FIGURE_NEURON_FILE, cross_hair, label_subplot, voltage_color_bar, shrink_axes
 from hana.plotting import set_axis_hidens
 from hana.recording import electrode_neighborhoods, load_traces
@@ -36,9 +36,9 @@ def figure05():
     pnr_thresholds, pnr_FPR, pnr_MPR = roc(pnr_N0, pnr_NP)
 
     # AP detection based on neighborhood delays below threshold in valley (Bullmann)
-    _, _, std_N0, _, _, _, _, _, _ = __segment_axon(t, Vbefore, neighbors)
+    _, _, std_N0, _, _, _, _, _, _ = segment_axon_verbose(t, Vbefore, neighbors)
     std_N0 = std_N0*2
-    _, _, std_NP, _, std_threshold, valid_delay, _, _, axon = __segment_axon(t, V, neighbors)
+    _, _, std_NP, _, std_threshold, valid_delay, _, _, axon = segment_axon_verbose(t, V, neighbors)
     std_thresholds, std_FPR, std_MPR = roc(std_N0, std_NP, type='smaller')
 
     # Plotting
@@ -231,12 +231,12 @@ def figure05_old():
     # Minimum Voltage and verbose axon segmentation function and
     min_V = np.min(V, axis=1)
     _, _, std_delay_negative_peak, _, thr_std_delay_negative_peak, _, index_AIS, _, axon \
-        = __segment_axon(t, V, neighbors)
+        = segment_axon_verbose(t, V, neighbors)
 
     # Maximum Voltage and verbose dendrite segmentation function and
     max_V = np.max(V, axis=1)
     _, _, std_delay_positive_peak, _, thr_std_delay_positive_peak, _, _, _, _, _, dendrite \
-        =__segment_dendrite(t, V, neighbors)
+        =segment_dendrite_verbose(t, V, neighbors)
 
     # Making figure
     fig = plt.figure('Figure 5', figsize=(18,9))

@@ -1,6 +1,6 @@
 from hana.plotting import annotate_x_bar, set_axis_hidens
 from hana.recording import half_peak_width, half_peak_domain, electrode_neighborhoods, DELAY_EPSILON, load_traces
-from hana.segmentation import __segment_dendrite
+from hana.segmentation import segment_dendrite_verbose
 from publication.plotting import FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
     legend_without_multiple_labels, label_subplot, shrink_axes
 
@@ -23,7 +23,7 @@ def figure04():
 
     # Verbose dendrite segmentation function
     delay, mean_delay, std_delay, expected_std_delay, thr, valid_delay, index_AIS, min_delay, max_delay, \
-        return_current_delay, dendrite = __segment_dendrite(t, V, neighbors)
+        return_current_delay, dendrite = segment_dendrite_verbose(t, V, neighbors)
 
     # Making figure
     fig = plt.figure('Figure 4', figsize=(18,9))
