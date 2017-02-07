@@ -1,14 +1,12 @@
-from hana.plotting import annotate_x_bar, set_axis_hidens
-from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain, DELAY_EPSILON, neighborhood, \
-    electrode_neighborhoods, load_traces, load_positions
-from hana.segmentation import segment_axon_verbose, restrict_to_compartment
-from publication.plotting import FIGURE_NEURON_FILE_FORMAT, FIGURE_NEURONS, FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
-    legend_without_multiple_labels, label_subplot, plot_traces_and_delays, adjust_position
+from hana.plotting import set_axis_hidens
+from hana.recording import electrode_neighborhoods, load_traces
+from hana.segmentation import segment_axon_verbose
+from publication.plotting import FIGURE_NEURON_FILE_FORMAT, FIGURE_NEURONS, label_subplot, adjust_position
 
-from scipy.stats import binom, beta, expon, norm
-from scipy.optimize import curve_fit
 import numpy as np
 from matplotlib import pyplot as plt
+from scipy.stats import binom, norm, beta, expon  # Note: norm, beta and expon are used by eval from a string
+from scipy.optimize import curve_fit
 from statsmodels import robust
 import pandas as pd
 
@@ -40,7 +38,7 @@ def figure05():
     print (Model1.summary(subject=filename, method='Bakkum'))
     print (Model2.summary(subject=filename, method='Bullmann'))
 
-    # Plotting
+    # Plotting Frames A~E
     fig = plt.figure('Figure 5', figsize=(16, 10))
     fig.suptitle('Figure 5. Comparison of segmentation methods', fontsize=14, fontweight='bold')
 
@@ -85,7 +83,7 @@ def figure05():
     ax5.text(300, 300, r'II: $s_{\tau} < s_{min}; \tau > \tau_{AIS}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'), size=14)
     set_axis_hidens(ax5)
 
-    # Evaluate all neurons
+    # Additional statistics by evaluating both models for all neurons
 
     evaluations = list()
     for neuron in FIGURE_NEURONS:
@@ -103,15 +101,16 @@ def figure05():
 
     data = pd.DataFrame(evaluations)
 
+    # Plotting Frame F
     # ax6 =plt.subplot(2,6,11)
     # plot_pairwise_comparison(ax6, data, 'AUC', legend=True)
     ax6 =plt.subplot(2,9,16)
-    plot_pairwise_comparison(ax6, data, 'AUC', legend=False)
+    plot_pairwise_comparison(ax6, data, 'AUC', ylim=(0, 0.5), legend=False)
     ax6b =plt.subplot(2,9,17)
-    plot_pairwise_comparison(ax6b, data, 'TPR', ylim=(0,1), legend=False)
+    plot_pairwise_comparison(ax6b, data, 'TPR', ylim=(0, 1), legend=False)
     adjust_position(ax6b, xshift = 0.01)
     ax6c =plt.subplot(2,9,18)
-    plot_pairwise_comparison(ax6c, data, 'FPR', ylim=(0,0.01), legend=False)
+    plot_pairwise_comparison(ax6c, data, 'FPR', ylim=(0, 0.01), legend=False)
     adjust_position(ax6c, xshift = 0.02)
 
     label_subplot(ax1, 'A', xoffset=-0.05, yoffset=-0.01)
@@ -121,17 +120,28 @@ def figure05():
     label_subplot(ax5, 'E', xoffset=-0.03, yoffset=-0.01)
     label_subplot(ax6, 'F', xoffset=-0.04, yoffset=-0.01)
 
-
     plt.show()
 
 
-def plot_pairwise_comparison(ax, data, measure, ylim=(0,0.5), legend=True):
+# --- Functions
+
+def plot_pairwise_comparison(ax, data, measure, ylim=None, legend=True):
+    """
+    Compare values obtained by different methods as lines connecting values from same subject (e.g. neurons).
+    :param ax: axis handle
+    :param data: Pandas dataframe
+    :param measure: See keys of dictionary returned by ModelDiscriminator.summary
+    :param ylim: Hard limits for y axis (default: None)
+    :param legend: plotting a legend (default: False)
+    :return:
+    """
     pivoted = data.pivot(index='method', columns='subject', values=measure)
     if legend:
         pivoted.plot(ax=ax).legend(loc='center left', ncol=2, bbox_to_anchor=(1, 0.5))
     else:
         pivoted.plot(ax=ax,legend=legend)
-    ax.set_ylim(ylim)
+    if ylim:
+        ax.set_ylim(ylim)
     ax.set_xlabel('Method')
     ax.set_ylabel(measure)
     adjust_position(ax, xshrink=0.02)
@@ -140,9 +150,6 @@ def plot_pairwise_comparison(ax, data, measure, ylim=(0,0.5), legend=True):
         which='both',  # both major and minor ticks are affected
         bottom='off',  # ticks along the bottom edge are off
         top='off')  # ticks along the top edge are off
-
-
-# --- Functions
 
 
 def AUC(FPR, TPR):
@@ -205,15 +212,15 @@ def pnr(x, type='max'):
 
 def normcum(x):
     """
-    Normalized cummulative sum.
+    Normalized cummulative sum, thus values adding up to 1.
     """
     FPR = np.cumsum(x) / sum(x)
     return FPR
 
 
-# ---- Classes
+# ---- Classes for model comparison
 
-class ModelFunction (object):
+class ModelFunction():
     """
     Base class for modelling data with an function (given as string) with its parameters constrained by bounds.
     """
@@ -367,8 +374,6 @@ class ModelDiscriminatorBullmann(ModelDiscriminator):
 
     def predict(self):
         ModelDiscriminator.predict(self, threshold=self.threshold, threshold_type='below')
-
-
 
 
 figure05()
