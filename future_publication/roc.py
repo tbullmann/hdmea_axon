@@ -1,7 +1,7 @@
 from hana.plotting import annotate_x_bar, set_axis_hidens
 from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain, DELAY_EPSILON, neighborhood, \
     electrode_neighborhoods, load_traces, load_positions
-from hana.segmentation import __segment_axon, restrict_to_compartment
+from hana.segmentation import segment_axon_verbose, restrict_to_compartment
 from publication.plotting import FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
     legend_without_multiple_labels, label_subplot, plot_traces_and_delays, shrink_axes
 
@@ -15,211 +15,88 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 
-def fit_distribution():
-    # Load electrode coordinates
-    neighbors = electrode_neighborhoods(mea='hidens')
-
-    # Load example data
-    V, t, x, y, trigger, neuron = load_traces('data/neuron20.h5')
-    t *= 1000  # convert to ms
-
-    Model1 = ModelDiscriminatorBakkum(t, V, pnr_threshold=5)
-    Model2 = ModelDiscriminatorBullmann(t, V, neighbors)
-
-    # Plotting
-    fig = plt.figure('Figure Fits', figsize=(14, 8))
-    fig.suptitle('Figure 5B. Fits for method I and II', fontsize=14, fontweight='bold')
-
-    ax1 = plt.subplot(231)
-    Model1.plot(ax1)
-    ax1.legend()
-    ax1.set_xlabel(r'$\log_{10}(V_{n}/\sigma_{V})$')
-    ax1.set_ylabel('count')
-
-    ax3 = plt.subplot(233)
-    Model1.plot_ROC(ax3)
-
-    ax4 = plt.subplot(234)
-    Model1.plot_Map(ax4, x, y)
-    ax4.text(300, 300, r'I: $V_{n} > %d\sigma_{V}; \tau > \tau_{AIS}$' % 5,
-            bbox=dict(facecolor='white', pad=5, edgecolor='none'), size=14)
-    set_axis_hidens(ax4)
-
-    plt.show()
-
-
-
-
-
-
-def roc (N,P, type='greater'):
-    # assuming P>N
-    xy = (np.hstack((N, P)))
-    labelsxy = (np.hstack((np.ones_like(N), np.zeros_like(P))))
-    if type=='greater': # argument of sort in descending order of values thus P > threshold > N
-        index = np.argsort(xy)[::-1]
-    if type == 'smaller':  # argument of sort in ascending order of values thus P < threshold < N
-        index = np.argsort(xy)
-    threshold = xy[index]
-    labelsxy = labelsxy[index]
-    FPR = np.cumsum(labelsxy)/len(N)
-    TPR = np.cumsum(np.ones_like(labelsxy)-labelsxy)/len(P)
-    return threshold, FPR, TPR
-
-
-def test_roc():
-    N0 = np.random.normal(loc=1, scale=1.0, size=1000)
-    gamma=0.2
-    N = np.random.normal(loc=1, scale=1.0, size=1000*(1-gamma))
-    P = np.random.normal(loc=2, scale=1.0, size=1000*gamma)
-    MixNP = np.hstack ((N, P))
-
-    print (N0)
-    print (MixNP)
-
-    FPR, TPR = roc(N0, MixNP)
-
-    print FPR
-
-    ax1 = plt.subplot(221)
-
-    ax1.plot(FPR,TPR,'b-', label='orig')
-    ax1.plot((0,1),(gamma,1),'b--')
-
-    ax1.legend(loc=4)
-    ax1.set_aspect('equal')
-    ax1.set_xlim((0,1))
-
-    plt.subplot(222)
-    bins=np.linspace(-4,8,num=50)
-    plt.hist(N0, bins=bins, histtype='step', color='black', label='N0')
-    plt.hist(MixNP, bins=bins, histtype='step', color='red', label='Mix')
-
-    plt.show()
-
 def figure05():
     # Load electrode coordinates
     neighbors = electrode_neighborhoods(mea='hidens')
 
     # Load example data
-    V, t, x, y, trigger, neuron = load_traces(FIGURE_NEURON_FILE)
+    # V, t, x, y, trigger, neuron = load_traces('data/neuron20.h5')
+    V, t, x, y, trigger, neuron = load_traces('data/neuron11.h5')
+    # V, t, x, y, trigger, neuron = load_traces('data/neuron5.h5')
     t *= 1000  # convert to ms
 
-    Vbefore = V[:, :80]
-    Vafter = V[:, 81:]
+    Model1 = ModelDiscriminatorBakkum()
+    Model1.fit(t, V)
+    Model1.predict(pnr_threshold=5)
+    Model2 = ModelDiscriminatorBullmann()
+    Model2.fit(t, V, neighbors)
+    Model2.predict()
 
-    gamma = 0.3
-    pnr_threshold = 5
-    nbins = 200
-
-    # AP detection based on negative peak amplitude above threshold relative to noise level (Bakkum)
-    pnr_N0 = np.log10(pnr(Vbefore, type='min'))
-    pnr_NP = np.log10(pnr(Vafter, type='min'))
-    valid_peaks = pnr_NP > np.log10(pnr_threshold)
-    pnr_thresholds, pnr_FPR, pnr_MPR = roc(pnr_N0, pnr_NP)
-
-    # AP detection based on neighborhood delays below threshold in valley (Bullmann)
-    _, _, std_N0, _, _, _, _, _, _ = __segment_axon(t, Vbefore, neighbors)
-    std_N0 = std_N0*2
-    _, _, std_NP, _, std_threshold, valid_delay, _, _, axon = __segment_axon(t, V, neighbors)
-    std_thresholds, std_FPR, std_MPR = roc(std_N0, std_NP, type='smaller')
+    # Summary
+    print ('Model I: ', Model1.summary())
+    print ('Model II: ', Model2.summary())
 
     # Plotting
-    fig = plt.figure('Figure ROC', figsize=(16, 10))
-    fig.suptitle('Figure 5. Comparison of segmentation methods.', fontsize=14,
-                 fontweight='bold')
+    fig = plt.figure('Figure Fits', figsize=(16, 10))
+    fig.suptitle('Figure 5B. Fits for method I and II', fontsize=14, fontweight='bold')
 
     ax1 = plt.subplot(231)
-    bins = np.linspace(-0.5, 2, num=nbins)
-    midpoints, pnr_counts, pnr_gamma = unmix_NP(pnr_N0, pnr_NP, bins)
-    plot_distributions(ax1, midpoints, pnr_counts)
-    ax1.annotate('threshold \n$%d\sigma_{V}$' % pnr_threshold, xy=(np.log10(pnr_threshold), 0), xytext=(np.log10(pnr_threshold), 200),
-             arrowprops=dict(facecolor='black', width=1), size=14)
+    Model1.plot(ax1, xlabel=r'$\log_{10}(V_{n}/\sigma_{V})$')
+    shrink_axes(ax1, xshrink=0.01)
     ax1.set_ylim((0,500))
-    ax1.set_xlabel (r'$\log_{10}(V_{n}/\sigma_{V})$')
-    ax1.text(-0.3,450, 'I', size=14)
 
     ax2 = plt.subplot(232)
-    bins = np.linspace(0, 4, num=nbins)
-    midpoints, std_counts, std_gamma = unmix_NP(std_N0, std_NP, bins)
-    plot_distributions(ax2, midpoints, std_counts)
-    ax2.annotate('threshold \n$s_{min}=%1.3f$ms' % std_threshold, xy=(std_threshold, 0), xytext=(std_threshold, 200),
-                 arrowprops=dict(facecolor='black', width=1), size=14)
+    Model2.plot(ax2, xlabel=r'$s_{\tau}$ [ms]')
+    shrink_axes(ax2, xshrink=0.01)
     ax2.set_ylim((0,500))
-    ax2.set_xlabel (r'$s_{\tau}$ [ms]')
-    ax2.text(0.3,450, 'II', size=14)
 
     ax3 = plt.subplot(233)
-    plot_roc(ax3, gamma, pnr_FPR, pnr_MPR, pnr_threshold, pnr_thresholds, color='b', marker='x', label='I')
-    plot_roc(ax3, gamma, std_FPR, std_MPR, std_threshold, std_thresholds, color='k', marker='o', label='II')
-    ax3.set_xlabel('FPR')
-    ax3.set_ylabel('TPR')
-    ax3.legend(loc=4, scatterpoints=1)
-    ax3.set_aspect('equal')
-    ax3.set_xlim((0, 1))
-    ax3.set_ylim((0, 1))
+    Model1.plot_ROC(ax3, color='blue', marker='x', label = 'Method I')
+    Model2.plot_ROC(ax3, color='black', marker='o', label = 'Method II')
+    ax3.plot((0,1),(0,1), 'k--', label ='chance')
+    ax3.legend(loc=4)
 
     ax4 = plt.subplot(234)
-    ax4.scatter(x, y, c=valid_peaks, s=10, marker='o', edgecolor='None', cmap='gray_r')
-    ax4.text(300, 300, r'I: $V_{n} > %d\sigma_{V}; \tau > \tau_{AIS}$' % pnr_threshold , bbox=dict(facecolor='white', pad=5, edgecolor='none'), size=14)
+    Model1.plot_Map(ax4, x, y)
+    ax4.text(300, 300, r'I: $V_{n} > %d\sigma_{V}; \tau > \tau_{AIS}$' % np.power(10, Model1.threshold),
+            bbox=dict(facecolor='white', pad=5, edgecolor='none'), size=14)
     set_axis_hidens(ax4)
 
     ax5 = plt.subplot(235)
-    ax5.scatter(x, y, c=axon, s=10, marker='o', edgecolor='None', cmap='gray_r')
+    Model2.plot_Map(ax5, x, y)
     ax5.text(300, 300, r'II: $s_{\tau} < s_{min}; \tau > \tau_{AIS}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'), size=14)
     set_axis_hidens(ax5)
 
     plt.show()
 
 
-def plot_roc(ax3, gamma, pnr_FPR, pnr_MPR, pnr_threshold, pnr_thresholds, color = 'b', marker = 'x', label='I'):
-    pnr_TPR = estimate_TPR(gamma, pnr_FPR, pnr_MPR)
-    pnr_FPR_at_threshold, pnr_TPR_at_threshold = at_threshold(pnr_FPR, pnr_TPR, pnr_thresholds, pnr_threshold)
-    print ('FPR=%1.6f, TPR=%1.6f' % (pnr_FPR_at_threshold, pnr_TPR_at_threshold))
-    ax3.plot(pnr_FPR, pnr_TPR, color, label=label + r', $\gamma$=%1.3f' % gamma)
-    ax3.scatter(pnr_FPR_at_threshold, pnr_TPR_at_threshold, color=color, marker=marker, label=label+' threshold')
+# --- Functions
 
+
+def AUC(FPR, TPR):
+    """
+    Calculate the AUC by using an average of a number of trapezoidal approximations for the given receiver operating
+    characteristic (ROC) curve minus the area of chance level (diagonal, area = 0.5)
+    Note: Taking the absolute value of np.trapz, because it result is negative iff FPR is in reverse order.
+    :param FPR: False positive rate
+    :param TPR: True positive rate
+    :return: AUC = area under the ROC curve - 0.5 (area of chance)
+    """
+    area = abs(np.trapz(TPR, FPR))
+    return area-0.5
 
 def at_threshold(FPR, TPR, parameter, threshold):
+    """
+    False positive rate (FPR) and True positive rate (TPR) at the selected threshold.
+    :param FPR: False positive rates of given receiver operating characteristic (ROC) curve
+    :param TPR: True positive rate of given receiver operating characteristic (ROC) curve
+    :param parameter: possible thresholds
+    :param threshold: selected threshold
+    """
     index = np.argmin(np.abs(parameter - threshold))
     FPR_at_threshold = FPR[index]
     TPR_at_threshold = TPR[index]
     return FPR_at_threshold, TPR_at_threshold
-
-
-def estimate_TPR(gamma, FPR, MPR):
-    """If the proportion gamma = P/(N+P) = P/M in the mix M=T+P is known, TPR can be estimated from the MPR."""
-    estiamted_TPR = MPR + (1 - FPR) * (1 - gamma)
-    return estiamted_TPR
-
-
-def plot_distributions(ax1, midpoints, counts):
-    # # using lines between midpoints
-    # ax1.plot(midpoints, counts['N0'], color='gray', label='N0')
-    # ax1.plot(midpoints, counts['NP'], color='black', label='N+P')
-    # ax1.plot(midpoints, counts['N'], color='red', label='N')
-    # ax1.plot(midpoints, counts['P'], color='green', label='P')
-    # using steps
-    ax1.step(midpoints, counts['N0'], where='mid', color='gray', label='N0')
-    ax1.step(midpoints, counts['NP'], where='mid', color='black', label='N+P')
-    ax1.step(midpoints, counts['N'], where='mid', color='red', label='N')
-    ax1.step(midpoints, counts['P'], where='mid', color='green', label='P')
-    ax1.legend()
-    ax1.set_ylabel('count')
-
-
-def unmix_NP(N0, NP, bins, gamma=None ):
-    counts = {}
-    counts['N0'], midpoints = smoothhist(N0, bins=bins)
-    counts['NP'], midpoints = smoothhist(NP, bins=bins)
-
-    if not gamma:      # proportion of positives, gamma = P/(N+P)
-        gamma = 1 - counts['NP'][np.argmax(counts['N0'])] / np.max(counts['N0'])  # fit peaks
-    epsilon = 1-gamma  # proportion of negative, epsilon = N/(N+P)
-
-    counts['N'] = counts['N0'] * epsilon
-    counts['P'] = counts['NP'] - counts['N']
-    return midpoints, counts, gamma
 
 
 def smoothhist(x, bins=10, kernelsize=1):
@@ -254,21 +131,29 @@ def pnr(x, type='max'):
     return peak / robust_std
 
 
+def normcum(x):
+    FPR = np.cumsum(x) / sum(x)
+    return FPR
+
+
+# ---- Classes
+
 class ModelFunction (object):
+
     def __init__(self, formula_string = None, bounds_dict=None):
         self.variable_list = list(bounds_dict.keys())
         self.variable_string = ",".join(self.variable_list)
         self.bounds = zip(*bounds_dict.values())
         self.func = eval('lambda x, %s: %s' % (self.variable_string, formula_string))
-        # print (formula_string)
-        # print (bounds_dict)
-        # print (self.variable_string)
-        # print (self.bounds)
+        logging.info('Fitting y(x, %s) = %s' % (self.variable_string, formula_string))
+        logging.info(bounds_dict)
+        logging.info(self.variable_list)
+        logging.info(self.bounds)
 
     def fit(self, x, y):
         params, cov = curve_fit(self.func, x, y, bounds=self.bounds)
         self.parameters = dict(zip(self.variable_list, params))
-        # print (self.parameters)
+        logging.info(self.parameters)
 
     def predict(self, x, override=None):
         params = self.parameters.copy()
@@ -297,19 +182,30 @@ def test_fitting_a_model():
 
 class ModelDiscriminator(ModelFunction):
 
-    def fit(self, values, min_x, max_x, nbins):
+    def __init__(self, formula_string, bounds_dict, min_x=None, max_x=None, nbins=None):
+        ModelFunction.__init__(self, formula_string, bounds_dict)
+        self.min_x = min_x
+        self.max_x = max_x
+        self.nbins = nbins
+
+    def fit(self, values):
         self.values = values
-        bins = np.linspace(min_x, max_x, num=nbins)
+        bins = np.linspace(self.min_x, self.max_x, num=self.nbins)
         self.counts, self.midpoints = smoothhist(self.values, bins=bins)
         ModelFunction.fit(self, self.midpoints, self.counts)
 
-    def predict(self, threshold):
+    def predict(self, threshold, threshold_type='below'):
         self.threshold = threshold
         self.fitted_counts = ModelFunction.predict(self, self.midpoints)
         self.fitted_counts_N_only = ModelFunction.predict(self, self.midpoints, override=dict(n_P=0))
         self.fitted_counts_P_only = ModelFunction.predict(self, self.midpoints, override=dict(n_N=0))
-        self.FPR = 1 - normcum(self.fitted_counts_N_only)
-        self.TPR = 1 - normcum(self.fitted_counts_P_only)
+        self.FPR = normcum(self.fitted_counts_N_only)
+        self.TPR = normcum(self.fitted_counts_P_only)
+        if threshold_type == 'above':
+            self.FPR = 1 - self.FPR
+            self.TPR = 1 - self.TPR
+        self.FPR_at_threshold, self.TPR_at_threshold = at_threshold(self.FPR, self.TPR, self.midpoints, self.threshold)
+        self.AUC = AUC(self.FPR, self.TPR)
 
     def plot(self, ax, xlabel = 'value', ylabel = 'counts'):
         ax.step(self.midpoints, self.counts, where='mid', color='gray', label='NP')
@@ -320,70 +216,68 @@ class ModelDiscriminator(ModelFunction):
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
 
-    def plot_ROC(self,ax, label = 'ROC'):
-        ax.plot(self.FPR, self.TPR, label=label)
+    def plot_ROC(self,ax, color='blue', marker='x', label = 'ROC'):
+        ax.plot(self.FPR, self.TPR, color=color, label=label)
+        ax.plot(self.FPR_at_threshold, self.TPR_at_threshold, color=color, marker=marker)
         ax.set_xlabel ('FPR')
         ax.set_ylabel ('TPR')
 
     def plot_Map(self, ax, x, y):
-        if any(self.axon):
+        if np.any(self.axon):
             ax.scatter(x, y, c=self.axon, s=10, marker='o', edgecolor='None', cmap='gray_r')
 
+    def summary(self):
+        n_N = sum(self.fitted_counts_N_only)
+        n_P = sum(self.fitted_counts_P_only)
+        gamma = n_P / (n_N + n_P)
+        evaluation = dict(n_N=int(n_N), n_P=int(n_P), gamma=gamma,
+                          FPR = self.FPR_at_threshold, TPR=self.TPR_at_threshold,
+                          AUC=self.AUC)
+        return evaluation
+
+
 class ModelDiscriminatorBakkum(ModelDiscriminator):
-    def __init__(self, t, V, pnr_threshold=5, nbins=200, min_x=-0.5, max_x=2., max_n=11016.):
+
+    def __init__(self, nbins=200, min_x=-0.5, max_x=2., max_n=11016):
         ModelDiscriminator.__init__(self,
                                formula_string='n_N * norm.pdf(x, loc_N, scale_N) + n_P * norm.pdf(x, loc_P, scale_P)',
                                bounds_dict=dict(n_N=[0, max_n], loc_N=[min_x, max_x], scale_N=[0, 10],
-                                                n_P=[0, max_n], loc_P=[min_x, max_x], scale_P=[0, 10])
-                               )
-        # Calculate
-        V_after_spike = V[:, np.where(t>0)]
-        values = np.log10(pnr(V_after_spike, type='min'))   # log10(amplitude negative peak / signal noise)
+                                                n_P=[0, max_n], loc_P=[min_x, max_x], scale_P=[0, 10]),
+                               min_x=min_x, max_x=max_x, nbins=nbins)
 
-        # Fit and predict
-        self.fit(values, min_x, max_x, nbins)
-        self.predict(threshold = np.log10(pnr_threshold))
+    def fit(self, t, V):
+        V_after_spike = V[:, t>0]
+        values = np.log10(pnr(V_after_spike, type='min'))   # log10(amplitude negative peak / signal noise)
+        ModelDiscriminator.fit(self, values)
+        if self.parameters['loc_N'] > self.parameters['loc_P']:   # enforce loc_N < loc_P
+            logging.info ('Swap Peaks')
+            self.parameters['scale_N'], self.parameters['scale_P'] = self.parameters['scale_P'], self.parameters['scale_N']
+            self.parameters['loc_N'], self.parameters['loc_P'] = self.parameters['loc_P'], self.parameters['loc_N']
+            self.parameters['n_N'], self.parameters['n_P'] = self.parameters['n_P'], self.parameters['n_N']
+
+    def predict(self, pnr_threshold=5):
+        ModelDiscriminator.predict(self, threshold = np.log10(pnr_threshold), threshold_type='above')
         self.axon = self.values > self.threshold
 
 
-_, _, values, _, std_threshold, _, _, _, axon = __segment_axon(t, V, neighbors)
-
-
 class ModelDiscriminatorBullmann(ModelDiscriminator):
-    def __init__(self, t, V, neighbors, nbins=200, min_x=0, max_x=4, max_n=11016.):
+    def __init__(self, nbins=200, min_x=0, max_x=4, max_n=11016):
         ModelDiscriminator.__init__(self,
                                     formula_string='n_N * beta.pdf(x / %f, a_N, b_N) + n_P * expon.pdf(x / %f, 0, scale_P)' % (max_x, max_x),
                                     bounds_dict=dict(n_N=[0, max_n], a_N=[0, 10], b_N=[0, 10],
-                                                     n_P=[0, max_n], scale_P=[0, 1])
-                                    )
-        # Calculate
-        _, _, values, _, std_threshold, _, _, _, axon = __segment_axon(t, V, neighbors)
+                                                     n_P=[0, max_n], scale_P=[0, 1]),
+                                    min_x = min_x, max_x = max_x, nbins = nbins)
 
-        restrict_to_compartment()
-
-        # Fit and predict
-        self.fit(values, min_x, max_x, nbins)
-        self.predict(threshold=std_threshold)
+    def fit(self, t, V, neighbors):
+        _, _, values, _, std_threshold, _, _, _, axon = segment_axon_verbose(t, V, neighbors)
+        ModelDiscriminator.fit(self, values)
+        self.threshold = std_threshold
         self.axon = axon
 
-
-    # std_model(std_NP)
-    #    def func_NP3(x, an, bn, scale, gamma, n):
-    #     return (beta.pdf(x / xmax, an, bn) * (1 - gamma) + expon.pdf(x / xmax, 0, scale) * gamma) * n
-    #
-    # popt, pcov = curve_fit(func_NP3, xdata, ydata)
-    # # Constrain the optimization to the region of 0 < a < 10, 0 < b < 10, 0<-loc<10, 0<scale<1, 0 < gamma < 1, 0 < n < 11016:
-    # popt, pcov = curve_fit(func_NP3, xdata, ydata, bounds=(0, [10., 10., 1., 1., 11016.]))
-    # an, bn, scale, gamma, n = popt
-    # print an, bn, scale, gamma, n
+    def predict(self):
+        ModelDiscriminator.predict(self, threshold=self.threshold, threshold_type='below')
 
 
 
-def normcum(x):
-    FPR = np.cumsum(x) / sum(x)
-    return FPR
 
-
-fit_distribution()
-
-# figure05()
+figure05()
