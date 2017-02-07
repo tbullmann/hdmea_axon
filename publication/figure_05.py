@@ -21,9 +21,9 @@ def figure05():
     neighbors = electrode_neighborhoods(mea='hidens')
 
     # Load example data
-    filename = 'data/neuron20.h5'
-    filename = 'data/neuron11.h5'
-    # filename = 'data/neuron5.h5'
+    # filename = 'data/neuron20.h5'
+    # filename = 'data/neuron11.h5'
+    filename = 'data/neuron5.h5'
     # filename = 'data/neuron25.h5'
 
     V, t, x, y, trigger, neuron = load_traces(filename)
@@ -41,17 +41,19 @@ def figure05():
     print (Model2.summary(subject=filename, method='Bullmann'))
 
     # Plotting
-    fig = plt.figure('Figure Fits', figsize=(16, 10))
-    fig.suptitle('Figure 5B. Fits for method I and II', fontsize=14, fontweight='bold')
+    fig = plt.figure('Figure 5', figsize=(16, 10))
+    fig.suptitle('Figure 5. Comparison of segmentation methods', fontsize=14, fontweight='bold')
 
     ax1 = plt.subplot(231)
     Model1.plot(ax1, xlabel=r'$\log_{10}(V_{n}/\sigma_{V})$')
     shrink_axes(ax1, xshrink=0.01)
+    ax1.text(-0.3,450, 'I', size=14)
     ax1.set_ylim((0,500))
 
     ax2 = plt.subplot(232)
     Model2.plot(ax2, xlabel=r'$s_{\tau}$ [ms]')
     shrink_axes(ax2, xshrink=0.01)
+    ax2.text(0.3,450, 'II', size=14)
     ax2.set_ylim((0,500))
 
     ax3 = plt.subplot(233)
@@ -103,6 +105,15 @@ def figure05():
         which='both',  # both major and minor ticks are affected
         bottom='off',  # ticks along the bottom edge are off
         top='off')  # ticks along the top edge are off
+
+
+    label_subplot(ax1, 'A', xoffset=-0.05, yoffset=-0.01)
+    label_subplot(ax2, 'B', xoffset=-0.05, yoffset=-0.01)
+    label_subplot(ax3, 'C', xoffset=-0.04, yoffset=-0.01)
+    label_subplot(ax4, 'D', xoffset=-0.03, yoffset=-0.01)
+    label_subplot(ax5, 'E', xoffset=-0.03, yoffset=-0.01)
+    label_subplot(ax6, 'F', xoffset=-0.04, yoffset=-0.01)
+
 
     plt.show()
 
@@ -287,6 +298,9 @@ class ModelDiscriminator(ModelFunction):
 
 
 class ModelDiscriminatorBakkum(ModelDiscriminator):
+    """
+    Discriminator as described in Bakkum et al, 2013, Nat Commun
+    """
 
     def __init__(self, nbins=200, min_x=-0.5, max_x=2., max_n=11016):
         ModelDiscriminator.__init__(self,
@@ -311,6 +325,9 @@ class ModelDiscriminatorBakkum(ModelDiscriminator):
 
 
 class ModelDiscriminatorBullmann(ModelDiscriminator):
+    """
+    Discriminator as described in Bullmann et al, submitted
+    """
     def __init__(self, nbins=200, min_x=0, max_x=4, max_n=11016):
         ModelDiscriminator.__init__(self,
             formula_string='amp_N * beta.pdf(x / %f, a_N, b_N) + amp_P * expon.pdf(x / %f, 0, scale_P)' % (max_x, max_x),
