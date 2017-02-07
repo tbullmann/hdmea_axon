@@ -49,18 +49,30 @@ def figure05():
     shrink_axes(ax1, xshrink=0.01)
     ax1.text(-0.3,450, 'I', size=14)
     ax1.set_ylim((0,500))
+    ax1.annotate('(fixed) threshold \n$%d\sigma_{V}$' % np.power(10, Model1.threshold),
+                 xy=(Model1.threshold, 0),
+                 xytext=(Model1.threshold, 200),
+                 arrowprops=dict(facecolor='black', width=1),
+                 size=14)
 
     ax2 = plt.subplot(232)
     Model2.plot(ax2, xlabel=r'$s_{\tau}$ [ms]')
     shrink_axes(ax2, xshrink=0.01)
     ax2.text(0.3,450, 'II', size=14)
     ax2.set_ylim((0,500))
+    ax2.annotate('(adaptive) threshold \n$s_{min}=%1.3f$ms' % Model2.threshold,
+                 xy=(Model2.threshold, 0),
+                 xytext=(Model2.threshold, 200),
+                 arrowprops=dict(facecolor='black', width=1),
+                 size=14)
 
     ax3 = plt.subplot(233)
-    Model1.plot_ROC(ax3, color='blue', marker='x', label = 'Method I')
-    Model2.plot_ROC(ax3, color='black', marker='o', label = 'Method II')
+    Model1.plot_ROC(ax3, color='blue', marker='x', label = 'I')
+    Model2.plot_ROC(ax3, color='black', marker='o', label = 'II')
     ax3.plot((0,1),(0,1), 'k--', label ='chance')
-    ax3.legend(loc=4)
+    ax3.set_xlim((0,1))
+    ax3.set_ylim((0,1))
+    ax3.legend(loc=4, scatterpoints=1)
 
     ax4 = plt.subplot(234)
     Model1.plot_Map(ax4, x, y)
@@ -278,7 +290,7 @@ class ModelDiscriminator(ModelFunction):
 
     def plot_ROC(self,ax, color='blue', marker='x', label = 'ROC'):
         ax.plot(self.FPR, self.TPR, color=color, label=label)
-        ax.plot(self.FPR_at_threshold, self.TPR_at_threshold, color=color, marker=marker)
+        ax.scatter(self.FPR_at_threshold, self.TPR_at_threshold, color=color, marker=marker, label='%s threshold' % label)
         ax.set_xlabel ('FPR')
         ax.set_ylabel ('TPR')
 
