@@ -102,22 +102,17 @@ def figure05():
         evaluations.append(Model2.summary(subject='%d' % neuron, method='II'))
 
     data = pd.DataFrame(evaluations)
-    pivoted = data.pivot(index='method', columns='subject', values='AUC')
 
-    print pivoted
-
-    ax6 =plt.subplot(2,6,11)
-    pivoted.plot(ax=ax6).legend(loc='center left', ncol=2, bbox_to_anchor=(1, 0.5))
-    ax6.set_ylim((0,.5))
-    ax6.set_xlabel('Method')
-    ax6.set_ylabel('AUC')
-    shrink_axes(ax6, xshrink=0.02)
-    ax6.tick_params(
-        axis='x',  # changes apply to the x-axis
-        which='both',  # both major and minor ticks are affected
-        bottom='off',  # ticks along the bottom edge are off
-        top='off')  # ticks along the top edge are off
-
+    # ax6 =plt.subplot(2,6,11)
+    # plot_pairwise_comparison(ax6, data, 'AUC', legend=True)
+    ax6 =plt.subplot(2,9,16)
+    plot_pairwise_comparison(ax6, data, 'AUC', legend=False)
+    ax6b =plt.subplot(2,9,17)
+    plot_pairwise_comparison(ax6b, data, 'TPR', ylim=(0,1), legend=False)
+    shrink_axes(ax6b, xshift = 0.01)
+    ax6c =plt.subplot(2,9,18)
+    plot_pairwise_comparison(ax6c, data, 'FPR', ylim=(0,0.01), legend=False)
+    shrink_axes(ax6c, xshift = 0.02)
 
     label_subplot(ax1, 'A', xoffset=-0.05, yoffset=-0.01)
     label_subplot(ax2, 'B', xoffset=-0.05, yoffset=-0.01)
@@ -128,6 +123,23 @@ def figure05():
 
 
     plt.show()
+
+
+def plot_pairwise_comparison(ax, data, measure, ylim=(0,0.5), legend=True):
+    pivoted = data.pivot(index='method', columns='subject', values=measure)
+    if legend:
+        pivoted.plot(ax=ax).legend(loc='center left', ncol=2, bbox_to_anchor=(1, 0.5))
+    else:
+        pivoted.plot(ax=ax,legend=legend)
+    ax.set_ylim(ylim)
+    ax.set_xlabel('Method')
+    ax.set_ylabel(measure)
+    shrink_axes(ax, xshrink=0.02)
+    ax.tick_params(
+        axis='x',  # changes apply to the x-axis
+        which='both',  # both major and minor ticks are affected
+        bottom='off',  # ticks along the bottom edge are off
+        top='off')  # ticks along the top edge are off
 
 
 # --- Functions
