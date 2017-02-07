@@ -8,7 +8,7 @@ from future_publication.polychronous import filter, combine, group, plot, plot_p
 from hana.recording import load_positions, load_timeseries, partial_timeseries
 from hana.segmentation import load_compartments, load_neurites, neuron_position_from_trigger_electrode
 from hana.structure import all_overlaps
-from publication.plotting import FIGURE_ARBORS_FILE, plot_loglog_fit, FIGURE_EVENTS_FILE, label_subplot, shrink_axes
+from publication.plotting import FIGURE_ARBORS_FILE, plot_loglog_fit, FIGURE_EVENTS_FILE, label_subplot, adjust_position
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -100,7 +100,7 @@ def figure08():
     plot(graph_of_connected_events)
     plt.xlim((590,700))
     plt.ylim((0,60))
-    shrink_axes(ax1, xshrink=0.01)
+    adjust_position(ax1, xshrink=0.01)
     label_subplot(ax1, 'A', xoffset=-0.05, yoffset=-0.01)
 
     # plot size distribution
@@ -115,7 +115,7 @@ def figure08():
     polychronous_group = list_of_polychronous_groups[3]   #10 too complex, 7 highly repetetive
     plot_pcg(ax3, polychronous_group)
     plt.ylim((0,60))
-    shrink_axes(ax3, xshrink=0.01)
+    adjust_position(ax3, xshrink=0.01)
     label_subplot(ax3, 'C', xoffset=-0.05, yoffset=-0.01)
 
 

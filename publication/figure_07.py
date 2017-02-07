@@ -4,7 +4,7 @@ from hana.recording import load_timeseries, load_positions
 from hana.plotting import plot_network, plot_neuron_points, plot_neuron_id, set_axis_hidens, \
     plot_timeseries_hist_and_surrogates, plot_std_score_and_peaks, highlight_connection
 from hana.misc import unique_neurons
-from publication.plotting import FIGURE_EVENTS_FILE, FIGURE_ARBORS_FILE, label_subplot, shrink_axes
+from publication.plotting import FIGURE_EVENTS_FILE, FIGURE_ARBORS_FILE, label_subplot, adjust_position
 
 import pickle
 import os
@@ -141,8 +141,8 @@ def Figure07(thr =20):
     ax3 = plt.subplot(423)
     plot_func_example_and_network(ax1, ax2, ax3, pre, post, 'forward', thr, neuron_pos, std_score_dict,
                                   timelags, timeseries, timeseries_surrogates)
-    shrink_axes(ax2,yshrink=0.01)
-    shrink_axes(ax3,yshrink=0.01)
+    adjust_position(ax2, yshrink=0.01)
+    adjust_position(ax3, yshrink=0.01)
     label_subplot(ax1, 'C', xoffset=-0.03, yoffset=-0.01)
     label_subplot(ax2, 'A', xoffset=-0.05, yoffset=-0.01)
     label_subplot(ax3, 'B', xoffset=-0.05, yoffset=-0.01)
@@ -153,8 +153,8 @@ def Figure07(thr =20):
     ax6 = plt.subplot(427)
     plot_func_example_and_network(ax4, ax5, ax6, pre, post, 'reverse', thr, neuron_pos, std_score_dict,
                                   timelags, timeseries, timeseries_surrogates)
-    shrink_axes(ax5,yshrink=0.01)
-    shrink_axes(ax6,yshrink=0.01)
+    adjust_position(ax5, yshrink=0.01)
+    adjust_position(ax6, yshrink=0.01)
     label_subplot(ax4, 'F', xoffset=-0.03, yoffset=-0.01)
     label_subplot(ax5, 'D', xoffset=-0.05, yoffset=-0.01)
     label_subplot(ax6, 'E', xoffset=-0.05, yoffset=-0.01)

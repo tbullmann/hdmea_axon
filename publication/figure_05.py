@@ -3,7 +3,7 @@ from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain, D
     electrode_neighborhoods, load_traces, load_positions
 from hana.segmentation import segment_axon_verbose, restrict_to_compartment
 from publication.plotting import FIGURE_NEURON_FILE_FORMAT, FIGURE_NEURONS, FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
-    legend_without_multiple_labels, label_subplot, plot_traces_and_delays, shrink_axes
+    legend_without_multiple_labels, label_subplot, plot_traces_and_delays, adjust_position
 
 from scipy.stats import binom, beta, expon, norm
 from scipy.optimize import curve_fit
@@ -46,7 +46,7 @@ def figure05():
 
     ax1 = plt.subplot(231)
     Model1.plot(ax1, xlabel=r'$\log_{10}(V_{n}/\sigma_{V})$')
-    shrink_axes(ax1, xshrink=0.01)
+    adjust_position(ax1, xshrink=0.01)
     ax1.text(-0.3,450, 'I', size=14)
     ax1.set_ylim((0,500))
     ax1.annotate('(fixed) threshold \n$%d\sigma_{V}$' % np.power(10, Model1.threshold),
@@ -57,7 +57,7 @@ def figure05():
 
     ax2 = plt.subplot(232)
     Model2.plot(ax2, xlabel=r'$s_{\tau}$ [ms]')
-    shrink_axes(ax2, xshrink=0.01)
+    adjust_position(ax2, xshrink=0.01)
     ax2.text(0.3,450, 'II', size=14)
     ax2.set_ylim((0,500))
     ax2.annotate('(adaptive) threshold \n$s_{min}=%1.3f$ms' % Model2.threshold,
@@ -109,10 +109,10 @@ def figure05():
     plot_pairwise_comparison(ax6, data, 'AUC', legend=False)
     ax6b =plt.subplot(2,9,17)
     plot_pairwise_comparison(ax6b, data, 'TPR', ylim=(0,1), legend=False)
-    shrink_axes(ax6b, xshift = 0.01)
+    adjust_position(ax6b, xshift = 0.01)
     ax6c =plt.subplot(2,9,18)
     plot_pairwise_comparison(ax6c, data, 'FPR', ylim=(0,0.01), legend=False)
-    shrink_axes(ax6c, xshift = 0.02)
+    adjust_position(ax6c, xshift = 0.02)
 
     label_subplot(ax1, 'A', xoffset=-0.05, yoffset=-0.01)
     label_subplot(ax2, 'B', xoffset=-0.05, yoffset=-0.01)
@@ -134,7 +134,7 @@ def plot_pairwise_comparison(ax, data, measure, ylim=(0,0.5), legend=True):
     ax.set_ylim(ylim)
     ax.set_xlabel('Method')
     ax.set_ylabel(measure)
-    shrink_axes(ax, xshrink=0.02)
+    adjust_position(ax, xshrink=0.02)
     ax.tick_params(
         axis='x',  # changes apply to the x-axis
         which='both',  # both major and minor ticks are affected

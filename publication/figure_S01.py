@@ -1,7 +1,7 @@
 from hana.recording import load_positions
 from hana.plotting import set_axis_hidens
 from hana.segmentation import extract_and_save_compartments, load_compartments, load_neurites
-from publication.plotting import cross_hair, shrink_axes, FIGURE_ARBORS_FILE, FIGURE_NEURONS, FIGURE_NEURON_FILE_FORMAT
+from publication.plotting import cross_hair, adjust_position, FIGURE_ARBORS_FILE, FIGURE_NEURONS, FIGURE_NEURON_FILE_FORMAT
 
 import os
 import numpy as np
@@ -47,7 +47,7 @@ def figureS1(neurons):
 
         # Map of axon and dendrites
         ax = plt.subplot(231 + (index_plot % 6))
-        shrink_axes(ax, yshrink=0.015)
+        adjust_position(ax, yshrink=0.015)
         ax.scatter(x[index_axon], y[index_axon], c='blue', s=20, marker='.', edgecolor='None', label='axon', alpha=0.5)
         ax.scatter(x[index_dendrite], y[index_dendrite], c='red', s=20, marker='.', edgecolor='None', label='dendrite',
                    alpha=0.5)

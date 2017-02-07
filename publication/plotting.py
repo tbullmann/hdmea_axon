@@ -137,20 +137,21 @@ def plot_traces_and_delays(ax, V, t, delay, indicies, offset=None, ylim=None, co
     ax.set_ylabel(r'V [$\mu$V]')
     ax.set_xlabel(r'$\Delta$t [ms]')
     without_spines_and_ticks(ax)
-    shrink_axes(ax, yshrink = 0.01)
+    adjust_position(ax, yshrink = 0.01)
 
 
-def shrink_axes(ax, yshrink = 0, xshrink = 0):
+def adjust_position(ax, yshrink=0, xshrink=0, xshift=0, yshift=0):
     """
-    Shrink height to fit with surrounding plots.
+    Adjust position of bounding box for a (sub)plot.
     :param ax: axis handle
-    :param yshrink: shrinkage in figure coordinates (0..1)
+    :param xshrink, yshrink: shrinkage in figure coordinates (0..1)
+    :param xshift, yshift: shift in figure coordinates (0..1)
     """
     position = ax.get_position()
-    position.y0 += yshrink
-    position.y1 -= yshrink
-    position.x0 += xshrink
-    position.x1 -= xshrink
+    position.y0 += yshift + yshrink
+    position.y1 += yshift - yshrink
+    position.x0 += xshift + xshrink
+    position.x1 += xshift - xshrink
     ax.set_position(position)
 
 

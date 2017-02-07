@@ -2,7 +2,7 @@ import logging
 
 import numpy as np
 from matplotlib import pyplot as plt
-from publication.plotting import shrink_axes, without_spines_and_ticks, label_subplot
+from publication.plotting import adjust_position, without_spines_and_ticks, label_subplot
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -48,7 +48,7 @@ def figure03(test=True):
     ax1.legend()
     ax1.set_xlabel (r'standard deviation $s$')
     ax1.set_ylabel (r'probability $P(s)$')
-    shrink_axes(ax1, yshrink=0.01)
+    adjust_position(ax1, yshrink=0.01)
     without_spines_and_ticks(ax1)
     label_subplot(ax1, 'A', xoffset=-0.045, yoffset=-0.015)
 
@@ -96,7 +96,7 @@ def figure03(test=True):
     ax4.set_ylabel (r'signal attenuation $A$')
     ax4.set_xlim((-50,50))
     ax4.set_ylim((0,1))
-    shrink_axes(ax4, yshrink=0.01)
+    adjust_position(ax4, yshrink=0.01)
     without_spines_and_ticks(ax4)
     label_subplot(ax4, 'D', xoffset=-0.045, yoffset=-0.015)
 
@@ -124,7 +124,7 @@ def figure03(test=True):
     ax5.set_ylabel('signal $y$')
     ax5.set_xlabel('time $t$')
     without_spines_and_ticks(ax5)
-    shrink_axes(ax5, xshrink=0.005)
+    adjust_position(ax5, xshrink=0.005)
     label_subplot(ax5, 'E', xoffset=-0.035, yoffset=-0.015)
 
     # Statistics

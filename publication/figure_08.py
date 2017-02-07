@@ -13,7 +13,7 @@ from hana.recording import load_timeseries
 from hana.segmentation import load_neurites
 from hana.structure import all_overlaps
 from publication.plotting import FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, TEMPORARY_PICKELED_NETWORKS, \
-    plot_parameter_dependency, format_parameter_plot, compare_networks, analyse_networks, label_subplot, shrink_axes, \
+    plot_parameter_dependency, format_parameter_plot, compare_networks, analyse_networks, label_subplot, adjust_position, \
     correlate_two_dicts, kernel_density, axes_to_3_axes
 
 logging.basicConfig(level=logging.DEBUG)
@@ -69,7 +69,7 @@ def figure08 (networks_pickel_name):
     format_parameter_plot(ax3)
     # ax3.text(3,120, r'Structural index ${|F \cup S|}/{|S|}$', size=15)
     ax3.set_title(r'Structural index ${|F \cup S|}/{|S|}$')
-    shrink_axes(ax3,xshrink=0.01,yshrink=0.01)
+    adjust_position(ax3, xshrink=0.01, yshrink=0.01)
     label_subplot(ax3,'C',xoffset=-0.04)
 
     # plot distribution of strength and delays
@@ -107,7 +107,7 @@ def plot_vs_weigth(ax1, dictionary):
     ax1.plot (w, k, 'k-', label='k')
     plt.legend(loc=6, frameon=False)
     ax1.set_ylabel('n, k')
-    shrink_axes(ax1,yshrink=0.01)
+    adjust_position(ax1, yshrink=0.01)
 
     ax2 = ax1.twinx()
     ax2.plot (w, C, 'r-', label='C')
@@ -117,7 +117,7 @@ def plot_vs_weigth(ax1, dictionary):
     plt.legend(frameon=False)
     ax1.set_xscale('log')
     ax1.set_xlim((0,max(w)))
-    shrink_axes(ax2, yshrink=0.01)
+    adjust_position(ax2, yshrink=0.01)
 
 
 def plot_correlation(ax, xdict, ydict, best_keys=None, xlim = None, ylim = None, dofit=False, xscale='linear', yscale='linear', scaling = 'count'):

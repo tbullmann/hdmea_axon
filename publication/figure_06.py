@@ -3,7 +3,7 @@ from hana.plotting import plot_axon, plot_dendrite, plot_neuron_points, plot_neu
 from hana.recording import load_positions
 from hana.structure import find_overlap, all_overlaps
 from hana.segmentation import load_compartments, load_neurites, neuron_position_from_trigger_electrode
-from publication.plotting import FIGURE_ARBORS_FILE, label_subplot, shrink_axes
+from publication.plotting import FIGURE_ARBORS_FILE, label_subplot, adjust_position
 
 from matplotlib import pyplot as plt
 import logging
@@ -111,7 +111,7 @@ def Figure06():
     ax1.set_title ('neuron pair %d $\longrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron))
     ax1.text(200,200,r'$\rho=$%d electrodes' % thr_overlap)
     plot_two_colorbars(ax1)
-    shrink_axes(ax1,yshrink=0.01)
+    adjust_position(ax1, yshrink=0.01)
     label_subplot(ax1, 'A', xoffset=-0.005, yoffset=-0.01)
 
     ax2 = plt.subplot(223)
@@ -120,7 +120,7 @@ def Figure06():
     ax2.set_title('neuron pair %d $\dashrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron2))
     ax2.text(200,200,r'$\rho=$%d electrodes' % thr_overlap)
     plot_two_colorbars(ax2)
-    shrink_axes(ax2,yshrink=0.01)
+    adjust_position(ax2, yshrink=0.01)
     label_subplot(ax2, 'B', xoffset=-0.005, yoffset=-0.01)
 
     # Whole network

@@ -3,7 +3,7 @@ from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain, D
     electrode_neighborhoods, load_traces, load_positions
 from hana.segmentation import segment_axon_verbose, restrict_to_compartment
 from publication.plotting import FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
-    legend_without_multiple_labels, label_subplot, plot_traces_and_delays, shrink_axes
+    legend_without_multiple_labels, label_subplot, plot_traces_and_delays, adjust_position
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -166,7 +166,7 @@ def figure02():
     ax3.set_ylabel(r'count')
     ax3.set_xlabel(r'$\tau$ [ms]')
     without_spines_and_ticks(ax3)
-    shrink_axes(ax3, xshrink=0.01)
+    adjust_position(ax3, xshrink=0.01)
     label_subplot(ax3, 'C', xoffset=-0.04, yoffset=-0.015)
 
     # ------------- second row
@@ -212,7 +212,7 @@ def figure02():
     ax7.set_ylabel(r'count')
     ax7.set_xlabel(r'$s_{\tau}$ [ms]')
     without_spines_and_ticks(ax7)
-    shrink_axes(ax7, xshrink=0.01)
+    adjust_position(ax7, xshrink=0.01)
     label_subplot(ax7, 'G', xoffset=-0.04, yoffset=-0.01)
 
     # ------------- third row

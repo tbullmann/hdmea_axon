@@ -1,5 +1,5 @@
 from hana.segmentation import segment_dendrite_verbose, segment_axon_verbose
-from publication.plotting import FIGURE_NEURON_FILE, cross_hair, label_subplot, voltage_color_bar, shrink_axes
+from publication.plotting import FIGURE_NEURON_FILE, cross_hair, label_subplot, voltage_color_bar, adjust_position
 from hana.plotting import set_axis_hidens
 from hana.recording import electrode_neighborhoods, load_traces
 
@@ -55,7 +55,7 @@ def figure05():
     ax1.set_ylim((0,500))
     ax1.set_xlabel (r'$\log_{10}(V_{n}/\sigma_{V})$')
     ax1.text(-0.3,450, 'I', size=14)
-    shrink_axes(ax1, xshrink=0.01)
+    adjust_position(ax1, xshrink=0.01)
     label_subplot(ax1, 'A', xoffset=-0.05, yoffset=-0.01)
 
     ax2 = plt.subplot(232)
@@ -67,7 +67,7 @@ def figure05():
     ax2.set_ylim((0,500))
     ax2.set_xlabel (r'$s_{\tau}$ [ms]')
     ax2.text(0.3,450, 'II', size=14)
-    shrink_axes(ax2, xshrink=0.01)
+    adjust_position(ax2, xshrink=0.01)
     label_subplot(ax2, 'B', xoffset=-0.05, yoffset=-0.01)
 
     ax3 = plt.subplot(233)
