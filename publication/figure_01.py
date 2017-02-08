@@ -8,11 +8,11 @@ from hana.recording import load_traces, load_positions
 from hana.plotting import set_axis_hidens, plot_neuron_points, plot_neuron_id
 from hana.segmentation import load_compartments, load_neurites, neuron_position_from_trigger_electrode
 from publication.plotting import FIGURE_NEURON_FILE, FIGURE_NEURON_FILE_FORMAT, FIGURE_NEURONS, FIGURE_ARBORS_FILE, \
-    label_subplot, voltage_color_bar, cross_hair
+    label_subplot, voltage_color_bar, cross_hair, adjust_position
 
 
 def figure_01():
-    fig = plt.figure('Figure 1', figsize=(16, 13))
+    fig = plt.figure('Figure 1', figsize=(13, 11))
     fig.suptitle('Figure 1. Experiment Outline', fontsize=14,
                  fontweight='bold')
 
@@ -21,7 +21,6 @@ def figure_01():
     img = plt.imread('data/outline.png')
     plt.imshow(img)
     plt.axis('off')
-    label_subplot(ax1, 'A', xoffset=-0.025, yoffset=-0.015)
 
     # ---- Plot AIS signals for each neuron showing no overlap ---
     trigger, AIS_index, axon_delay, dendrite_peak = load_compartments(FIGURE_ARBORS_FILE)
@@ -32,10 +31,9 @@ def figure_01():
     plot_activity_map(FIGURE_NEURON_FILE_FORMAT, FIGURE_NEURONS)
     plot_neuron_points(ax2, trigger, neuron_pos)
     plot_neuron_id(ax2, trigger, neuron_pos)
+    ax2.text(250, 250, r'isocontours for -50$\mu$V at 0ms', size=12, bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     set_axis_hidens(ax2)
-    plt.legend(frameon=False)
-    ax2.text(200, 200, r'isocontours for -50$\mu$V at 0ms', size=15, bbox=dict(facecolor='white', pad=5, edgecolor='none'))
-    label_subplot(ax2, 'B', xoffset=-0.025, yoffset=-0.015)
+    adjust_position(ax2, xshrink=0.01, yshrink=0.01)
 
     # ---- Plot traveling signals for one neuron ---
 
@@ -47,18 +45,23 @@ def figure_01():
     ax3 = plt.subplot2grid((2, 5), (0, 3), rowspan=1, colspan=2)
     # plot_sequential_isopotentials(t, V, x, y, t_max=2.2)
     plot_sequential_isopotentials(t, V, x, y, t_max=2.2)
-    set_axis_hidens(ax3)
-    plt.legend(frameon=False)
-    ax3.text(200, 200, r'isocontours for -5$\mu$V', size=15, bbox=dict(facecolor='white', pad=5, edgecolor='none'))
+    ax3.legend(loc=4,frameon=False,prop={'size':12})
+    ax3.text(250, 250, r'isocontours for -5$\mu$V', size=12, bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     cross_hair(ax3, x[int(trigger)], y[int(trigger)], color='black')
-    label_subplot(ax3, 'C', xoffset=-0.025, yoffset=-0.015)
+    set_axis_hidens(ax3)
+    adjust_position(ax3, xshrink=0.01, yshrink=0.01)
 
     ax4 = plt.subplot2grid((2, 5), (1, 1), rowspan=1, colspan=4)
     plot_array_of_stills (t, V, x, y)
     plt.axis('off')
-    label_subplot(ax4, 'D', xoffset=0.025, yoffset=-0.015)
     ax4.set_aspect('equal')
     ax4.invert_yaxis()
+    adjust_position(ax4, xshrink=-0.03, yshrink=-0.03)
+
+    label_subplot(ax1, 'A', xoffset=-0.005, yoffset=-0.025)
+    label_subplot(ax2, 'B', xoffset=-0.035, yoffset=-0.015)
+    label_subplot(ax3, 'C', xoffset=-0.035, yoffset=-0.015)
+    label_subplot(ax4, 'D', xoffset=0.005, yoffset=-0.035)
 
     plt.show()
 
@@ -118,7 +121,7 @@ def plot_array_of_stills(t, V, x, y, t_min=-0.4, period=0.2, layout=(5, 3), marg
     h1 = plt.scatter(x_all, y_all, c=V_all, s=10, marker='o', edgecolor='None', cmap='seismic')
     plt.xlim([min(x_all) - margin, max(x_all) + margin])
     plt.ylim([min(y_all) - margin, max(y_all) + margin])
-    voltage_color_bar(h1)
+    voltage_color_bar(h1, label = r'$V$ [$\mu$V]')
 
 
 
