@@ -18,9 +18,9 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 
-# Final figure 5
+# Final figure 3
 
-def figureX():
+def figure3():
     # Load electrode coordinates
     radius = 200
     neighbors = electrode_neighborhoods(mea='hidens', neighborhood_radius=radius)
@@ -59,10 +59,10 @@ def figureX():
 
 
     # Plotting
-    fig = plt.figure('Figure X', figsize=(13, 10))
-    fig.suptitle('Figure X. spread', fontsize=14, fontweight='bold')
+    fig = plt.figure('Figure 3', figsize=(13, 7))
+    fig.suptitle('Figure 3. Spatial spread of axonal signals', fontsize=14, fontweight='bold')
 
-    ax1 = plt.subplot(331)
+    ax1 = plt.subplot(231)
     img = plt.imread('data/hdmea_neighborhoods.png')
     plt.imshow(img)
     plt.axis('off')
@@ -70,7 +70,7 @@ def figureX():
     # Potential distribution around point source (axon)
     # Assuming the HDMEA surface to be an insulator and the extracellular space to be homogeneous and isotropic, the
     # potential distribution is the same as for two charges in free medium, one mirrored at the surface
-    ax2 = plt.subplot(332)
+    ax2 = plt.subplot(232)
     plot_potential(ax2)
     ax2.set_xlabel(r'radius, r [$\mu$m]')
     ax2.set_ylabel(r'distance , z [$\mu$m]')
@@ -78,30 +78,31 @@ def figureX():
     ax2.annotate('', (35, 0), (35, 10), arrowprops=dict(shrinkB=0, shrinkA=0, arrowstyle='<->'))
     plt.hlines(10, 0, 35, color='black', linestyle=':', zorder=10)
     ax2.text(35, 3, r' z', size=15)
-    ax2.text(-45, 65, r'Potential $\Phi(d,r)$', color='gray', size=12,
+    ax2.text(-45, 80, r'Potential $\Phi(d,r)$', color='gray', size=12,
              bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     adjust_position(ax2,xshrink=0.01,yshrink=0.01, yshift=0.01)
 
     # Potential at HDMEA surface
-    ax3 = plt.subplot(333)
+    ax3 = plt.subplot(233)
     for z in (3,30):
         thA = model.predict(rfit, override=dict(z=z))
         ax3.plot(rfit, thA, label=r'z=%1.1f $\mu$m' % z)
     ax3.legend(frameon=False,prop={'size':12})
-    ax3.text(-45, 1.2, r'$A \approx \frac{z}{\sqrt{r^2+z^2}}$', size=14,
+    ax3.text(-45, 1.4, r'$A \approx \frac{z}{\sqrt{r^2+z^2}}$', size=14,
              bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     annotate_r_arrow(ax3, -18)
     annotate_r_arrow(ax3, +18)
     ax3.set_xlabel(r'radius, r [$\mu$m]')
     ax3.set_ylabel(r'$A = V/V_{n}$')
     ax3.set_xlim((-50, 50))
-    ax3.set_ylim((0, 1.6))
+    ax3.set_ylim((-0.1, 1.6))
+    ax3.plot((-radius,+radius),(0,0), 'k:')
     # without_spines_and_ticks(ax3)
     adjust_position(ax3,xshrink=0.01,yshrink=0.01, yshift=0.01)
 
 
     # Map voltage at a time
-    ax4 = plt.subplot(334)
+    ax4 = plt.subplot(234)
     ax4_h1 = ax4.scatter(x, y, c=V, s=20, marker='o',
                          edgecolor='None', cmap='seismic')
     voltage_color_bar(ax4_h1, label=r'$V$ [$\mu$V]')
@@ -110,7 +111,7 @@ def figureX():
     ax4.add_artist(neighborhood)
     set_axis_hidens(ax4)
 
-    ax5 = plt.subplot(335, polar=True)
+    ax5 = plt.subplot(235, polar=True)
     ax5_h1 = plt.scatter(theta, r, c=new_V, s=50, marker='o', edgecolor='None', cmap='seismic')
     plot_pie(ax5, phi, epsilon)
     ax5.set_ylim(0,radius)
@@ -120,7 +121,7 @@ def figureX():
     ax5.set_yticklabels(('',))
     ax5.set_xticklabels(('',))
 
-    ax6 = plt.subplot(336)
+    ax6 = plt.subplot(236)
     ax6.scatter(-r[good], A[good], c='green', s=20, marker='o', edgecolor='None')
     ax6.scatter(r[good], A[good], c='green', s=20, marker='o', edgecolor='None', label='fitted data')
     ax6.scatter(r[not_good], A[not_good], c='gray', s=20, marker='o', edgecolor='None', label='excluded', zorder=0)
@@ -132,6 +133,7 @@ def figureX():
     ax6.set_ylim(-0.1,1.6)
     ax6.set_ylabel(r'$A = V/V_{n}$')
     ax6.set_xlabel (r'radius [$\mu$m]')
+    ax6.xaxis.set_ticks(np.linspace(-200, 200, 5))
 
     # ax3sub = inset_axes(ax3,
     #                         width="25%",
@@ -141,12 +143,19 @@ def figureX():
     # ax3sub.set_ylim(0,1)
     # ax3sub.set_xlim(-30,30)
 
+    label_subplot(ax1, 'A', xoffset=-0.05, yoffset=-0.01)
+    label_subplot(ax2, 'B', xoffset=-0.05, yoffset=-0.01)
+    label_subplot(ax3, 'C', xoffset=-0.05, yoffset=-0.01)
+    label_subplot(ax4, 'D', xoffset=-0.05, yoffset=-0.01)
+    label_subplot(ax5, 'E', xoffset=-0.00, yoffset=0.00)
+    label_subplot(ax6, 'F', xoffset=-0.05, yoffset=-0.01)
+
     plt.show()
 
 
 def plot_potential(ax3, z0=10):
     r_range = np.linspace(-50, 50, 101)
-    z_range = np.linspace(0, 75, 75)
+    z_range = np.linspace(0, 90, 90)
     r, z = np.meshgrid(r_range, z_range)
     z0_mirror = -z0
     phi = 1.0 / np.sqrt(np.power(r, 2) + np.power(z - z0, 2)) + 1.0 / np.sqrt(
@@ -199,5 +208,5 @@ def replace_axis(ax, **kwargs):
     ax = plt.axes(position, **kwargs)
     return ax
 
-figureX()
+figure3()
 # spread()

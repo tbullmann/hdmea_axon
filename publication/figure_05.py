@@ -75,6 +75,7 @@ def figure05():
     Model1.plot_Map(ax4, x, y)
     ax4.text(300, 300, r'I: $V_{n} > %d\sigma_{V}; \tau > \tau_{AIS}$' % np.power(10, Model1.threshold),
             bbox=dict(facecolor='white', pad=5, edgecolor='none'), size=14)
+    ax4.text(300, 300, r'+1.0ms', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     set_axis_hidens(ax4)
 
     ax5 = plt.subplot(235)
