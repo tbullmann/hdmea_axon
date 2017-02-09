@@ -72,28 +72,27 @@ def plot_synapse_delays(ax, structural_delay, functional_delay, functional_stren
 
     # getting the data
     delay_axon, timing_spike, pairs = __correlate_two_dicts(structural_delay, functional_delay)
-    delay_synapse = timing_spike - delay_axon
-    __, strength_synapse, __ = __correlate_two_dicts(structural_delay, functional_strength)
-    print strength_synapse
-    strength_synapse = dict2array_like_index(functional_strength, pairs)
-    print strength_synapse
+    # delay_synapse = timing_spike - delay_axon
+    # __, strength_synapse, __ = __correlate_two_dicts(structural_delay, functional_strength)
+    synapse_delay = dict(zip(pairs, timing_spike - delay_axon))   # create a new dictionary of synaptic delays
+    tau_synapse, z_max, pairs = __correlate_two_dicts(synapse_delay, functional_strength)
 
     # Find putative chemical synapse with synaptic delay > 1ms, and other with delays <= 1ms
-    delayed_indices = np.where(delay_synapse>1)
+    delayed_indices = np.where(tau_synapse>1)
     delayed_pairs = np.array(pairs)[delayed_indices]
-    simultaneous_indices = np.where(delay_synapse<=1)
+    simultaneous_indices = np.where(tau_synapse<=1)
     simultaneous_pairs = np.array(pairs)[simultaneous_indices]
 
     # scatter plot
-    axScatter.scatter(strength_synapse, delay_synapse, color='red', label='<1ms')
-    axScatter.scatter(strength_synapse[delayed_indices],delay_synapse[delayed_indices], color='green', label='>1ms')
+    axScatter.scatter(z_max, tau_synapse, color='red', label='<1ms')
+    axScatter.scatter(z_max[delayed_indices],tau_synapse[delayed_indices], color='green', label='>1ms')
     axScatter.set_xscale(xscaling)
     axScatter.legend(frameon=False, scatterpoints=1)
     axScatter.set_xlabel(r'$\mathsf{z_{max}}$', fontsize=14)
     axScatter.set_ylabel(r'$\mathsf{\tau_{synapse}\ [ms]}$', fontsize=14)
 
     # density plot
-    kernel_density(axHisty, delay_synapse, scaling=yscaling, style='k-', orientation='horizontal')
+    kernel_density(axHisty, tau_synapse, scaling=yscaling, style='k-', orientation='horizontal')
     if naxes==3:
         # joint legend by proxies
         plt.sca(ax)
@@ -103,14 +102,14 @@ def plot_synapse_delays(ax, structural_delay, functional_delay, functional_stren
         plt.legend(frameon=False, fontsize=12)
 
         # kernel_density(axHistx, strength_synapse, scaling=yscaling, style='k-', orientation='vertical')
-        kernel_density(axHistx, strength_synapse[delayed_indices], scaling=yscaling, style='g-', orientation='vertical')
-        kernel_density(axHistx, strength_synapse[simultaneous_indices], scaling=yscaling, style='r-', orientation='vertical')
+        kernel_density(axHistx, z_max[delayed_indices], scaling=yscaling, style='g-', orientation='vertical')
+        kernel_density(axHistx, z_max[simultaneous_indices], scaling=yscaling, style='r-', orientation='vertical')
         axHistx.set_xscale(xscaling)
 
     # define limits
-    max_strength_synapse = max(strength_synapse)
+    max_strength_synapse = max(z_max)
     if not xlim: xlim = (1, max_strength_synapse*2)
-    if not ylim: ylim = (min(delay_synapse), max(delay_synapse))
+    if not ylim: ylim = (min(tau_synapse), max(tau_synapse))
 
     # set limits
     axScatter.set_xlim(xlim)
@@ -130,7 +129,7 @@ def plot_synapse_delays(ax, structural_delay, functional_delay, functional_stren
     axHisty.xaxis.set_major_formatter(nullfmt)
     axHisty.yaxis.set_major_formatter(nullfmt)
 
-    return delayed_pairs, simultaneous_pairs, delay_synapse
+    return delayed_pairs, simultaneous_pairs, synapse_delay
 
 
 def dict2array_like_index(dictionary, keys):
