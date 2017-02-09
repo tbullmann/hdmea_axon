@@ -20,7 +20,14 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Final figure 3
 
-def figure3():
+def figure3(center_id = 4961, time=1):
+    """
+    Plot figure 3, showing the spatial spread of the a point source and negative peak of an action potential,
+    deducting the distance of the axon from the surface of the HDMEA.
+    :param center_id: electrode with maximal negative peak, thus the location of the (axonal) action potential
+    :param time: timing of the (axonal) action potential (in ms)
+    """
+
     # Load electrode coordinates
     radius = 200
     neighbors = electrode_neighborhoods(mea='hidens', neighborhood_radius=radius)
@@ -34,11 +41,10 @@ def figure3():
     x_AIS = x[index_AIS]
     y_AIS = y[index_AIS]
 
-    # Select axonal AP
-    center_id = 4961
-    V = V[:, t==1]
-    new_V, new_x, new_y = within_neighborhood(V, x, y, 4961, neighbors)
-    r, theta = cart2pol(new_x, new_y)
+    # Select frame and circular neighborhood around that action potential
+    V = V[:, t==time]
+    new_V, new_x, new_y = within_neighborhood(V, x, y, center_id, neighbors)
+    r, theta = cart2pol(new_x, -new_y)  # inverted orientation of y axis on hidens chip
 
     # Select good signals from electrodes in the area perpendicular to axon
     phi = np.pi * 5/6
@@ -56,7 +62,6 @@ def figure3():
 
     # Summary
     print (model.parameters)
-
 
     # Plotting
     fig = plt.figure('Figure 3', figsize=(13, 7))
@@ -82,7 +87,7 @@ def figure3():
              bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     adjust_position(ax2,xshrink=0.01,yshrink=0.01, yshift=0.01)
 
-    # Potential at HDMEA surface
+    # Potential at HDMEA surface according to Obien et al., ...
     ax3 = plt.subplot(233)
     for z in (3,30):
         thA = model.predict(rfit, override=dict(z=z))
@@ -100,8 +105,7 @@ def figure3():
     # without_spines_and_ticks(ax3)
     adjust_position(ax3,xshrink=0.01,yshrink=0.01, yshift=0.01)
 
-
-    # Map voltage at a time
+    # Map voltage
     ax4 = plt.subplot(234)
     ax4_h1 = ax4.scatter(x, y, c=V, s=20, marker='o',
                          edgecolor='None', cmap='seismic')
@@ -111,6 +115,7 @@ def figure3():
     ax4.add_artist(neighborhood)
     set_axis_hidens(ax4)
 
+    # Map voltage in a small neighborhood
     ax5 = plt.subplot(235, polar=True)
     ax5_h1 = plt.scatter(theta, r, c=new_V, s=50, marker='o', edgecolor='None', cmap='seismic')
     plot_pie(ax5, phi, epsilon)
@@ -121,6 +126,7 @@ def figure3():
     ax5.set_yticklabels(('',))
     ax5.set_xticklabels(('',))
 
+    # Fit distribution
     ax6 = plt.subplot(236)
     ax6.scatter(-r[good], A[good], c='green', s=20, marker='o', edgecolor='None')
     ax6.scatter(r[good], A[good], c='green', s=20, marker='o', edgecolor='None', label='fitted data')
@@ -143,6 +149,7 @@ def figure3():
     # ax3sub.set_ylim(0,1)
     # ax3sub.set_xlim(-30,30)
 
+    # Label subplots
     label_subplot(ax1, 'A', xoffset=-0.05, yoffset=-0.01)
     label_subplot(ax2, 'B', xoffset=-0.05, yoffset=-0.01)
     label_subplot(ax3, 'C', xoffset=-0.05, yoffset=-0.01)
@@ -179,7 +186,7 @@ def plot_pie(ax1, phi, epsilon):
 
 def plot_polar_neigborhood(V, ax, x, y, center_id, neighbors):
     new_V, new_x, new_y = within_neighborhood(V, x, y, center_id, neighbors)
-    r, theta = cart2pol(new_x, new_y)
+    r, theta = cart2pol(new_x, -new_y)  # inverted orientation of y axis on hidens chip
     ax = replace_axis(ax, polar=True)
     c = plt.scatter(theta, r, c=new_V, s=50, marker='o', edgecolor='None', cmap='seismic')
     ax.set_ylim(0,200)
@@ -188,7 +195,7 @@ def plot_polar_neigborhood(V, ax, x, y, center_id, neighbors):
 
 
 def cart2pol(x, y):
-    z = x - 1j * y
+    z = x + 1j * y
     theta = np.angle(z)
     r = np.abs(z)
     return r, theta
@@ -208,5 +215,5 @@ def replace_axis(ax, **kwargs):
     ax = plt.axes(position, **kwargs)
     return ax
 
+
 figure3()
-# spread()
