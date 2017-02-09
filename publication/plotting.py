@@ -207,8 +207,8 @@ def compare_networks(struc, func, nbins=50, scale='linear'):
 def format_parameter_plot(ax):
     ax.set_xscale('log')
     ax.set_yscale('log')
-    ax.set_xlabel('overlap > #electrodes')
-    ax.set_ylabel('score > threshold')
+    ax.set_xlabel(r'$\mathsf{\rho\ [\mu m^2]}$', fontsize=14)
+    ax.set_ylabel(r'$\mathsf{\zeta}$', fontsize=14)
 
 
 def __get_marginals(dictionary, nbins, scale='linear'):

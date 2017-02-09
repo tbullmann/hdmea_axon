@@ -1,22 +1,21 @@
 from __future__ import division
 
 import logging
+logging.basicConfig(level=logging.DEBUG)
+
 import os
 import pickle
-
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.ticker import NullFormatter
 
 from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks
-from hana.recording import load_timeseries
+from hana.recording import load_timeseries, average_electrode_area
 from hana.segmentation import load_neurites
 from hana.structure import all_overlaps
 from publication.plotting import FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, TEMPORARY_PICKELED_NETWORKS, \
     plot_parameter_dependency, format_parameter_plot, compare_networks, analyse_networks, label_subplot, adjust_position, \
     correlate_two_dicts, kernel_density, axes_to_3_axes
-
-logging.basicConfig(level=logging.DEBUG)
 
 
 # Data preparation
@@ -44,22 +43,24 @@ def figure08 (networks_pickel_name):
 
     structural_strengths, structural_delays, functional_strengths, functional_delays = pickle.load( open(networks_pickel_name, 'rb'))
 
+    # Map electrode number to area covered by that electrodes
+    electrode_area = average_electrode_area(None, mea='hidens')
+    structural_strengths = {key: electrode_area*value for key, value in structural_strengths.items()}
+
     # Making figure
-    fig = plt.figure('Figure 8', figsize=(16, 16))
+    fig = plt.figure('Figure 8', figsize=(13, 13))
     fig.suptitle('Figure 8. Compare structural and functional connectivity', fontsize=14, fontweight='bold')
 
     # plot network measures
     ax1 = plt.subplot(4,2,1)
     plot_vs_weigth(ax1, structural_strengths)
-    ax1.set_xlabel(r'overlap threshold $\rho$')
-    ax1.set_title('Structural network')
-    label_subplot(ax1,'A')
+    ax1.set_xlabel(r'$\mathsf{\rho\ [\mu m^2]}$', fontsize=14)
+    # ax1.set_title('Structural network')
 
     ax2 = plt.subplot(4,2,3)
     plot_vs_weigth(ax2, functional_strengths)
-    ax2.set_xlabel(r'score threshold $\zeta$')
-    ax2.set_title('Functional network')
-    label_subplot(ax2,'B')
+    ax2.set_xlabel(r'$\mathsf{\zeta}$', fontsize=14)
+    # ax2.set_title('Functional network')
 
     ax3 = plt.subplot(2,2,2)
     structural_thresholds, functional_thresholds, intersection_size, structural_index, jaccard_index, functional_index\
@@ -68,22 +69,25 @@ def figure08 (networks_pickel_name):
                               fmt='%1.1f', levels=np.linspace(0, 1, 11))
     format_parameter_plot(ax3)
     # ax3.text(3,120, r'Structural index ${|F \cup S|}/{|S|}$', size=15)
-    ax3.set_title(r'Structural index ${|F \cup S|}/{|S|}$')
-    adjust_position(ax3, xshrink=0.01, yshrink=0.01)
-    label_subplot(ax3,'C',xoffset=-0.04)
+    ax3.set_title(r'$\mathsf{i_S={|F \cup S|}/{|S|}}$', fontsize=14)
+    adjust_position(ax3, xshrink=0.02, yshrink=0.02, xshift=0.02, yshift=0.01)
 
     # plot distribution of strength and delays
     ax4 = plt.subplot(223)
     axScatter1 = plot_correlation(ax4, structural_strengths, functional_strengths, xscale='log', yscale='log')
-    axScatter1.set_xlabel (r'overlap $|A \cup D|$ [#electrodes]')
-    axScatter1.set_ylabel (r'peak score z_max')
-    label_subplot(ax4,'D')
+    axScatter1.set_xlabel (r'$\mathsf{|A \cup D|\ [\mu m^2}$]', fontsize=14)
+    axScatter1.set_ylabel (r'$\mathsf{z_{max}}$', fontsize=14)
 
     ax5 = plt.subplot(224)
     axScatter2 = plot_correlation(ax5, structural_delays, functional_delays, xlim=(0,5), ylim=(0,5))
-    axScatter2.set_xlabel ('axonal delays [ms]')
-    axScatter2.set_ylabel ('spike timing [s]')
-    label_subplot(ax5,'E')
+    axScatter2.set_xlabel (r'$\mathsf{\tau _{axon}\ [ms]}$', fontsize=14)
+    axScatter2.set_ylabel (r'$\mathsf{\tau _{spike}\ [ms]}$', fontsize=14)
+
+    label_subplot(ax1,'A')
+    label_subplot(ax2,'B')
+    label_subplot(ax3,'C',xoffset=-0.05)
+    label_subplot(ax4,'D',xoffset=-0.04)
+    label_subplot(ax5,'E',xoffset=-0.04)
 
     plt.show()
 
@@ -151,7 +155,7 @@ def plot_correlation(ax, xdict, ydict, best_keys=None, xlim = None, ylim = None,
     plt.vlines(0, 0, 0, colors='black', linestyles='--', label='both')
     if best_keys: plt.vlines(0, 0, 0, colors='red', linestyles='-', label='best')
     plt.vlines(0, 0, 0, colors='black', linestyles='-', label='equal')
-    plt.legend(frameon=False)
+    plt.legend(frameon=False, fontsize=12)
     # define limits
     if not xlim: xlim = (min(x_corr), max(x_corr))
     if not ylim: ylim = (min(y_corr), max(y_corr))
