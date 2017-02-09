@@ -30,7 +30,7 @@ def figure09 (networks_pickel_name):
         = compare_networks(structural_strengths, functional_strengths, scale='log')
 
     ax1 = plt.subplot(121)
-    delayed_pairs, simultaneous_pairs, delay_synapse = plot_synapse_delays(ax1, structural_delays, functional_delays, functional_strengths, ylim=(-2,7))
+    delayed_pairs, simultaneous_pairs, synpase_delays = plot_synapse_delays(ax1, structural_delays, functional_delays, functional_strengths, ylim=(-2,7))
 
     ax2 = plt.subplot(122)
     trigger, _, _, _ = load_compartments(FIGURE_ARBORS_FILE)
@@ -49,8 +49,8 @@ def figure09 (networks_pickel_name):
     set_axis_hidens(ax2)
 
     # Label subplots
-    label_subplot(ax1,'A', xoffset=-0.04,yoffset=-0.02)
-    label_subplot(ax2,'B',xoffset=-0.04,yoffset=-0.02)
+    label_subplot(ax1,'A', xoffset=-0.04, yoffset=-0.02)
+    label_subplot(ax2,'B', xoffset=-0.04, yoffset=-0.02)
 
     plt.show()
 
