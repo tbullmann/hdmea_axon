@@ -263,11 +263,11 @@ def analyse_networks(dictionary, nbins=None):
 
 def correlate_two_dicts(xdict, ydict, subset_keys=None):
     """Find values with the same key in both dictionary and return two arrays of corresponding values"""
-    x, y, _ = __correlate_two_dicts(xdict, ydict, subset_keys)
+    x, y, _ = correlate_two_dicts_verbose(xdict, ydict, subset_keys)
     return x, y
 
 
-def __correlate_two_dicts(xdict, ydict, subset_keys=None):
+def correlate_two_dicts_verbose(xdict, ydict, subset_keys=None):
     x, y, keys = [], [], []
     both = set(xdict.keys()) & set(ydict.keys())
     if subset_keys: both = both & set(subset_keys)
