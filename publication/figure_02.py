@@ -22,80 +22,6 @@ def testing_load_traces():
     print ppw
 
 
-# Previous figure 2
-
-def figure02_original(testing=False):
-    plt.figure('Figure 2', figsize=(12, 9))
-
-    pos = load_positions(FIGURE_ELECTRODES_MATFILE)  # only used for set_axis_hidens
-    V, t, x, y, trigger, neuron = load_traces(FIGURE_NEURON_FILE)
-    t *= 1000  # convert to ms
-
-    # Electrode with most minimal V corresponding to proximal AIS, get coordinates and recorded voltage trace
-    index_AIS = np.unravel_index(np.argmin(V), V.shape)[0]
-    x_AIS = x[index_AIS]
-    y_AIS = y[index_AIS]
-    V_AIS = V[int(index_AIS)]
-
-    if testing:  # matplotlib is slow, plotting all traces takes 30 sec
-        V = V[range(index_AIS - 10, index_AIS) + range(index_AIS + 1, index_AIS + 11)]  # 20 traces only
-        index_AIS = np.unravel_index(np.argmin(V), V.shape)[0]  # get "new" AIS index because old one is shifted
-
-    # find negative peak
-    indicies_min = np.argmin(V, axis=1)
-    t_min = t[indicies_min]
-    index_ais_neg_peak = indicies_min[index_AIS]
-
-    # align traces
-    V_aligned = np.array([np.roll(row, shift) for row, shift in zip(V, index_ais_neg_peak - indicies_min - 1)])
-    V_aligned_AIS = V_aligned[index_AIS]
-
-    # subplot original unaligned traces
-    ax1 = plt.subplot(221)
-    ax1.plot(t, V.T, '-', color='gray', label='unaligned')
-    ax1.plot(t, V_AIS, 'k-', label='(proximal) AIS')
-    annotate_x_bar(peak_peak_domain(t, V_AIS), min(V_AIS) / 2,
-                   text=' $\delta_p$ = %0.3f ms' % peak_peak_width(t, V_AIS))
-    legend_without_multiple_labels(ax1, loc=4, frameon=False)
-    ax1.set_xlim((-0.5, 4))
-    ax1.set_ylabel(r'V [$\mu$V]')
-    ax1.set_xlabel(r'$\Delta$t [ms]')
-    without_spines_and_ticks(ax1)
-    label_subplot(ax1, 'A')
-
-    # subplot delay map
-    ax2 = plt.subplot(222)
-    h1 = ax2.scatter(x, y, c=t_min, s=10, marker='o', edgecolor='None', cmap='gray')
-    h2 = plt.colorbar(h1)
-    h2.set_label(r'$\tau$ [ms]')
-    cross_hair(ax2, x_AIS, y_AIS)
-    set_axis_hidens(ax2)
-    label_subplot(ax2, 'B', xoffset=-0.02)
-
-    # subplot aligned traces
-    ax3 = plt.subplot(223)
-    ax3.plot(t, V_aligned.T, '-', color='gray', label='aligned')
-    ax3.plot(t, V_aligned_AIS, 'k-', label='(proximal) AIS')
-    legend_without_multiple_labels(ax3, loc=4, frameon=False)
-    ax3.set_xlim((-0.5, 4))
-    ax3.set_ylabel(r'V [$\mu$V]')
-    ax3.set_xlabel(r'$\Delta$t [ms]')
-    without_spines_and_ticks(ax3)
-    label_subplot(ax3, 'C')
-
-    # subplot histogram of delays
-    ax4 = plt.subplot(224)
-    ax4.hist(t_min, bins=len(t), facecolor='gray', edgecolor='gray')
-    ax4.vlines(0, 0, 180, color='k', linestyles=':')
-    ax4.hlines(len(x) / len(t), min(t), max(t), color='k', linestyles='--')
-    ax4.set_ylabel(r'count')
-    ax4.set_xlabel(r'$\Delta$t [ms]')
-    without_spines_and_ticks(ax4)
-    label_subplot(ax4, 'D')
-
-    plt.show()
-
-
 # Final figure 2
 
 def figure02():
@@ -160,7 +86,7 @@ def figure02():
     ax3.hist(delay, bins=len(t), facecolor='gray', edgecolor='gray', label='measured')
     ax3.scatter(delay[index_AIS], 10, marker='v', s=100, edgecolor='None', facecolor='red', zorder=10)
     ax3.hlines(len(x)/len(t), min(t), max(t), color='k', linestyles='--', label='uniform')
-    ax3.legend(frameon=False)
+    ax3.legend(loc=2, frameon=False)
     ax3.set_ylim((0,200))
     ax3.set_xlim((min(t),max(t)))
     ax3.set_ylabel(r'count')
@@ -205,7 +131,7 @@ def figure02():
     ax7.scatter(std_delay[index_background_example], 25, marker='v', s=100, edgecolor='None', facecolor=background_color, zorder=10)
     ax7.scatter(expected_std_delay, 25, marker='v', s=100, edgecolor='black', facecolor='gray', zorder=10)
     ax7.text(expected_std_delay, 30, r'$\frac{8}{\sqrt{12}}$ ms',  horizontalalignment='center', verticalalignment='bottom', zorder=10)
-    ax7.legend(frameon=False)
+    ax7.legend(loc=2, frameon=False)
     ax7.vlines(0, 0, 180, color='k', linestyles=':')
     ax7.set_ylim((0, 600))
     ax7.set_xlim((0, 4))
@@ -241,7 +167,11 @@ def figure02():
     set_axis_hidens(ax10)
     label_subplot(ax10, 'J', xoffset=-0.005, yoffset=-0.01)
 
+    plt.savefig('temp/figures/figure02.eps', format='eps', dpi=300)
+
     plt.show()
+
+
 
 
 def add_AIS_and_example_neighborhoods(ax6, x, y, index_AIS, indicies_background, indicies_foreground):
