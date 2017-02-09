@@ -14,7 +14,7 @@ from hana.recording import load_positions
 from hana.segmentation import neuron_position_from_trigger_electrode, load_compartments
 from hana.plotting import plot_neuron_points, plot_neuron_id, plot_network, set_axis_hidens
 from publication.plotting import FIGURE_ARBORS_FILE, TEMPORARY_PICKELED_NETWORKS, compare_networks, \
-    label_subplot, __correlate_two_dicts, kernel_density, axes_to_3_axes
+    label_subplot, correlate_two_dicts_verbose, kernel_density, axes_to_3_axes
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -71,11 +71,11 @@ def plot_synapse_delays(ax, structural_delay, functional_delay, functional_stren
         axHisty = plt.axes(rect_histy)
 
     # getting the data
-    delay_axon, timing_spike, pairs = __correlate_two_dicts(structural_delay, functional_delay)
+    delay_axon, timing_spike, pairs = correlate_two_dicts_verbose(structural_delay, functional_delay)
     # delay_synapse = timing_spike - delay_axon
     # __, strength_synapse, __ = __correlate_two_dicts(structural_delay, functional_strength)
     synapse_delay = dict(zip(pairs, timing_spike - delay_axon))   # create a new dictionary of synaptic delays
-    tau_synapse, z_max, pairs = __correlate_two_dicts(synapse_delay, functional_strength)
+    tau_synapse, z_max, pairs = correlate_two_dicts_verbose(synapse_delay, functional_strength)
 
     # Find putative chemical synapse with synaptic delay > 1ms, and other with delays <= 1ms
     delayed_indices = np.where(tau_synapse>1)
@@ -134,7 +134,7 @@ def plot_synapse_delays(ax, structural_delay, functional_delay, functional_stren
 
 def dict2array_like_index(dictionary, keys):
     """
-    Returns an array with elements from the dictionary preserving the order of keys.
+    Returns an array with elements from the dictionary preserving the order of keys. Note: Not used
     :param dictionary:
     :param keys:
     :return:
@@ -142,7 +142,6 @@ def dict2array_like_index(dictionary, keys):
     strength_synapse = []
     for key in keys:
         value = dictionary[key]
-        # print key, value
         strength_synapse.append(value)
     strength_synapse = np.array(strength_synapse)
     return strength_synapse
