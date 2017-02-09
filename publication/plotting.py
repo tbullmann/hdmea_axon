@@ -298,7 +298,7 @@ def axes_to_3_axes(ax, factor = 0.75, spacing = 0.01):
     position = ax.get_position()
     ax.axis('off')
     left, width = position.x0, (position.x1 - position.x0) * factor - spacing / 2
-    bottom, height = position.y0, (position.x1 - position.x0) * factor - spacing / 2
+    bottom, height = position.y0, (position.y1 - position.y0) * factor - spacing / 2
     bottom_h, height_h = bottom + height + spacing, (position.y1 - position.y0) * (1 - factor) - spacing / 2
     left_h, width_h = left + width + spacing, (position.x1 - position.x0) * (1 - factor) - spacing / 2
     rect_scatter = [left, bottom, width, height]
