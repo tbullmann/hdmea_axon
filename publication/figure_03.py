@@ -77,8 +77,8 @@ def figure3(center_id = 4961, time=1):
     # potential distribution is the same as for two charges in free medium, one mirrored at the surface
     ax2 = plt.subplot(232)
     plot_potential(ax2)
-    ax2.set_xlabel(r'radius, r [$\mu$m]')
-    ax2.set_ylabel(r'distance , z [$\mu$m]')
+    ax2.set_xlabel(r'r [$\mu$m]')
+    ax2.set_ylabel(r'z [$\mu$m]')
     # without_spines_and_ticks(ax2)
     ax2.annotate('', (35, 0), (35, 10), arrowprops=dict(shrinkB=0, shrinkA=0, arrowstyle='<->'))
     plt.hlines(10, 0, 35, color='black', linestyle=':', zorder=10)
@@ -97,7 +97,7 @@ def figure3(center_id = 4961, time=1):
              bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     annotate_r_arrow(ax3, -18)
     annotate_r_arrow(ax3, +18)
-    ax3.set_xlabel(r'radius, r [$\mu$m]')
+    ax3.set_xlabel(r'r [$\mu$m]')
     ax3.set_ylabel(r'$A = V/V_{n}$')
     ax3.set_xlim((-50, 50))
     ax3.set_ylim((-0.1, 1.6))
@@ -138,7 +138,7 @@ def figure3(center_id = 4961, time=1):
     ax6.legend(loc=2, frameon=False,prop={'size':12}, scatterpoints=1)
     ax6.set_ylim(-0.1,1.6)
     ax6.set_ylabel(r'$A = V/V_{n}$')
-    ax6.set_xlabel (r'radius [$\mu$m]')
+    ax6.set_xlabel (r'r [$\mu$m]')
     ax6.xaxis.set_ticks(np.linspace(-200, 200, 5))
 
     # ax3sub = inset_axes(ax3,
