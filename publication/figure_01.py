@@ -63,6 +63,8 @@ def figure_01():
     label_subplot(ax3, 'C', xoffset=-0.035, yoffset=-0.015)
     label_subplot(ax4, 'D', xoffset=0.005, yoffset=-0.035)
 
+    plt.savefig('temp/figures/figure01.pdf', format='eps', dpi=300)
+
     plt.show()
 
 
