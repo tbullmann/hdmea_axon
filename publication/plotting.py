@@ -305,3 +305,30 @@ def axes_to_3_axes(ax, factor = 0.75, spacing = 0.01):
     rect_histx = [left, bottom_h, width, height_h]
     rect_histy = [left_h, bottom, width_h, height]
     return rect_histx, rect_histy, rect_scatter
+
+
+def plot_pairwise_comparison(ax, data, measure, ylim=None, legend=True):
+    """
+    Compare values obtained by different methods as lines connecting values from same subject (e.g. neurons).
+    :param ax: axis handle
+    :param data: Pandas dataframe
+    :param measure: See keys of dictionary returned by ModelDiscriminator.summary
+    :param ylim: Hard limits for y axis (default: None)
+    :param legend: plotting a legend (default: False)
+    :return:
+    """
+    pivoted = data.pivot(index='method', columns='subject', values=measure)
+    if legend:
+        pivoted.plot(ax=ax).legend(loc='center left', ncol=2, bbox_to_anchor=(1, 0.5))
+    else:
+        pivoted.plot(ax=ax,legend=legend)
+    if ylim:
+        ax.set_ylim(ylim)
+    ax.set_xlabel('Method')
+    ax.set_ylabel(measure)
+    adjust_position(ax, xshrink=0.02)
+    ax.tick_params(
+        axis='x',  # changes apply to the x-axis
+        which='both',  # both major and minor ticks are affected
+        bottom='off',  # ticks along the bottom edge are off
+        top='off')  # ticks along the top edge are off
