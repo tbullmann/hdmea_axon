@@ -13,7 +13,7 @@ from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain, D
 from hana.segmentation import segment_axon_verbose, restrict_to_compartment, find_AIS
 from publication.plotting import FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
     legend_without_multiple_labels, label_subplot, plot_traces_and_delays, adjust_position, voltage_color_bar
-
+from publication.comparison import segment_axon_Bakkum
 
 
 
@@ -21,55 +21,74 @@ from publication.plotting import FIGURE_NEURON_FILE, without_spines_and_ticks, c
 
 def testing_load_traces(path):
 
-
-    # Get traves
-
+    # Get traces
     V, t, x, y, trigger, neuron = load_traces(path+'.h5')
     if trigger<0:  # may added to load_traces with trigger>-1 as condition
         trigger = find_AIS(V)
 
-    t *= 1000  # convert to ms
-    time = 1  #ms
-    print t
+    t = t/20 * 1000  # convert to ms TODO Fix factor 20
 
-    # Position of the AIS
-    index_AIS = find_AIS(V)
+    # Segmentation according Bakkum
+    delay_old, _, _, index_AIS, axon_old = segment_axon_Bakkum(V, t, pnr_threshold=5)
+
+    # Segmentation according Bullmann
+    neighbors = neighbors_from_electrode_positions(x, y)
+    delay, mean_delay, std_delay, expected_std_delay, thr, valid_delay, index_AIS, positive_delay, axon \
+        = segment_axon_verbose(t, V, neighbors)
+
+    # AIS coordinates
     x_AIS = x[index_AIS]
     y_AIS = y[index_AIS]
 
     V = np.min(V, axis=1)
 
-    print np.shape(V)
-
     # Plotting
     fig = plt.figure('Figure X', figsize=(13, 7))
     fig.suptitle('Figure X. Ground truth', fontsize=14, fontweight='bold')
 
-    # Map voltage
-    ax4 = plt.subplot(111)
-    show_tiles(path)
-    size = np.sqrt(-V)/max(np.sqrt(-V))*100
-    # ax4_h1 = ax4.scatter(x, y, c=V, s=15, marker='o', edgecolor='None', cmap='seismic')
-    ax4_h1 = ax4.scatter(x, y, s=size, c='blue', alpha=0.2)
-
-    # voltage_color_bar(ax4_h1, vmin=-40, vmax=40, vstep=10, label=r'$V$ [$\mu$V]')
-    # # cross_hair(ax4, x_AIS, y_AIS, color='red')
-    # plt.axis('equal')
-    # ax4.invert_yaxis()
+    # Map axons
+    ax4 = plt.subplot(121)
+    plot_neuron_image(path)
+    ax4.scatter(x, y, s=axon_old * 40, c='blue', marker='o', alpha=0.5)
+    cross_hair(ax4, x_AIS, y_AIS, color='red')
     set_axis_hidens(ax4)
+
+    ax5 = plt.subplot(122)
+    plot_neuron_image(path)
+    ax5.scatter(x, y, s=axon * 40, c='yellow', marker='o', alpha=0.5)
+    cross_hair(ax5, x_AIS, y_AIS, color='red')
+
+    set_axis_hidens(ax5)
 
     plt.show()
 
 
+def neighbors_from_electrode_positions(x, y, neighborhood_radius = 20):
+    # only a subset of electrodes used TODO: generalize and merge electrode_neighborhoods
+    from scipy.spatial.distance import squareform, pdist
 
-def show_tiles(path):
+    pos_as_array = np.asarray(zip(x, y))
+    distances = squareform(pdist(pos_as_array, metric='euclidean'))
+    neighbors = distances < neighborhood_radius
+    return neighbors
+
+
+def plot_neuron_image(path, transform=np.sqrt, cmap='gray_r'):
+    """
+
+    :param path: path to tilespecs.txt
+    :param transform: image transformation; default sqrt, could be None as well
+    :param cmap: colormap; default: inverted gray scale
+    """
     textfilename = os.path.join(path,'tilespecs.txt')
-    data = pd.read_table(textfilename)
-    for index, row in data.iterrows():
-        filename, left, right, bottom, top = row[['filename','xstart','xend','ystart','yend']]
-        tile = plt.imread(os.path.join(path,filename))
-        print filename
-        plt.imshow(np.sqrt(tile), cmap='gray_r', extent=[left, right, top, bottom])
+    tiles = pd.read_table(textfilename)
+    for tile_index, tile in tiles.iterrows():
+        raw_image = plt.imread(os.path.join(path,tile.filename))
+        image = transform(raw_image) if transform else raw_image
+        plt.imshow(image,
+                   cmap=cmap,
+                   extent=[tile.xstart, tile.xend, tile.yend, tile.ystart])
+        # NOTE: yend and ystart are reverted due to hidens coordinate system TODO: Maybe fix
 
 
 
