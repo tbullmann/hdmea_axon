@@ -77,7 +77,7 @@ def normcum(x):
     return FPR
 
 
-def segment_axon_Bakkum(V, t, pnr_threshold, after_AIS=True):
+def segment_axon_Bakkum(V, t, pnr_threshold=5, after_AIS=True):
     """
     Segment axon as described in Bakkum et al, 2013, Nat Commun
     NOTE: Log10 transformation used for plotting the values in histogram.
