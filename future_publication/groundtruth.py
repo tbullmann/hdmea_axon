@@ -55,11 +55,13 @@ def testing_load_traces(neuron):
     plot_image_axon_delay_voltage(ax4, path, axon_old, delay_old, V, x, y, transform=V2size)
     cross_hair(ax4, x_AIS, y_AIS, color='red')
     set_axis_hidens(ax4)
+    ax4.set_title('Method I')
 
     ax5 = plt.subplot(122)
     plot_image_axon_delay_voltage(ax5, path, axon, delay, V, x, y, transform=V2size)
     cross_hair(ax5, x_AIS, y_AIS, color='red')
     set_axis_hidens(ax5)
+    ax5.set_title('Method II')
 
     plt.show()
 
