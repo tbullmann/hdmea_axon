@@ -25,8 +25,8 @@ def figure05():
     t *= 1000  # convert to ms
 
     Model1 = ModelDiscriminatorBakkum()
-    Model1.fit(t, V)
-    Model1.predict(pnr_threshold=5)
+    Model1.fit(t, V, pnr_threshold=5)
+    Model1.predict()
     Model2 = ModelDiscriminatorBullmann()
     Model2.fit(t, V, neighbors)
     Model2.predict()
@@ -89,8 +89,8 @@ def figure05():
         V, t, x, y, trigger, neuron = load_traces(filename)
         t *= 1000  # convert to ms
 
-        Model1.fit(t, V)
-        Model1.predict(pnr_threshold=5)
+        Model1.fit(t, V, pnr_threshold=5)
+        Model1.predict()
         Model2.fit(t, V, neighbors)
         Model2.predict()
 

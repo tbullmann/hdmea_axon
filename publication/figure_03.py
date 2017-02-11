@@ -2,7 +2,7 @@ from hana.segmentation import find_AIS
 from publication.plotting import FIGURE_NEURON_FILE, cross_hair, label_subplot, voltage_color_bar, adjust_position, without_spines_and_ticks
 from hana.plotting import set_axis_hidens
 from hana.recording import electrode_neighborhoods, load_traces
-from hana.misc import ModelFunction
+from publication.comparison import ModelFunction
 
 from scipy.stats import binom
 import numpy as np
