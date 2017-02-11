@@ -48,8 +48,9 @@ def testing_load_traces(path):
     # Map voltage
     ax4 = plt.subplot(111)
     show_tiles(path)
+    size = np.sqrt(-V)/max(np.sqrt(-V))*100
     # ax4_h1 = ax4.scatter(x, y, c=V, s=15, marker='o', edgecolor='None', cmap='seismic')
-    ax4_h1 = ax4.scatter(x, y, s=-V, c='blue', alpha=0.2)
+    ax4_h1 = ax4.scatter(x, y, s=size, c='blue', alpha=0.2)
 
     # voltage_color_bar(ax4_h1, vmin=-40, vmax=40, vstep=10, label=r'$V$ [$\mu$V]')
     # # cross_hair(ax4, x_AIS, y_AIS, color='red')
