@@ -19,7 +19,9 @@ from publication.comparison import segment_axon_Bakkum
 
 # Testing code
 
-def testing_load_traces(path):
+def testing_load_traces(neuron):
+
+    path ='data/groundtruth/neuron%d' % neuron
 
     # Get traces
     V, t, x, y, trigger, neuron = load_traces(path+'.h5')
@@ -43,24 +45,29 @@ def testing_load_traces(path):
     V = np.min(V, axis=1)
 
     # Plotting
-    fig = plt.figure('Figure X', figsize=(13, 7))
-    fig.suptitle('Figure X. Ground truth', fontsize=14, fontweight='bold')
+    fig = plt.figure('Figure X neuron %d' % neuron, figsize=(13, 7))
+    fig.suptitle('Figure X. Ground truth for neuron %d' % neuron, fontsize=14, fontweight='bold')
+
+    V2size = lambda x : np.sqrt(np.abs(x))/max(np.sqrt(np.abs(x))) * 100
 
     # Map axons
     ax4 = plt.subplot(121)
-    plot_neuron_image(path)
-    ax4.scatter(x, y, s=axon_old * 40, c='blue', marker='o', alpha=0.5)
+    plot_image_axon_delay_voltage(ax4, path, axon_old, delay_old, V, x, y, transform=V2size)
     cross_hair(ax4, x_AIS, y_AIS, color='red')
     set_axis_hidens(ax4)
 
     ax5 = plt.subplot(122)
-    plot_neuron_image(path)
-    ax5.scatter(x, y, s=axon * 40, c='yellow', marker='o', alpha=0.5)
+    plot_image_axon_delay_voltage(ax5, path, axon, delay, V, x, y, transform=V2size)
     cross_hair(ax5, x_AIS, y_AIS, color='red')
-
     set_axis_hidens(ax5)
 
     plt.show()
+
+
+def plot_image_axon_delay_voltage(ax, path, axon, delay, V, x, y, transform=np.abs):
+    plot_neuron_image(path)
+    radius = transform(V) if transform else V
+    ax.scatter(x[axon], y[axon], s=radius[axon], c=delay[axon], marker='o', alpha=0.5)
 
 
 def neighbors_from_electrode_positions(x, y, neighborhood_radius = 20):
@@ -94,7 +101,7 @@ def plot_neuron_image(path, transform=np.sqrt, cmap='gray_r'):
 
 
 
-testing_load_traces('data/groundtruth/neuron1544')
-testing_load_traces('data/groundtruth/neuron1536')
+testing_load_traces(1544)
+testing_load_traces(1536)
 
 
