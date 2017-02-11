@@ -1,21 +1,15 @@
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+import numpy as np
+from matplotlib import pyplot as plt
+from matplotlib import patches as ptc
+
 from hana.segmentation import find_AIS
 from publication.plotting import FIGURE_NEURON_FILE, cross_hair, label_subplot, voltage_color_bar, adjust_position, without_spines_and_ticks
 from hana.plotting import set_axis_hidens
 from hana.recording import electrode_neighborhoods, load_traces
 from publication.comparison import ModelFunction
-
-from scipy.stats import binom
-import numpy as np
-from matplotlib import pyplot as plt
-import pylab as pl
-from matplotlib import cm
-from matplotlib import patches as ptc
-from mpl_toolkits.axes_grid.inset_locator import inset_axes
-
-from statsmodels import robust
-import logging
-logging.basicConfig(level=logging.DEBUG)
-
 
 
 # Final figure 3
