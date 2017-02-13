@@ -119,6 +119,11 @@ def LucasKanade(im1, im2, w=2, scale=(1, 1, 1)):
             u[i, j] = nu[0]
             v[i, j] = nu[1]
 
+    # Set nan pixels zero
+    valid = np.logical_and(np.isfinite(u), np.isfinite(v))
+    u[np.logical_not(valid)] = 0
+    v[np.logical_not(valid)] = 0
+
     # Normalize
     dx, dy, dt = scale
     u = u * dx / dt

@@ -11,29 +11,39 @@ from publication.plotting import FIGURE_NEURON_FILE_FORMAT
 logging.basicConfig(level=logging.DEBUG)
 
 
-def test_flows(neuron=5):
+def test_flows(neuron=5, coarse=True):
     filename = FIGURE_NEURON_FILE_FORMAT % neuron
     V, t, x, y, trigger, neuron = load_traces(filename)
 
     t *= 1000  # convert to ms
+    time = -4  # ms
 
-    xspacing = np.abs((np.median(np.diff(x))))
-    yspacing = np.abs((np.median(np.diff(y))))*2
+    tspacing = np.abs((np.median(np.diff(t))))
+    xspacing = np.abs((np.median(np.diff(x))))/2
+    yspacing = np.abs((np.median(np.diff(y))))
+    if coarse:
+        xspacing, yspacing = 2 * xspacing, 2 * yspacing
 
-    grid_x, grid_y, grid_V1 = interpolate(x, y, np.ravel(V[:, t == 1]), xspacing=xspacing, yspacing=yspacing)
-    _,_,grid_V2 = interpolate(x, y, np.ravel(V[:, t == 1 + 0.05]), xspacing=xspacing, yspacing=yspacing)
+    logging.info('Scale = (dx,dy,dt) = (%.3f um, %.3f um, %.3f ms)' %  (xspacing, yspacing, tspacing) )
 
+    grid_x, grid_y, grid_V1 = interpolate(x, y, np.ravel(V[:, t==time]), xspacing=xspacing, yspacing=yspacing)
+    _,_,grid_V2 = interpolate(x, y, np.ravel(V[:, t==time+0.05]), xspacing=xspacing, yspacing=yspacing)
 
-    ax = plt.subplot(111)
-    CS2 = plt.contour(grid_x, grid_y, -grid_V1, colors=('red',), levels=(5,))
-    CS2 = plt.contour(grid_x, grid_y, -grid_V2, colors=('green',), levels=(5,))
+    logging.info('Interpolation to %d points' % (np.shape(grid_x)[0]*np.shape(grid_x)[1]))
 
-    u, v = LucasKanade(grid_V1, grid_V2)
-    # u, v = HS(grid_V1,grid_V2)
+    xdot, ydot = LucasKanade(grid_V1, grid_V2)
+    # xdot, ydot = HS(grid_V1,grid_V2)
 
-    plt.quiver(grid_x,grid_y, u, v)
+    velocity = np.sqrt(xdot*xdot + ydot*ydot)
 
-    set_axis_hidens(ax)
+    ax1 = plt.subplot(121)
+    plt.contour(grid_x, grid_y, -grid_V1, colors=('red',), levels=(5,))
+    plt.contour(grid_x, grid_y, -grid_V2, colors=('green',), levels=(5,))
+    plt.quiver(grid_x,grid_y, xdot, ydot)
+    set_axis_hidens(ax1)
+
+    ax2 = plt.subplot(222)
+    plt.hist(np.ravel(velocity), bins=200)
 
     plt.show()
 
