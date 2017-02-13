@@ -23,13 +23,15 @@ def test_flows(neuron=5, coarse=True):
     gx, gy, gV, gVsucc, gvx, gvy, velocity = velocity_by_LK(V, t, x, y, timeafter, coarse=coarse)
 
     ax1 = plt.subplot(121)
-    plt.quiver(gxB, gyB, gvxB, gvyB, color='blue')
-    plt.quiver(gx, gy, gvx, gvy, color='red')
+    plt.quiver(gxB, gyB, gvxB, gvyB, color='blue', label='before (-4ms)')
+    plt.quiver(gx, gy, gvx, gvy, color='red', label='after (+1ms)')
     set_axis_hidens(ax1)
 
     ax2 = plt.subplot(122)
-    plt.hist(np.ravel(velocityB), bins=200, edgecolor='None', color='blue', alpha=0.5)
-    plt.hist(np.ravel(velocity), bins=200, edgecolor='None', color='red', alpha=0.5)
+    bins = np.linspace(0, 400, num=200)
+    plt.hist(np.ravel(velocityB), bins=bins, edgecolor='None', color='blue', alpha=0.5)
+    plt.hist(np.ravel(velocity), bins=bins, edgecolor='None', color='red', alpha=0.5)
+    ax2.set_xlabel (r'$\mathsf{v_{Flow}\ [\mu m/ms]}$', fontsize=14)
 
     plt.show()
 
@@ -46,7 +48,7 @@ def velocity_by_LK(V, t, x, y, time, coarse=True):
     grid_x, grid_y, grid_V1 = interpolate(x, y, np.ravel(V[:, index]), xspacing=xspacing, yspacing=yspacing)
     _, _, grid_V2 = interpolate(x, y, np.ravel(V[:, index + 1]), xspacing=xspacing, yspacing=yspacing)
     logging.info('Interpolation to %d points' % (np.shape(grid_x)[0] * np.shape(grid_x)[1]))
-    xdot, ydot = LucasKanade(grid_V1, grid_V2)
+    xdot, ydot = LucasKanade(grid_V1, grid_V2, scale=(xspacing, yspacing, tspacing))
     velocity = np.sqrt(xdot * xdot + ydot * ydot)
     return grid_x, grid_y, grid_V1, grid_V2, xdot, ydot, velocity
 
