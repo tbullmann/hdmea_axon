@@ -94,7 +94,7 @@ def with_collapsed_time(neuron):
     plot_neuron_image(path)
     plt.imshow(skeleton.T, cmap='CMRmap', alpha=0.5,
                extent=bbox)
-    ax4.set_title('Skeleton')
+    ax4.set_title('Axon')
     set_bbox(bbox)
 
     plt.show()
@@ -102,7 +102,7 @@ def with_collapsed_time(neuron):
 
 def set_bbox(bbox):
     plt.xlim((bbox[0], bbox[1]))
-    plt.ylim((bbox[3], bbox[2]))
+    plt.ylim((bbox[2], bbox[3]))
 
 
 def load_data(neuron):
