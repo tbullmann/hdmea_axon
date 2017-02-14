@@ -43,12 +43,15 @@ def with_continous_time(neuron):
         V_n = abs(np.min(V[:,index:index+delta], axis=1))
         grid_x, grid_y, grid_V, vesselness, skeleton = AxonSkeleton(V_n, x, y, support=axon)
 
+        bbox = [np.amin(grid_x), np.amax(grid_x), np.amax(grid_y), np.amin(grid_y)]  # for grid
+
         plt.subplot(h,w,i+1)
         plot_neuron_image(path)
         plt.imshow(skeleton.T, cmap='CMRmap', alpha=0.5,
                    extent=[np.amin(grid_x), np.amax(grid_x), np.amax(grid_y), np.amin(grid_y)])
         plt.title('%1.3f~%1.3f ms' % (t[index], t[index+delta]) )
         plt.axis('off')
+        set_bbox(bbox)
 
     plt.show()
 
@@ -65,30 +68,41 @@ def with_collapsed_time(neuron):
     fig.suptitle('Segmentation of the axon based on vesselness (collapsed time)', fontsize=14,
                  fontweight='bold')
 
+    bbox = [np.amin(grid_x), np.amax(grid_x), np.amax(grid_y), np.amin(grid_y)]  # for grid
+
     ax1 = plt.subplot(221)
     plot_neuron_image(path)
     ax1.scatter(x[axon], y[axon], s=20, c=delay[axon], marker='o', )
     cross_hair(ax1, x_AIS, y_AIS, color='red')
     # set_axis_hidens(ax1)
-    ax1.set_title('Image+Voltage')
+    ax1.set_title('Delays')
+    set_bbox(bbox)
 
     ax2 = plt.subplot(222)
     plot_neuron_image(path)
-    plt.imshow(grid_V.T, cmap='CMRmap', alpha=0.5, extent=[np.amin(grid_x), np.amax(grid_x), np.amax(grid_y), np.amin(grid_y)])
-    ax1.set_title('Interpolated Voltage')
+    plt.imshow(grid_V.T, cmap='CMRmap', alpha=0.5, extent=bbox)
+    ax2.set_title('Voltage')
+    set_bbox(bbox)
 
     ax3 = plt.subplot(223)
     plot_neuron_image(path)
-    plt.imshow(vesselness.T, cmap='CMRmap', alpha=0.5, extent=[np.amin(grid_x), np.amax(grid_x), np.amax(grid_y), np.amin(grid_y)])
-    ax3.set_title('Vesselness')
+    plt.imshow(vesselness.T, cmap='CMRmap', alpha=0.5, extent=bbox)
+    ax3.set_title('Voltage ridge')
+    set_bbox(bbox)
 
     ax4 = plt.subplot(224)
     plot_neuron_image(path)
     plt.imshow(skeleton.T, cmap='CMRmap', alpha=0.5,
-               extent=[np.amin(grid_x), np.amax(grid_x), np.amax(grid_y), np.amin(grid_y)])
+               extent=bbox)
     ax4.set_title('Skeleton')
+    set_bbox(bbox)
 
     plt.show()
+
+
+def set_bbox(bbox):
+    plt.xlim((bbox[0], bbox[1]))
+    plt.ylim((bbox[3], bbox[2]))
 
 
 def load_data(neuron):
