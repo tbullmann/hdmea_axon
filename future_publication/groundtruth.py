@@ -135,8 +135,8 @@ def distanceBetweenCurves(C1, C2):
     return (H1 + H2) / 2.
 
 
-
-testing_load_traces(1544)
-# testing_load_traces(1536)
+if __name__ == "__main__":
+    testing_load_traces(1544)
+    # testing_load_traces(1536)
 
 
