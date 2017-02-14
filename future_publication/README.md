@@ -33,5 +33,11 @@ Therefore figure S1 have to be run first, and the remaining figures should assem
 
 ### Figure S1. Shows neuronal compartment of the example neurons 
 
+---
 
-
+|source |description|
+|---|---|
+|_frangi.py, vessel.py|detection of axons with frangi filter|
+|grid.py|subset grid|
+|flow.py, method3.py|axon signal detection using optical flow|
+|groundtruth.py|Acessing Milos data: rec+images|
