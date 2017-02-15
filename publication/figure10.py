@@ -4,16 +4,14 @@ logging.basicConfig(level=logging.DEBUG)
 import os as os
 import pandas as pd
 import numpy as np
-from scipy.spatial import distance
+from scipy.spatial.distance import squareform, pdist, cdist
 from matplotlib import pyplot as plt
+import matplotlib as mpl
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-
-from hana.plotting import annotate_x_bar, set_axis_hidens
-from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain, DELAY_EPSILON, neighborhood, \
-    electrode_neighborhoods, load_traces, load_positions
-from hana.segmentation import segment_axon_verbose, restrict_to_compartment, find_AIS
-from publication.plotting import FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
-    legend_without_multiple_labels, label_subplot, plot_traces_and_delays, adjust_position, voltage_color_bar
+from hana.recording import load_traces
+from hana.segmentation import segment_axon_verbose, find_AIS
+from publication.plotting import cross_hair, label_subplot, adjust_position
 from publication.comparison import segment_axon_Bakkum
 
 
@@ -44,7 +42,7 @@ def figure10(neuron):
     Vmin_Bakkum = np.min(V, axis=1)
 
     # Segmentation according Bullmann
-    from future_publication.grid import HidensTransformation
+    from hana.grid import HidensTransformation
     axon_Bullmann = dict()
     delay_Bullmann = dict()
     Vmin_Bullmann = dict()
@@ -119,12 +117,9 @@ def figure10(neuron):
     leg.get_title().set_fontsize(14)
     plt.axis('off')
     adjust_position(ax6,xshrink=0.05,yshrink=0.02,xshift=-0.04)
-
-    from mpl_toolkits.axes_grid1 import make_axes_locatable
     divider = make_axes_locatable(ax6)
     cax = divider.append_axes("right", size="10%", pad=0.05)
 
-    import matplotlib as mpl
     norm = mpl.colors.Normalize(vmin=0, vmax=2)
     cbar = mpl.colorbar.ColorbarBase(cax,
                                     norm=norm,
@@ -199,7 +194,6 @@ def plot_image_axon_delay_voltage(ax, path, axon, delay, V, x, y, transform=np.a
 
 def neighbors_from_electrode_positions(x, y, neighborhood_radius = 20):
     # only a subset of electrodes used TODO: generalize and merge electrode_neighborhoods
-    from scipy.spatial.distance import squareform, pdist
 
     pos_as_array = np.asarray(zip(x, y))
     distances = squareform(pdist(pos_as_array, metric='euclidean'))
@@ -253,7 +247,7 @@ def distanceBetweenCurves(C1, C2):
     :param C1, C2: to curves as their points
     :return:
     """
-    D = distance.cdist(C1, C2, 'euclidean')
+    D = cdist(C1, C2, 'euclidean')
 
     #none symmetric Hausdorff distances
     H1 = np.max(np.min(D, axis=1))
