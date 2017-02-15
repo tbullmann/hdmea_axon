@@ -2,6 +2,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 import os as os
+import pickle
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
@@ -20,34 +21,55 @@ from groundtruth import plot_neuron_image, neighbors_from_electrode_positions
 
 # Testing code
 
-def with_continous_time(neuron):
+def with_continous_time(neuron, compute_anyway=False):
 
     V, t, x, y, x_AIS, y_AIS, axon, delay, path = load_data(neuron)
 
     offset = (np.where(t==0))[0]
-    step = 2
-    delta = 4
+    step = 1
+    delta = 3
+
+    skeleton_pickel_name = 'temp/skeletons.p'
+
+
+
+
+    if compute_anyway or not os.path.isfile(skeleton_pickel_name):
+
+        skeletons = list()
+        for i in range(0, 40):
+            index = i * step + offset
+            logging.info('frame %d' % i)
+
+            V_n = abs(np.min(V[:,index:index+delta], axis=1))
+            grid_x, grid_y, _, _, skeleton = AxonSkeleton(V_n, x, y, support=axon)
+
+            skeletons.append(skeleton)
+            plt.imsave('temp/skeletons/frame%03d.tif' % i, skeleton)
+
+        skeletonstack = np.stack(skeletons, axis=0)
+        pickle.dump( ( grid_x, grid_y, skeletonstack ), open(skeleton_pickel_name, 'wb'))
+
+    else:
+
+        grid_x, grid_y, skeletonstack = pickle.load(open(skeleton_pickel_name, 'rb'))
+
 
 
     # Making figure
     fig = plt.figure('Figure step time', figsize=(18, 14))
     fig.suptitle('Segmentation of the axon based on vesselness (step time)', fontsize=14,
                  fontweight='bold')
-
-    h=4
-    w=5
-    for i in range(0, h*w):
+    h=3
+    w=4
+    for i in range(0, h * w):
         index = i * step + offset
-        logging.info('frame %d' % i)
-
-        V_n = abs(np.min(V[:,index:index+delta], axis=1))
-        grid_x, grid_y, grid_V, vesselness, skeleton = AxonSkeleton(V_n, x, y, support=axon)
 
         bbox = [np.amin(grid_x), np.amax(grid_x), np.amax(grid_y), np.amin(grid_y)]  # for grid
 
         plt.subplot(h,w,i+1)
         plot_neuron_image(path)
-        plt.imshow(skeleton.T, cmap='CMRmap', alpha=0.5,
+        plt.imshow(skeletonstack[i].T, cmap='CMRmap', alpha=0.5,
                    extent=[np.amin(grid_x), np.amax(grid_x), np.amax(grid_y), np.amin(grid_y)])
         plt.title('%1.3f~%1.3f ms' % (t[index], t[index+delta]) )
         plt.axis('off')
@@ -74,7 +96,6 @@ def with_collapsed_time(neuron):
     plot_neuron_image(path)
     ax1.scatter(x[axon], y[axon], s=20, c=delay[axon], marker='o', )
     cross_hair(ax1, x_AIS, y_AIS, color='red')
-    # set_axis_hidens(ax1)
     ax1.set_title('Delays')
     set_bbox(bbox)
 
@@ -135,5 +156,5 @@ def AxonSkeleton(V_n, x, y, support='everywhere'):
 
 if __name__ == "__main__":
     with_collapsed_time(1544)  #1536
-    with_continous_time(1544)
+    # with_continous_time(1544)
 
