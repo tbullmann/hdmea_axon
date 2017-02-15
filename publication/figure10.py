@@ -243,7 +243,7 @@ def distanceBetweenCurves(C1, C2):
     """
     From http://stackoverflow.com/questions/13692801/distance-matrix-of-curves-in-python
     Note: According to https://en.wikipedia.org/wiki/Hausdorff_distance this is defined
-    as max(H1, H2) and not (H1 + H2) / 2 as in the xode example
+    as max(H1, H2) and not (H1 + H2) / 2 as in the code example
     :param C1, C2: to curves as their points
     :return:
     """
