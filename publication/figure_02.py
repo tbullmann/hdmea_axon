@@ -111,7 +111,7 @@ def figure02():
     ax5.text(-3.5, -22, r'$s_{\tau}$ = %0.3f ms' % std_delay[index_foreground_example], color=foreground_color)
     ax5.set_yticks([-30,-20,-10,0,10])
     legend_without_multiple_labels(ax5, loc=4, frameon=False)
-    label_subplot(ax5, 'F', xoffset=-0.04, yoffset=-0.015)
+    label_subplot(ax5, 'E', xoffset=-0.04, yoffset=-0.015)
 
     # subplot std_delay map
     ax6 = plt.subplot(335)
