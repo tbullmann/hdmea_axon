@@ -109,7 +109,7 @@ class HidensTransformation(AffineTransformation):
         y = cart[1, :]
         return x, y
 
-    def subset(self, V, period=2):
+    def subset(self, V, period=2, ioffset=0, joffset=0):
         """
         Subsets the hidens elecectrodes to yield period time larger hexagons (see test_subset)
         :param V: some value, usually a voltage V(x,y,t) = V[el_idx, t]
@@ -117,9 +117,10 @@ class HidensTransformation(AffineTransformation):
         :return: x, y, V: subset of x, y, V
         """
         i, j = self.xy2ij(self.x, self.y)
-        index = i % period * j % period == 1
-        x, y, V = self.x[index], self.y[index], V[index, :]
-        return x, y, V
+        index = (i+ioffset) % period * (j+joffset) % period == 1
+        xs, ys, = self.x[index], self.y[index]
+        Vs = V[index, :]
+        return xs, ys, Vs
 
 
 def test_subset(neuron=5):
