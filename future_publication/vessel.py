@@ -1,23 +1,20 @@
 import logging
+
+
 logging.basicConfig(level=logging.DEBUG)
 
 import os as os
 import pickle
-import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 from skimage.morphology import skeletonize
 
-from hana.plotting import annotate_x_bar, set_axis_hidens
-from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain, DELAY_EPSILON, neighborhood, \
-    electrode_neighborhoods, load_traces, load_positions
-from hana.segmentation import segment_axon_verbose, restrict_to_compartment, find_AIS
-from publication.plotting import FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
-    legend_without_multiple_labels, label_subplot, plot_traces_and_delays, adjust_position, voltage_color_bar
-from publication.comparison import segment_axon_Bakkum
+from hana.recording import load_traces
+from hana.segmentation import segment_axon_verbose, find_AIS
+from publication.plotting import cross_hair
 from _frangi import frangi
 from flow import interpolate
-from groundtruth import plot_neuron_image, neighbors_from_electrode_positions
+from groundtruth import plot_neuron_image, neighbors_from_electrode_positions, set_bbox
 
 # Testing code
 
@@ -119,11 +116,6 @@ def with_collapsed_time(neuron):
     set_bbox(bbox)
 
     plt.show()
-
-
-def set_bbox(bbox):
-    plt.xlim((bbox[0], bbox[1]))
-    plt.ylim((bbox[2], bbox[3]))
 
 
 def load_data(neuron):
