@@ -36,11 +36,10 @@ def figure09 (networks_pickel_name):
     trigger, _, _, _ = load_compartments(FIGURE_ARBORS_FILE)
     pos = load_positions(mea='hidens')
     neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
-    plot_neuron_points(ax2, unique_neurons(structural_delays), neuron_pos)
-    plot_neuron_id(ax2, trigger, neuron_pos)
-    # plot_network(ax2, structural_delays, neuron_pos, color='gray')
     plot_network(ax2, simultaneous_pairs, neuron_pos, color='red')
     plot_network(ax2, delayed_pairs, neuron_pos, color='green')
+    plot_neuron_points(ax2, unique_neurons(structural_delays), neuron_pos)
+    # plot_neuron_id(ax2, trigger, neuron_pos)
     # Legend by proxy
     ax2.hlines(0,0,0,linestyle='-',color='red',label='<1ms')
     ax2.hlines(0,0,0,linestyle='-',color='green',label='>1ms')
