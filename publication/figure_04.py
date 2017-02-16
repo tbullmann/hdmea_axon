@@ -122,8 +122,9 @@ def make_figure(figurename, neuron=1544):  # TODO add ground truth for neuron 15
 
     norm = mpl.colors.Normalize(vmin=0, vmax=2)
     cbar = mpl.colorbar.ColorbarBase(cax,
-                                    norm=norm,
-                                    orientation='vertical')
+                                     cmap=plt.cm.summer,
+                                     norm=norm,
+                                     orientation='vertical')
     cbar.set_label(r'$\mathsf{\tau_{axon}\ [ms]}$', fontsize=14)
 
     # Reading groundtruth xg, yg from the axon label file(s)
@@ -180,7 +181,7 @@ def compare_with_groundtruth(x, y, xg, yg):
 def plot_image_axon_delay_voltage(ax, path, axon, delay, V, x, y, transform=np.abs):
     ImageIterator(path).plot()
     radius = transform(V) if transform else V
-    s = ax.scatter(x[axon], y[axon], s=radius[axon], c=delay[axon], marker='o', vmin=0, vmax=2, alpha=0.5)
+    s = ax.scatter(x[axon], y[axon], s=radius[axon], c=delay[axon], marker='o', cmap=plt.cm.summer, vmin=0, vmax=2, alpha=0.8)
     return s
 
 
