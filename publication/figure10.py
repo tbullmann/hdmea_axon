@@ -1,10 +1,8 @@
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-import os as os
-import pandas as pd
 import numpy as np
-from scipy.spatial.distance import squareform, pdist, cdist
+from scipy.spatial.distance import squareform, pdist
 from matplotlib import pyplot as plt
 import matplotlib as mpl
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -12,7 +10,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from hana.recording import load_traces
 from hana.segmentation import segment_axon_verbose, find_AIS
 from publication.plotting import cross_hair, label_subplot, adjust_position
-from publication.comparison import segment_axon_Bakkum
+from publication.comparison import segment_axon_Bakkum, ImageIterator, distanceBetweenCurves
 
 
 # Figure 10
@@ -90,7 +88,7 @@ def figure10(neuron):
 
     # Ground truth
     ax3 = plt.subplot(333)
-    plot_neuron_image(path)
+    ImageIterator(path).plot()
     cross_hair(ax2, x_AIS, y_AIS, color='red')
     set_axis_data(bbox)
     ax3.set_title('Groundtruth')
@@ -127,7 +125,7 @@ def figure10(neuron):
     cbar.set_label(r'$\mathsf{\tau_{axon}\ [ms]}$', fontsize=14)
 
     # Reading groundtruth xg, yg from the axon label file(s)
-    xg, yg = groundtruth_neuron_image(path + 'axon')
+    xg, yg = ImageIterator(path + 'axon').truth()
 
     # Bakkum's method: Haussdorf distance vs. threshold
     ax7 = plt.subplot(337)
@@ -186,7 +184,7 @@ def set_bbox(bbox):
 
 
 def plot_image_axon_delay_voltage(ax, path, axon, delay, V, x, y, transform=np.abs):
-    plot_neuron_image(path)
+    ImageIterator(path).plot()
     radius = transform(V) if transform else V
     s = ax.scatter(x[axon], y[axon], s=radius[axon], c=delay[axon], marker='o', vmin=0, vmax=2, alpha=0.5)
     return s
@@ -199,62 +197,6 @@ def neighbors_from_electrode_positions(x, y, neighborhood_radius = 20):
     distances = squareform(pdist(pos_as_array, metric='euclidean'))
     neighbors = distances < neighborhood_radius
     return neighbors
-
-
-def plot_neuron_image(path, transform=np.sqrt, cmap='gray_r'):
-    """
-    :param path: path to tilespecs.txt
-    :param transform: image transformation; default sqrt, could be None as well
-    :param cmap: colormap; default: inverted gray scale
-    """
-    textfilename = os.path.join(path,'tilespecs.txt')
-    tiles = pd.read_table(textfilename)
-    for tile_index, tile in tiles.iterrows():
-        raw_image = plt.imread(os.path.join(path,tile.filename))
-        image = transform(raw_image) if transform else raw_image
-        plt.imshow(image,
-                   cmap=cmap,
-                   extent=[tile.xstart, tile.xend, tile.yend, tile.ystart])
-        # NOTE: yend and ystart are reverted due to hidens coordinate system TODO: Maybe fix
-
-
-def groundtruth_neuron_image(path):
-    """
-    Note: See plot_neuron_image
-    :param path: path to tilespecs.txt
-    :return: x, y: coordinates of foreground pixels (value>0)
-    """
-    textfilename = os.path.join(path, 'tilespecs.txt')
-    tiles = pd.read_table(textfilename)
-    x_list = list()
-    y_list = list()
-    for tile_index, tile in tiles.iterrows():
-        raw_image = plt.imread(os.path.join(path, tile.filename))
-        heigth, width = np.shape(raw_image)
-        i, j = np.where(raw_image)
-        x_list.append((tile.xend - tile.xstart) / width * j + tile.xstart)
-        y_list.append((tile.yend - tile.ystart) / heigth * i + tile.ystart)
-    x = np.hstack(x_list)
-    y = np.hstack(y_list)
-    return x, y
-
-
-def distanceBetweenCurves(C1, C2):
-    """
-    From http://stackoverflow.com/questions/13692801/distance-matrix-of-curves-in-python
-    Note: According to https://en.wikipedia.org/wiki/Hausdorff_distance this is defined
-    as max(H1, H2) and not (H1 + H2) / 2 as in the code example
-    :param C1, C2: to curves as their points
-    :return:
-    """
-    D = cdist(C1, C2, 'euclidean')
-
-    #none symmetric Hausdorff distances
-    H1 = np.max(np.min(D, axis=1))
-    H2 = np.max(np.min(D, axis=0))
-
-    Hmax = np.max((H1 ,H2))
-    return Hmax
 
 
 if __name__ == "__main__":
