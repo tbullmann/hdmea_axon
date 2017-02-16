@@ -1,191 +1,138 @@
-from __future__ import division
+from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks, timelag_standardscore
+from hana.segmentation import load_compartments, neuron_position_from_trigger_electrode
+from hana.recording import load_timeseries, load_positions
+from hana.plotting import plot_network, plot_neuron_points, plot_neuron_id, mea_axes, \
+    plot_timeseries_hist_and_surrogates, plot_std_score_and_peaks, highlight_connection
+from hana.misc import unique_neurons
+from publication.plotting import FIGURE_EVENTS_FILE, FIGURE_ARBORS_FILE, label_subplot, adjust_position
 
-import logging
-logging.basicConfig(level=logging.DEBUG)
-
-import os
 import pickle
-import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib.ticker import NullFormatter
-
-from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks
-from hana.recording import load_timeseries, average_electrode_area
-from hana.segmentation import load_neurites
-from hana.structure import all_overlaps
-from publication.plotting import FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, TEMPORARY_PICKELED_NETWORKS, \
-    plot_parameter_dependency, format_parameter_plot, compare_networks, analyse_networks, label_subplot, adjust_position, \
-    correlate_two_dicts, kernel_density, axes_to_3_axes
+import os
+from matplotlib import pyplot as plt
 
 
-# Data preparation
-
-def maybe_get_functional_and_structural_networks(arbors_filename, events_filename, output_pickel_name):
-    if os.path.isfile(output_pickel_name): return
-
-    # structural
-    axon_delay, dendrite_peak = load_neurites (arbors_filename)
-    structural_strength, _, structural_delay = all_overlaps(axon_delay, dendrite_peak, thr_peak=0, thr_ratio=0, thr_overlap=1)
-
-    # functional: only use forward direction
-    timeseries = load_timeseries(events_filename)
-    logging.info('Surrogate data')
-    timeseries_surrogates = timeseries_to_surrogates(timeseries, n=20, factor=2)
-    logging.info('Compute standard score for histograms')
+def detect_function_networks():
+    timeseries = load_timeseries(FIGURE_EVENTS_FILE)
+    timeseries_surrogates = timeseries_to_surrogates(timeseries)
     timelags, std_score_dict, timeseries_hist_dict = all_timelag_standardscore(timeseries, timeseries_surrogates)
-    functional_strength, functional_delay, _, _ = all_peaks(timelags, std_score_dict, thr=1, direction='forward')
 
-    pickle.dump((structural_strength, structural_delay, functional_strength, functional_delay), open(output_pickel_name, 'wb'))
-    logging.info('Saved data')
+    import matplotlib.pyplot as plt
+    for pair in std_score_dict:
+        plt.plot(timelags*1000, std_score_dict[pair])
+    plt.show()
+
+    pickle.dump((timeseries, timeseries_surrogates),open('temp/timeseries_and_surrogates.p','wb'))
+    pickle.dump((timelags, std_score_dict, timeseries_hist_dict),open('temp/standardscores.p','wb'))
 
 
-def make_figure ():
+def plot_func_network_forward_vs_reverse(thr, pos, timelags, std_score_dict):
+    """Display functional networks calculated either with pre-->post if post fired after pre (forward condition)
+    or pre-->post if pre fired before post (reverse condition) """
+    score_forward, _, _, _ = all_peaks(timelags, std_score_dict, thr=thr, direction='forward')
+    score_reverse, _, _, _ = all_peaks(timelags, std_score_dict, thr=thr, direction='reverse')
+    print "forward k = ", len(score_forward)
+    print "reverse k = ", len(score_reverse)
+    plt.figure(figsize=(20, 10))
+    ax1 = plt.subplot(121)
+    ax2 = plt.subplot(122)
+    plot_network(ax1, score_forward, pos)
+    neuron_dict = unique_neurons(score_forward)
+    plot_neuron_points(ax1, neuron_dict, pos)
+    plot_neuron_id(ax1, neuron_dict, pos)
+    mea_axes(ax1)
+    ax1.set_title(r'pre$\longrightarrow$post if post fired after pre')
+    plot_network(ax2, score_reverse, pos)
+    neuron_dict = unique_neurons(score_reverse)
+    plot_neuron_points(ax2, neuron_dict, pos)
+    plot_neuron_id(ax2, neuron_dict, pos)
+    mea_axes(ax2)
+    ax2.set_title('pre$\longrightarrow$post if pre fired before post')
+    mea_axes(ax2)
 
-    maybe_get_functional_and_structural_networks(FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, TEMPORARY_PICKELED_NETWORKS)
 
-    structural_strengths, structural_delays, functional_strengths, functional_delays \
-        = pickle.load( open(TEMPORARY_PICKELED_NETWORKS, 'rb'))
+def plot_func_example_and_network(ax1, ax2, ax3, pre, post, direction, thr, pos, std_score_dict, timelags, timeseries,
+                                  timeseries_surrogates):
+    """Displays functional connectivity of one highlighted connection withing the network"""
+    # Calculate (again) details for a single neuron pair
+    if direction == 'forward':
+        timelags, std_score, timeseries_hist, surrogates_mean, surrogates_std \
+            = timelag_standardscore(timeseries[pre], timeseries[post], timeseries_surrogates[post])
+    if direction == 'reverse':
+        timelags, std_score, timeseries_hist, surrogates_mean, surrogates_std \
+            = timelag_standardscore(timeseries[post], timeseries[pre],
+                                    timeseries_surrogates[pre])  # calculate for network
+    peak_score, peak_timelag, _, _ = all_peaks(timelags, std_score_dict, thr=thr, direction=direction)
+    # Plot histograms for single neuron pair
+    loc = 2 if direction=='forward' else 1
+    plot_timeseries_hist_and_surrogates(ax2, timelags, timeseries_hist, surrogates_mean, surrogates_std,loc=loc)
+    if direction == 'forward': ax2.set_title('neuron pair %d $\longrightarrow$ %d' % (pre, post), loc='left')
+    if direction == 'reverse': ax2.set_title('neuron pair %d $\longleftarrow$ %d' % (post, pre), loc='left')
 
-    # Map electrode number to area covered by that electrodes
-    electrode_area = average_electrode_area(None, mea='hidens')
-    structural_strengths = {key: electrode_area*value for key, value in structural_strengths.items()}
+    if (pre, post) in peak_timelag:
+        peak = peak_timelag[(pre, post)]
+        if direction == 'reverse': peak = -peak
+    else:
+        peak = None
+    plot_std_score_and_peaks(ax3, timelags, std_score, thr=thr, peak=peak, loc=loc)
+    # Plot network and highlight the connection between the single neuron pair
+    plot_network(ax1, peak_score, pos)
+    neuron_dict = unique_neurons(peak_score)
+    plot_neuron_points(ax1, neuron_dict, pos)
+    plot_neuron_id(ax1, neuron_dict, pos)
+    if direction == 'forward': ax1.set_title(r'pre-synaptic spike followed by post-synaptic spike')
+    if direction == 'reverse': ax1.set_title(r'post-synaptic spike preceded by pre-synaptic spike ')
+    if peak is not None: highlight_connection(ax1, (pre, post), pos)
+    ax1.text(200,150,r'$\zeta=$%d' % thr)
+    mea_axes(ax1, barposition='inside')
+
+
+def make_figure(figurename, thr =20):
+    """FIGURE showing Displays functional connectivity according to forward and reverse definition for two
+    neuron pairs within the network"""
+    if not os.path.isfile('temp/standardscores.p'):
+        detect_function_networks()
+
+    timeseries, timeseries_surrogates = pickle.load(open( 'temp/timeseries_and_surrogates.p','rb'))
+    timelags, std_score_dict, timeseries_hist_dict = pickle.load(open( 'temp/standardscores.p','rb'))
+
+    trigger, _, axon_delay, dendrite_peak = load_compartments(FIGURE_ARBORS_FILE)
+    pos = load_positions(mea='hidens')
+    neuron_pos = neuron_position_from_trigger_electrode (pos, trigger)
+
+    # for k,v in trigger.iteritems(): print (k,v)  # show neuron -> trigger electrode index
+    pre, post  = 10, 4 # electrodes 4972, 3240
+    # pre, post = 37, 31 #  pre, post = 8060,7374
 
     # Making figure
-    fig = plt.figure('Figure 8', figsize=(13, 13))
-    fig.suptitle('Figure 8. Compare structural and functional connectivity', fontsize=14, fontweight='bold')
+    fig = plt.figure(figurename, figsize=(16, 16))
+    fig.suptitle(figurename + ' Functional connectivity', fontsize=14, fontweight='bold')
 
-    # plot network measures
-    ax1 = plt.subplot(4,2,1)
-    plot_vs_weigth(ax1, structural_strengths)
-    ax1.set_xlabel(r'$\mathsf{\rho\ [\mu m^2]}$', fontsize=14)
-    # ax1.set_title('Structural network')
+    # Plotting forward
+    ax1 = plt.subplot(222)
+    ax2 = plt.subplot(421)
+    ax3 = plt.subplot(423)
+    plot_func_example_and_network(ax1, ax2, ax3, pre, post, 'forward', thr, neuron_pos, std_score_dict,
+                                  timelags, timeseries, timeseries_surrogates)
+    adjust_position(ax2, yshrink=0.01)
+    adjust_position(ax3, yshrink=0.01)
+    label_subplot(ax1, 'C', xoffset=-0.03, yoffset=-0.01)
+    label_subplot(ax2, 'A', xoffset=-0.05, yoffset=-0.01)
+    label_subplot(ax3, 'B', xoffset=-0.05, yoffset=-0.01)
 
-    ax2 = plt.subplot(4,2,3)
-    plot_vs_weigth(ax2, functional_strengths)
-    ax2.set_xlabel(r'$\mathsf{\zeta}$', fontsize=14)
-    # ax2.set_title('Functional network')
-
-    ax3 = plt.subplot(2,2,2)
-    structural_thresholds, functional_thresholds, intersection_size, structural_index, jaccard_index, functional_index\
-        = compare_networks(structural_strengths, functional_strengths, scale='log')
-    plot_parameter_dependency(ax3, structural_index, structural_thresholds, functional_thresholds,
-                              fmt='%1.1f', levels=np.linspace(0, 1, 11))
-    format_parameter_plot(ax3)
-    # ax3.text(3,120, r'Structural index ${|F \cup S|}/{|S|}$', size=15)
-    ax3.set_title(r'$\mathsf{i_S={|F \cup S|}/{|S|}}$', fontsize=14)
-    adjust_position(ax3, xshrink=0.02, yshrink=0.02, xshift=0.02, yshift=0.01)
-
-    # plot distribution of strength and delays
-    ax4 = plt.subplot(223)
-    axScatter1 = plot_correlation(ax4, structural_strengths, functional_strengths, xscale='log', yscale='log')
-    axScatter1.set_xlabel (r'$\mathsf{|A \cup D|\ [\mu m^2}$]', fontsize=14)
-    axScatter1.set_ylabel (r'$\mathsf{z_{max}}$', fontsize=14)
-
-    ax5 = plt.subplot(224)
-    axScatter2 = plot_correlation(ax5, structural_delays, functional_delays, xlim=(0,5), ylim=(0,5))
-    axScatter2.set_xlabel (r'$\mathsf{\tau _{axon}\ [ms]}$', fontsize=14)
-    axScatter2.set_ylabel (r'$\mathsf{\tau _{spike}\ [ms]}$', fontsize=14)
-
-    label_subplot(ax1,'A')
-    label_subplot(ax2,'B')
-    label_subplot(ax3,'C',xoffset=-0.05)
-    label_subplot(ax4,'D',xoffset=-0.04)
-    label_subplot(ax5,'E',xoffset=-0.04)
+    # Plotting reverse
+    ax4 = plt.subplot(224)
+    ax5 = plt.subplot(425)
+    ax6 = plt.subplot(427)
+    plot_func_example_and_network(ax4, ax5, ax6, pre, post, 'reverse', thr, neuron_pos, std_score_dict,
+                                  timelags, timeseries, timeseries_surrogates)
+    adjust_position(ax5, yshrink=0.01)
+    adjust_position(ax6, yshrink=0.01)
+    label_subplot(ax4, 'F', xoffset=-0.03, yoffset=-0.01)
+    label_subplot(ax5, 'D', xoffset=-0.05, yoffset=-0.01)
+    label_subplot(ax6, 'E', xoffset=-0.05, yoffset=-0.01)
 
     plt.show()
 
 
-def plot_vs_weigth(ax1, dictionary):
-    """
-    Plot ordinal numbers on the right y axis
-    n  = number_of_neurons
-    k  = number_of_edges
-
-    Plot real number on the left y axis
-    C  = average_clustering
-    L  = average_shortest_path_length
-    D  = average_degree
-    :param ax1:
-    :param dictionary: containing pairs of neuron and some weigth (overlap or score)
-    """
-    w, n, k, C, L, D = analyse_networks(dictionary)
-
-    ax1.plot (w, n, 'k--', label='n')
-    ax1.plot (w, k, 'k-', label='k')
-    plt.legend(loc=6, frameon=False)
-    ax1.set_ylabel('n, k')
-    adjust_position(ax1, yshrink=0.01)
-
-    ax2 = ax1.twinx()
-    ax2.plot (w, C, 'r-', label='C')
-    ax2.plot (w, L, 'g-', label='L')
-    ax2.plot (w, D, 'b-', label='D')
-    ax2.set_ylabel('C, L, D')
-    plt.legend(frameon=False)
-    ax1.set_xscale('log')
-    ax1.set_xlim((0,max(w)))
-    adjust_position(ax2, yshrink=0.01)
-
-
-def plot_correlation(ax, xdict, ydict, best_keys=None, xlim = None, ylim = None, dofit=False, xscale='linear', yscale='linear', scaling = 'count'):
-    """Plot correlation as scatter plot and marginals"""
-    # getting the data
-    x_all = xdict.values()
-    y_all = ydict.values()
-    x_corr, y_corr = correlate_two_dicts(xdict, ydict)
-    if best_keys: x_best, y_best = correlate_two_dicts(xdict, ydict, best_keys)
-    # new axes
-    rect_histx, rect_histy, rect_scatter = axes_to_3_axes(ax)
-    axScatter = plt.axes(rect_scatter)
-    axHistx = plt.axes(rect_histx)
-    axHisty = plt.axes(rect_histy)
-    # the scatter plot:
-    axScatter.scatter(x_corr, y_corr, color='black')
-    if best_keys: axScatter.scatter(x_best, y_best, color='red')
-    # plt.sca(axScatter)
-    # plt.legend(frameon=False, loc=2)
-    # the marginals
-    kernel_density(axHistx, x_all, scaling=scaling, style='k:')
-    kernel_density(axHisty, y_all, scaling=scaling, style='k:', orientation='horizontal')
-    kernel_density(axHistx, x_corr, scaling=scaling, style='k--')
-    kernel_density(axHisty, y_corr, scaling=scaling, style='k--', orientation='horizontal')
-    if best_keys:
-        kernel_density(axHistx, x_best, scaling=scaling, style='r-')
-        kernel_density(axHisty, y_best, scaling=scaling, style='r-', orientation='horizontal')
-    # joint legend by proxies
-    plt.sca(ax)
-    plt.vlines(0, 0, 0, colors='black', linestyles=':', label='all')
-    plt.vlines(0, 0, 0, colors='black', linestyles='--', label='both')
-    if best_keys: plt.vlines(0, 0, 0, colors='red', linestyles='-', label='best')
-    plt.vlines(0, 0, 0, colors='black', linestyles='-', label='equal')
-    plt.legend(frameon=False, fontsize=12)
-    # define limits
-    if not xlim: xlim = (min(x_corr), max(x_corr))
-    if not ylim: ylim = (min(y_corr), max(y_corr))
-    # add fits
-    if dofit:
-        axScatter.plot(np.unique(x_corr), np.poly1d(np.polyfit(x_corr, y_corr, 1))(np.unique(x_corr)), 'k--', label='all')
-        axScatter.plot(np.unique(x_best), np.poly1d(np.polyfit(x_best, y_best, 1))(np.unique(x_best)), 'r-', label='best')
-    # add x=y
-    axScatter.plot(xlim,ylim,'k-')
-    # set limits
-    axScatter.set_xlim(xlim)
-    axScatter.set_ylim(ylim)
-    axHistx.set_xlim(axScatter.get_xlim())
-    axHisty.set_ylim(axScatter.get_ylim())
-    # set scales
-    axScatter.set_xscale(xscale)
-    axScatter.set_yscale(yscale)
-    axHistx.set_xscale(xscale)
-    axHisty.set_yscale(yscale)
-    # no labels
-    nullfmt = NullFormatter()  # no labels
-    axHistx.xaxis.set_major_formatter(nullfmt)
-    axHistx.yaxis.set_major_formatter(nullfmt)
-    axHisty.xaxis.set_major_formatter(nullfmt)
-    axHisty.yaxis.set_major_formatter(nullfmt)
-    return axScatter
-
-
 if __name__ == "__main__":
-    make_figure()
+    make_figure(os.path.basename(__file__))

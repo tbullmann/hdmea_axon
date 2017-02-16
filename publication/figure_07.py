@@ -1,139 +1,137 @@
-from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks, timelag_standardscore
-from hana.segmentation import load_compartments, neuron_position_from_trigger_electrode
-from hana.recording import load_timeseries, load_positions
-from hana.plotting import plot_network, plot_neuron_points, plot_neuron_id, mea_axes, \
-    plot_timeseries_hist_and_surrogates, plot_std_score_and_peaks, highlight_connection
-from hana.misc import unique_neurons
-from publication.plotting import FIGURE_EVENTS_FILE, FIGURE_ARBORS_FILE, label_subplot, adjust_position
-
-import pickle
+import logging
 import os
+import numpy as np
 from matplotlib import pyplot as plt
 
+from hana.misc import unique_neurons
+from hana.plotting import plot_axon, plot_dendrite, plot_neuron_points, plot_neuron_id, plot_neuron_pair, plot_network, mea_axes, highlight_connection
+from hana.recording import load_positions, average_electrode_area
+from hana.segmentation import load_compartments, load_neurites, neuron_position_from_trigger_electrode
+from hana.structure import find_overlap, all_overlaps
+from publication.plotting import FIGURE_ARBORS_FILE, label_subplot, adjust_position
 
-def detect_function_networks():
-    timeseries = load_timeseries(FIGURE_EVENTS_FILE)
-    timeseries_surrogates = timeseries_to_surrogates(timeseries)
-    timelags, std_score_dict, timeseries_hist_dict = all_timelag_standardscore(timeseries, timeseries_surrogates)
+logging.basicConfig(level=logging.DEBUG)
 
-    import matplotlib.pyplot as plt
-    for pair in std_score_dict:
-        plt.plot(timelags*1000, std_score_dict[pair])
+
+# Other plots, mainly used for finding good examples
+
+def test_plot_all_axonal_fields():
+    """Display axonal field for each neuron, good examples are 3605, 9952, 3093"""
+    axon_delay, dendrite_peak = load_neurites(FIGURE_ARBORS_FILE)
+    pos = load_positions(mea='hidens')
+    for neuron in axon_delay :
+        ax=plt.subplot(111)
+        plot_axon(ax, pos, axon_delay[neuron])
+        mea_axes(ax)
+        ax.set_title ('axon for neuron %d' % neuron)
+        plt.show()
+
+
+def test_plot_all_dendritic_fields_vs_one_axonal_field (presynaptic_neuron):
+    """Display one axon and dendritic field for each neuron, good examples are 5-->10"""
+    axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_FILE)
+    pos = load_positions(mea='hidens')
+    for postsynaptic_neuron in dendrite_peak :
+        ax=plt.subplot(111)
+        plot_axon(ax, pos, axon_delay[presynaptic_neuron])
+        plot_dendrite(ax, pos, dendrite_peak[postsynaptic_neuron])
+        mea_axes(ax)
+        ax.set_title ('axon for neuron %d, dendrite for neuron %d' % (presynaptic_neuron, postsynaptic_neuron))
+        plt.show()
+
+
+def test_plot_only_overlap():
+    """Plot overlap between axonal and dendritic fields of a presumably pre- and post-synaptic neuron pair"""
+    trigger, _, axon_delay, dendrite_peak = load_compartments (FIGURE_ARBORS_FILE)
+    pos = load_positions(mea='hidens')
+    neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
+    presynaptic_neuron = 5  # electrode 3605
+    postsynaptic_neuron = 10  # electrode 4972
+    delay = 2.3  # NOTE Arbitrary used for checking plot function
+    plt.figure('Figure 6', figsize=(16, 8))
+    ax=plt.subplot(111)
+    plot_neuron_pair(ax, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron, presynaptic_neuron, delay)
+    mea_axes(ax)
+    ax.set_title ('neuron pair %d $\longrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron))
     plt.show()
 
-    pickle.dump((timeseries, timeseries_surrogates),open('temp/timeseries_and_surrogates.p','wb'))
-    pickle.dump((timelags, std_score_dict, timeseries_hist_dict),open('temp/standardscores.p','wb'))
 
+# Final version
 
-def plot_func_network_forward_vs_reverse(thr, pos, timelags, std_score_dict):
-    """Display functional networks calculated either with pre-->post if post fired after pre (forward condition)
-    or pre-->post if pre fired before post (reverse condition) """
-    score_forward, _, _, _ = all_peaks(timelags, std_score_dict, thr=thr, direction='forward')
-    score_reverse, _, _, _ = all_peaks(timelags, std_score_dict, thr=thr, direction='reverse')
-    print "forward k = ", len(score_forward)
-    print "reverse k = ", len(score_reverse)
-    plt.figure(figsize=(20, 10))
-    ax1 = plt.subplot(121)
-    ax2 = plt.subplot(122)
-    plot_network(ax1, score_forward, pos)
-    neuron_dict = unique_neurons(score_forward)
-    plot_neuron_points(ax1, neuron_dict, pos)
-    plot_neuron_id(ax1, neuron_dict, pos)
-    mea_axes(ax1)
-    ax1.set_title(r'pre$\longrightarrow$post if post fired after pre')
-    plot_network(ax2, score_reverse, pos)
-    neuron_dict = unique_neurons(score_reverse)
-    plot_neuron_points(ax2, neuron_dict, pos)
-    plot_neuron_id(ax2, neuron_dict, pos)
-    mea_axes(ax2)
-    ax2.set_title('pre$\longrightarrow$post if pre fired before post')
-    mea_axes(ax2)
-
-
-def plot_func_example_and_network(ax1, ax2, ax3, pre, post, direction, thr, pos, std_score_dict, timelags, timeseries,
-                                  timeseries_surrogates):
-    """Displays functional connectivity of one highlighted connection withing the network"""
-    # Calculate (again) details for a single neuron pair
-    if direction == 'forward':
-        timelags, std_score, timeseries_hist, surrogates_mean, surrogates_std \
-            = timelag_standardscore(timeseries[pre], timeseries[post], timeseries_surrogates[post])
-    if direction == 'reverse':
-        timelags, std_score, timeseries_hist, surrogates_mean, surrogates_std \
-            = timelag_standardscore(timeseries[post], timeseries[pre],
-                                    timeseries_surrogates[pre])  # calculate for network
-    peak_score, peak_timelag, _, _ = all_peaks(timelags, std_score_dict, thr=thr, direction=direction)
-    # Plot histograms for single neuron pair
-    loc = 2 if direction=='forward' else 1
-    plot_timeseries_hist_and_surrogates(ax2, timelags, timeseries_hist, surrogates_mean, surrogates_std,loc=loc)
-    if direction == 'forward': ax2.set_title('neuron pair %d $\longrightarrow$ %d' % (pre, post), loc='left')
-    if direction == 'reverse': ax2.set_title('neuron pair %d $\longleftarrow$ %d' % (post, pre), loc='left')
-
-    if (pre, post) in peak_timelag:
-        peak = peak_timelag[(pre, post)]
-        if direction == 'reverse': peak = -peak
-    else:
-        peak = None
-    plot_std_score_and_peaks(ax3, timelags, std_score, thr=thr, peak=peak, loc=loc)
-    # Plot network and highlight the connection between the single neuron pair
-    plot_network(ax1, peak_score, pos)
-    neuron_dict = unique_neurons(peak_score)
-    plot_neuron_points(ax1, neuron_dict, pos)
-    plot_neuron_id(ax1, neuron_dict, pos)
-    if direction == 'forward': ax1.set_title(r'pre-synaptic spike followed by post-synaptic spike')
-    if direction == 'reverse': ax1.set_title(r'post-synaptic spike preceded by pre-synaptic spike ')
-    if peak is not None: highlight_connection(ax1, (pre, post), pos)
-    ax1.text(200,150,r'$\zeta=$%d' % thr)
-    mea_axes(ax1, barposition='inside')
-
-
-def make_figure(thr =20):
-    """FIGURE showing Displays functional connectivity according to forward and reverse definition for two
-    neuron pairs within the network"""
-    if not os.path.isfile('temp/standardscores.p'):
-        detect_function_networks()
-
-    timeseries, timeseries_surrogates = pickle.load(open( 'temp/timeseries_and_surrogates.p','rb'))
-    timelags, std_score_dict, timeseries_hist_dict = pickle.load(open( 'temp/standardscores.p','rb'))
-
+def make_figure(figurename):
     trigger, _, axon_delay, dendrite_peak = load_compartments(FIGURE_ARBORS_FILE)
     pos = load_positions(mea='hidens')
-    neuron_pos = neuron_position_from_trigger_electrode (pos, trigger)
+    electrode_area = average_electrode_area(pos)
+    neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
 
-    # for k,v in trigger.iteritems(): print (k,v)  # show neuron -> trigger electrode index
-    pre, post  = 10, 4 # electrodes 4972, 3240
-    # pre, post = 37, 31 #  pre, post = 8060,7374
+    presynaptic_neuron = 5
+    postsynaptic_neuron = 10
+    postsynaptic_neuron2 = 49  # or 50
+    thr_overlap_area = 3000.  # um2/electrode
+    thr_overlap = np.ceil(thr_overlap_area / electrode_area)  # number of electrodes
+    logging.info('Overlap of at least %d um2 corresponds to %d electrodes.' % (thr_overlap_area, thr_overlap))
+
+    overlap, ratio, delay = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron,
+                                         thr_overlap=thr_overlap)
+    overlap2, ratio2, delay2 = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron2,
+                                         thr_overlap=thr_overlap)
 
     # Making figure
-    fig = plt.figure('Figure 7', figsize=(16, 16))
-    fig.suptitle('Figure 7. Functional connectivity', fontsize=14, fontweight='bold')
+    fig = plt.figure('figurename', figsize=(16, 9))
+    fig.suptitle(figurename + ' Structural connectivity', fontsize=14, fontweight='bold')
 
-    # Plotting forward
-    ax1 = plt.subplot(222)
-    ax2 = plt.subplot(421)
-    ax3 = plt.subplot(423)
-    plot_func_example_and_network(ax1, ax2, ax3, pre, post, 'forward', thr, neuron_pos, std_score_dict,
-                                  timelags, timeseries, timeseries_surrogates)
+    ax1 = plt.subplot(221)
+    plot_neuron_pair(ax1, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron, presynaptic_neuron, delay)
+    mea_axes(ax1)
+    ax1.set_title ('neuron pair %d $\longrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron))
+    ax1.text(200,200,r'$\rho=$%3d$\mu m^2$' % thr_overlap_area)
+    plot_two_colorbars(ax1)
+    adjust_position(ax1, yshrink=0.01)
+    label_subplot(ax1, 'A', xoffset=-0.005, yoffset=-0.01)
+
+    ax2 = plt.subplot(223)
+    plot_neuron_pair(ax2, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron2, presynaptic_neuron, delay2)
+    mea_axes(ax2)
+    ax2.set_title('neuron pair %d $\dashrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron2))
+    ax2.text(200,200,r'$\rho=$%3d$\mu m^2$' % thr_overlap_area)
+    plot_two_colorbars(ax2)
     adjust_position(ax2, yshrink=0.01)
-    adjust_position(ax3, yshrink=0.01)
-    label_subplot(ax1, 'C', xoffset=-0.03, yoffset=-0.01)
-    label_subplot(ax2, 'A', xoffset=-0.05, yoffset=-0.01)
-    label_subplot(ax3, 'B', xoffset=-0.05, yoffset=-0.01)
+    label_subplot(ax2, 'B', xoffset=-0.005, yoffset=-0.01)
 
-    # Plotting reverse
-    ax4 = plt.subplot(224)
-    ax5 = plt.subplot(425)
-    ax6 = plt.subplot(427)
-    plot_func_example_and_network(ax4, ax5, ax6, pre, post, 'reverse', thr, neuron_pos, std_score_dict,
-                                  timelags, timeseries, timeseries_surrogates)
-    adjust_position(ax5, yshrink=0.01)
-    adjust_position(ax6, yshrink=0.01)
-    label_subplot(ax4, 'F', xoffset=-0.03, yoffset=-0.01)
-    label_subplot(ax5, 'D', xoffset=-0.05, yoffset=-0.01)
-    label_subplot(ax6, 'E', xoffset=-0.05, yoffset=-0.01)
+    # Whole network
+    ax3 = plt.subplot(122)
+    all_overlap, all_ratio, all_delay = all_overlaps(axon_delay, dendrite_peak, thr_overlap=thr_overlap)
+    plot_neuron_points(ax3, unique_neurons(all_delay), neuron_pos)
+    plot_neuron_id(ax3, trigger, neuron_pos)
+    plot_network (ax3, all_delay, neuron_pos)
+    highlight_connection(ax3, (presynaptic_neuron, postsynaptic_neuron), neuron_pos)
+    highlight_connection(ax3, (presynaptic_neuron, postsynaptic_neuron2), neuron_pos, connected=False)
+    ax3.text(200,150,r'$\rho=$%3d$\mu m^2$' % thr_overlap_area)
+    mea_axes(ax3)
+    ax3.set_title ('structural connectivity graph')
+    label_subplot(ax3, 'C', xoffset=-0.05, yoffset=-0.05)
 
     plt.show()
+
+
+def plot_two_colorbars(ax1):
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    divider = make_axes_locatable(ax1)
+    cax1 = divider.append_axes("right", size="10%", pad=0.2)
+    cax2 = divider.append_axes("left", size="10%", pad=1.0)
+    import matplotlib as mpl
+    cb1 = mpl.colorbar.ColorbarBase(cax1, cmap=plt.cm.summer, norm=plt.Normalize(vmin=0, vmax=2),
+                                    orientation='vertical')
+    cb1.set_label(r'axonal delay $\tau$ [ms]')
+    cb2 = mpl.colorbar.ColorbarBase(cax2, cmap=plt.cm.gray_r, norm=plt.Normalize(vmin=0, vmax=50),
+                                    orientation='vertical')
+    cb2.set_label(r'dendrite positive peak $V_p$ [$\mu$V]')
+    cb2.ax.yaxis.set_ticks_position('left')
+    cb2.ax.yaxis.set_label_position('left')
 
 
 if __name__ == "__main__":
-    make_figure()
-
+    make_figure(os.path.basename(__file__))
+    # test_plot_all_axonal_fields()
+    # test_plot_all_dendritic_fields_vs_one_axonal_field(5)
+    # test_plot_only_overlap()

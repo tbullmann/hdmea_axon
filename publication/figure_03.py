@@ -1,208 +1,172 @@
-import logging
-logging.basicConfig(level=logging.DEBUG)
-
+import os
 import numpy as np
 from matplotlib import pyplot as plt
-from matplotlib import patches as ptc
+import logging
 
-from hana.segmentation import find_AIS
-from publication.plotting import FIGURE_NEURON_FILE, cross_hair, label_subplot, voltage_color_bar, adjust_position, without_spines_and_ticks
-from hana.plotting import mea_axes
-from hana.recording import electrode_neighborhoods, load_traces
-from publication.comparison import ModelFunction
+from hana.plotting import annotate_x_bar, mea_axes
+from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain, DELAY_EPSILON, neighborhood, \
+    electrode_neighborhoods, load_traces, load_positions
+from hana.segmentation import segment_axon_verbose, restrict_to_compartment
+from publication.plotting import FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
+    legend_without_multiple_labels, label_subplot, plot_traces_and_delays, adjust_position
+
+logging.basicConfig(level=logging.DEBUG)
 
 
-# Final figure 3
-
-def make_figure(center_id = 4961, time=1):
-    """
-    Plot figure 3, showing the spatial spread of the a point source and negative peak of an action potential,
-    deducting the distance of the axon from the surface of the HDMEA.
-    :param center_id: electrode with maximal negative peak, thus the location of the (axonal) action potential
-    :param time: timing of the (axonal) action potential (in ms)
-    """
+def make_figure(figurename):
 
     # Load electrode coordinates
-    radius = 200
-    neighbors = electrode_neighborhoods(mea='hidens', neighborhood_radius=radius)
+    neighbors = electrode_neighborhoods(mea='hidens')
 
     # Load example data
     V, t, x, y, trigger, neuron = load_traces(FIGURE_NEURON_FILE)
     t *= 1000  # convert to ms
 
-    # Position of the AIS
-    index_AIS = find_AIS(V)
-    x_AIS = x[index_AIS]
-    y_AIS = y[index_AIS]
+    # Verbose axon segmentation function
+    delay, mean_delay, std_delay, expected_std_delay, thr, valid_delay, index_AIS, positive_delay, axon \
+        = segment_axon_verbose(t, V, neighbors)
 
-    # Select frame and circular neighborhood around that action potential
-    V = V[:, t==time]
-    new_V, new_x, new_y = within_neighborhood(V, x, y, center_id, neighbors)
-    r, theta = cart2pol(new_x, -new_y)  # inverted orientation of y axis on hidens chip
+    logging.info ('Axonal delays:')
+    logging.info (restrict_to_compartment(mean_delay, axon))
 
-    # Select good signals from electrodes in the area perpendicular to axon
-    phi = np.pi * 5/6
-    epsilon = np.pi / 5
-    good = np.logical_or(np.logical_or(abs(theta-phi)<epsilon,abs(theta-phi+np.pi)<epsilon),r<10)
-    not_good = np.logical_not(good)
+    # Making figure
+    fig = plt.figure(figurename, figsize=(18,14))
+    fig.suptitle(figurename + ' Segmentation of the axon based on negative peak at neighboring electrodes',
+                 fontsize=14, fontweight='bold')
 
-    # Fit spatial attenuation
-    A = (new_V+np.median(new_V[good]))/min(new_V[good])
-    model = ModelFunction(formula_string='z / np.sqrt(z * z + x * x)',
-                          bounds_dict=dict(z=[0,20]))
-    model.fit(np.ravel(r[good]), np.ravel(A[good]))
-    rfit = np.linspace(-radius, radius, 401)
-    Afit = model.predict(rfit)
+    # Define examples
+    background_color = 'green'
+    index_background_example = 500
+    indices_background = neighborhood(neighbors, index_background_example)
+    foreground_color = 'blue'
+    index_foreground_example = 8624
+    indices_foreground = neighborhood(neighbors, index_foreground_example)
 
-    # Summary
-    print (model.parameters)
+    # -------------- first row
 
-    # Plotting
-    fig = plt.figure('Figure 3', figsize=(13, 7))
-    fig.suptitle('Figure 3. Spatial spread of axonal signals', fontsize=14, fontweight='bold')
+    # subplot original unaligned traces
+    ax1 = plt.subplot(331)
+    V_AIS = V[index_AIS]  # Showing AIS trace in different color
+    V_axons = V[np.where(axon)]   # Showing AIS trace in different color
+    ax1.plot(t, V.T,'-', color='gray', label='all' )
+    ax1.plot(t, V_axons.T,'-', color='black', label='axons' )
+    ax1.plot(t, V_AIS, 'r-', label='AIS')
+    ax1.scatter(delay[index_AIS], -550, marker='^', s=100, edgecolor='None', facecolor='red')
+    # plt.annotate('', (delay[index_AIS]+2, 150), (delay[index_AIS], 150), arrowprops={'arrowstyle': '->', 'color': 'red', 'shrinkA':  0, 'shrinkB': 0})
+    annotate_x_bar(delay[index_AIS]+(0,2), 150, text=r'$\tau > \tau_{AIS}$', arrowstyle='->')
+    legend_without_multiple_labels(ax1, loc=4, frameon=False)
+    ax1.set_xlim((-4,4))
+    ax1.set_ylabel(r'V [$\mu$V]')
+    ax1.set_xlabel(r'$\Delta$t [ms]')
+    without_spines_and_ticks(ax1)
+    label_subplot(ax1, 'A', xoffset=-0.04, yoffset=-0.015)
 
-    ax1 = plt.subplot(231)
-    img = plt.imread('data/hdmea_neighborhoods.png')
-    plt.imshow(img)
-    plt.axis('off')
+    # subplot delay map
+    ax2 = plt.subplot(332)
+    h1 = ax2.scatter(x, y, c=delay, s=10, marker='o', edgecolor='None', cmap='gray')
+    h2 = plt.colorbar(h1)
+    h2.set_label(r'$\tau$ [ms]')
+    h2.set_ticks(np.linspace(-4, 4, num=9))
+    add_AIS_and_example_neighborhoods(ax2, x, y, index_AIS, indices_background, indices_foreground)
+    mea_axes(ax2)
+    label_subplot(ax2, 'B', xoffset=-0.015, yoffset=-0.015)
 
-    # Potential distribution around point source (axon)
-    # Assuming the HDMEA surface to be an insulator and the extracellular space to be homogeneous and isotropic, the
-    # potential distribution is the same as for two charges in free medium, one mirrored at the surface
-    ax2 = plt.subplot(232)
-    plot_potential(ax2)
-    ax2.set_xlabel(r'r [$\mu$m]')
-    ax2.set_ylabel(r'z [$\mu$m]')
-    # without_spines_and_ticks(ax2)
-    ax2.annotate('', (35, 0), (35, 10), arrowprops=dict(shrinkB=0, shrinkA=0, arrowstyle='<->'))
-    plt.hlines(10, 0, 35, color='black', linestyle=':', zorder=10)
-    ax2.text(35, 3, r' z', size=15)
-    ax2.text(-45, 80, r'Potential $\Phi(d,r)$', color='gray', size=12,
-             bbox=dict(facecolor='white', pad=5, edgecolor='none'))
-    adjust_position(ax2,xshrink=0.01,yshrink=0.01, yshift=0.01)
-    without_spines_and_ticks(ax2)
-
-    # Potential at HDMEA surface according to Obien et al., ...
-    ax3 = plt.subplot(233)
-    for z in (3,30):
-        thA = model.predict(rfit, override=dict(z=z))
-        ax3.plot(rfit, thA, label=r'z=%1.1f $\mu$m' % z)
-    ax3.legend(frameon=False,prop={'size':12})
-    ax3.text(-45, 1.4, r'$A \approx \frac{z}{\sqrt{r^2+z^2}}$', size=14,
-             bbox=dict(facecolor='white', pad=5, edgecolor='none'))
-    annotate_r_arrow(ax3, -18)
-    annotate_r_arrow(ax3, +18)
-    ax3.set_xlabel(r'r [$\mu$m]')
-    ax3.set_ylabel(r'$A = V/V_{n}$')
-    ax3.set_xlim((-50, 50))
-    ax3.set_ylim((-0.1, 1.6))
-    ax3.plot((-radius,+radius),(0,0), 'k:')
+    # subplot histogram of delays
+    ax3 = plt.subplot(333)
+    ax3.hist(delay, bins=len(t), facecolor='gray', edgecolor='gray', label='measured')
+    ax3.scatter(delay[index_AIS], 10, marker='v', s=100, edgecolor='None', facecolor='red', zorder=10)
+    ax3.hlines(len(x)/len(t), min(t), max(t), color='k', linestyles='--', label='uniform')
+    ax3.legend(loc=2, frameon=False)
+    ax3.set_ylim((0,200))
+    ax3.set_xlim((min(t),max(t)))
+    ax3.set_ylabel(r'count')
+    ax3.set_xlabel(r'$\tau$ [ms]')
     without_spines_and_ticks(ax3)
-    adjust_position(ax3,xshrink=0.01,yshrink=0.01, yshift=0.01)
+    adjust_position(ax3, xshrink=0.01)
+    label_subplot(ax3, 'C', xoffset=-0.04, yoffset=-0.015)
 
-    # Map voltage
-    ax4 = plt.subplot(234)
-    ax4_h1 = ax4.scatter(x, y, c=V, s=20, marker='o',
-                         edgecolor='None', cmap='seismic')
-    voltage_color_bar(ax4_h1, label=r'$V$ [$\mu$V]')
-    cross_hair(ax4, x_AIS, y_AIS, color='black')
-    neighborhood =plt.Circle((x[center_id], y[center_id]), radius, edgecolor='green', facecolor='None')
-    ax4.add_artist(neighborhood)
-    mea_axes(ax4)
+    # ------------- second row
 
-    # Map voltage in a small neighborhood
-    ax5 = plt.subplot(235, polar=True)
-    ax5_h1 = plt.scatter(theta, r, c=new_V, s=50, marker='o', edgecolor='None', cmap='seismic')
-    plot_pie(ax5, phi, epsilon)
-    ax5.set_ylim(0,radius)
-    ax5_h1.set_clim(vmin=-20, vmax=20)
-    adjust_position(ax5, xshift=-0.01)
-    adjust_position(ax5, yshift=-0.02)
-    ax5.set_yticklabels(('',))
-    ax5.set_xticklabels(('',))
+    # Subplot neighborhood with uncorrelated negative peaks
+    ax4 = plt.subplot(637)
+    plot_traces_and_delays(ax4, V, t, delay, indices_background, offset=-2, ylim=(-10, 5), color=background_color, label='no axon')
+    ax4.text(-3.5, -7.5, r'$s_{\tau}$ = %0.3f ms' % std_delay[index_background_example], color=background_color)
+    ax4.set_yticks([-10,-5,0,5])
+    legend_without_multiple_labels(ax4, loc=4, frameon=False)
+    label_subplot(ax4, 'D', xoffset=-0.04, yoffset=-0.015)
 
-    # Fit distribution
-    ax6 = plt.subplot(236)
-    ax6.scatter(-r[good], A[good], c='green', s=20, marker='o', edgecolor='None')
-    ax6.scatter(r[good], A[good], c='green', s=20, marker='o', edgecolor='None', label='fitted data')
-    ax6.scatter(r[not_good], A[not_good], c='gray', s=20, marker='o', edgecolor='None', label='excluded', zorder=0)
-    ax6.scatter(-r[not_good], A[not_good], c='gray', s=20, marker='o', edgecolor='None', zorder=0)
-    ax6.plot(rfit,Afit, label=r'fit, z=%1.1f $\mu$m' % model.parameters['z'])
-    ax6.plot((-radius,+radius),(0,0), 'k:')
-    ax6.set_xlim(-radius,radius)
-    ax6.legend(loc=2, frameon=False,prop={'size':12}, scatterpoints=1)
-    ax6.set_ylim(-0.1,1.6)
-    ax6.set_ylabel(r'$A = V/V_{n}$')
-    ax6.set_xlabel (r'r [$\mu$m]')
-    ax6.xaxis.set_ticks(np.linspace(-200, 200, 5))
-    without_spines_and_ticks(ax6)
+    # Subplot neighborhood with correlated negative peaks
+    ax5 = fig.add_subplot(6, 3, 10)
+    plot_traces_and_delays(ax5, V, t, delay, indices_foreground, offset=-20, ylim=(-30, 10), color=foreground_color, label='axon')
+    ax5.text(-3.5, -22, r'$s_{\tau}$ = %0.3f ms' % std_delay[index_foreground_example], color=foreground_color)
+    ax5.set_yticks([-30,-20,-10,0,10])
+    legend_without_multiple_labels(ax5, loc=4, frameon=False)
+    label_subplot(ax5, 'E', xoffset=-0.04, yoffset=-0.015)
 
-    # Label subplots
-    label_subplot(ax1, 'A', xoffset=-0.05, yoffset=-0.01)
-    label_subplot(ax2, 'B', xoffset=-0.05, yoffset=-0.01)
-    label_subplot(ax3, 'C', xoffset=-0.05, yoffset=-0.01)
-    label_subplot(ax4, 'D', xoffset=-0.05, yoffset=-0.01)
-    label_subplot(ax5, 'E', xoffset=-0.00, yoffset=0.00)
-    label_subplot(ax6, 'F', xoffset=-0.05, yoffset=-0.01)
+    # subplot std_delay map
+    ax6 = plt.subplot(335)
+    h1 = ax6.scatter(x, y, c=std_delay, s=10, marker='o', edgecolor='None', cmap='gray')
+    h2 = plt.colorbar(h1, boundaries=np.linspace(0,4,num=256))
+    h2.set_label(r'$s_{\tau}$ [ms]')
+    h2.set_ticks(np.arange(0, 4.5, step=0.5))
+    add_AIS_and_example_neighborhoods(ax6, x, y, index_AIS, indices_background, indices_foreground)
+    mea_axes(ax6)
+    label_subplot(ax6, 'F', xoffset=-0.015, yoffset=-0.01)
+
+    # subplot std_delay histogram
+    ax7 = plt.subplot(336)
+    ax7.hist(std_delay, bins=np.arange(0, max(delay), step=DELAY_EPSILON), facecolor='gray', edgecolor='gray', label='no axons')
+    ax7.hist(std_delay, bins=np.arange(0, thr, step=DELAY_EPSILON), facecolor='k', edgecolor='k', label='axons')
+    ax7.scatter(std_delay[index_foreground_example], 25, marker='v', s=100, edgecolor='None', facecolor=foreground_color, zorder=10)
+    ax7.scatter(std_delay[index_background_example], 25, marker='v', s=100, edgecolor='None', facecolor=background_color, zorder=10)
+    ax7.scatter(expected_std_delay, 25, marker='v', s=100, edgecolor='black', facecolor='gray', zorder=10)
+    ax7.text(expected_std_delay, 30, r'$\frac{8}{\sqrt{12}}$ ms',  horizontalalignment='center', verticalalignment='bottom', zorder=10)
+    ax7.legend(loc=2, frameon=False)
+    ax7.vlines(0, 0, 180, color='k', linestyles=':')
+    ax7.set_ylim((0, 600))
+    ax7.set_xlim((0, 4))
+    ax7.set_ylabel(r'count')
+    ax7.set_xlabel(r'$s_{\tau}$ [ms]')
+    without_spines_and_ticks(ax7)
+    adjust_position(ax7, xshrink=0.01)
+    label_subplot(ax7, 'G', xoffset=-0.04, yoffset=-0.01)
+
+    # ------------- third row
+
+    # plot map of delay greater delay of AIS == positive_delay
+    ax8 = plt.subplot(337)
+    ax8.scatter(x, y, c=positive_delay, s=10, marker='o', edgecolor='None', cmap='gray_r')
+    add_AIS_and_example_neighborhoods(ax8, x, y, index_AIS, indices_background, indices_foreground)
+    ax8.text(300, 300, r'$\tau > \tau_{AIS}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
+    mea_axes(ax8)
+    label_subplot(ax8, 'H', xoffset=-0.005, yoffset=-0.01)
+
+    # plot map of thresholded std_delay
+    ax9 = plt.subplot(338)
+    ax9.scatter(x, y, c=valid_delay, s=10, marker='o', edgecolor='None', cmap='gray_r')
+    ax9.text(300, 300, r'$s_{\tau} < s_{min}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
+    add_AIS_and_example_neighborhoods(ax9, x, y, index_AIS, indices_background, indices_foreground)
+    mea_axes(ax9)
+    label_subplot(ax9, 'I', xoffset=-0.005, yoffset=-0.01)
+
+    # plot map of axon
+    ax10 = plt.subplot(339)
+    ax10.scatter(x, y, c=axon, s=10, marker='o', edgecolor='None', cmap='gray_r')
+    ax10.text(300, 300, 'axon', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
+    add_AIS_and_example_neighborhoods(ax10, x, y, index_AIS, indices_background, indices_foreground)
+    mea_axes(ax10)
+    label_subplot(ax10, 'J', xoffset=-0.005, yoffset=-0.01)
+
+    plt.savefig('temp/figures/figure02.eps', format='eps', dpi=300)
 
     plt.show()
 
 
-def plot_potential(ax3, z0=10):
-    r_range = np.linspace(-50, 50, 101)
-    z_range = np.linspace(0, 90, 90)
-    r, z = np.meshgrid(r_range, z_range)
-    z0_mirror = -z0
-    phi = 1.0 / np.sqrt(np.power(r, 2) + np.power(z - z0, 2)) + 1.0 / np.sqrt(
-        np.power(r, 2) + np.power(z - z0_mirror, 2))
-    ax3.contour(r, z, phi, levels=np.linspace(0, 0.6, 50), colors='gray', linestyles='solid')
-    plt.plot(0, z0, 'r.', markersize=10)
-    plt.annotate('point source', (0, z0), (10, 50), size=12, arrowprops={'arrowstyle': '->', 'color': 'black'})
-
-
-def annotate_r_arrow(ax4, radius):
-    ax4.annotate('', (0, 0.05), (radius, 0.05), arrowprops=dict(shrinkB=0, shrinkA=0, arrowstyle='<->'))
-    ax4.text(radius/2, 0.07, r'r', size=15)
-
-
-def plot_pie(ax1, phi, epsilon):
-    r = (0, 250, 250, 0, 250, 250, 0)
-    theta = (0, phi - epsilon, phi + epsilon, 0, np.pi + phi - epsilon, np.pi + phi + epsilon, 0)
-    polygon = ptc.Polygon(zip(theta, r), color='green', alpha=0.2)
-    ax1.add_line(polygon)
-
-
-def plot_polar_neigborhood(V, ax, x, y, center_id, neighbors):
-    new_V, new_x, new_y = within_neighborhood(V, x, y, center_id, neighbors)
-    r, theta = cart2pol(new_x, -new_y)  # inverted orientation of y axis on hidens chip
-    ax = replace_axis(ax, polar=True)
-    c = plt.scatter(theta, r, c=new_V, s=50, marker='o', edgecolor='None', cmap='seismic')
-    ax.set_ylim(0,200)
-    voltage_color_bar(c, label=r'$V$ [$\mu$V]')
-    return c
-
-
-def cart2pol(x, y):
-    z = x + 1j * y
-    theta = np.angle(z)
-    r = np.abs(z)
-    return r, theta
-
-
-def within_neighborhood(V, x, y, center_id, neighbors):
-    center_x, center_y = x[center_id], y[center_id]
-    neighborhood = neighbors[center_id]
-    neighborhood_V = V[neighborhood]
-    neighborhood_x, neighborhood_y = x[neighborhood] - center_x, y[neighborhood] - center_y
-    return neighborhood_V, neighborhood_x, neighborhood_y
-
-
-def replace_axis(ax, **kwargs):
-    position = ax.get_position()
-    plt.delaxes(ax)
-    ax = plt.axes(position, **kwargs)
-    return ax
+def add_AIS_and_example_neighborhoods(ax6, x, y, index_AIS, indicies_background, indicies_foreground):
+    cross_hair(ax6, x[index_AIS], y[index_AIS])
+    ax6.scatter(x[indicies_background], y[indicies_background], s=10, marker='o', edgecolor='None', facecolor='green')
+    ax6.scatter(x[indicies_foreground], y[indicies_foreground], s=10, marker='o', edgecolor='None', facecolor='blue')
 
 
 if __name__ == "__main__":
-    make_figure()
+    make_figure(os.path.basename(__file__))

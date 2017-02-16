@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.DEBUG)
 DISCRIMINATOR_EVALUATION_FILENAME = 'temp/comparison_of_discriminators.csv'
 
 
-def make_figure():
+def make_figure(figurename):
     # Load electrode coordinates
     neighbors = electrode_neighborhoods(mea='hidens')
 
@@ -40,8 +40,8 @@ def make_figure():
     print (Model2.summary(subject=filename, method='Bullmann'))
 
     # Plotting Frames A~E
-    fig = plt.figure('Figure 5 neuron %d' % neuron, figsize=(16, 10))
-    fig.suptitle('Figure 5. Comparison of segmentation methods', fontsize=14, fontweight='bold')
+    fig = plt.figure(figurename, figsize=(16, 10))
+    fig.suptitle(figurename + ' Comparison of segmentation methods', fontsize=14, fontweight='bold')
 
     ax1 = plt.subplot(231)
     Model1.plot(ax1, xlabel=r'$\log_{10}(V_{n}/\sigma_{V})$', fontsize=14)
@@ -144,4 +144,4 @@ def compare_discriminators():
 
 
 if __name__ == "__main__":
-    make_figure()
+    make_figure(os.path.basename(__file__))

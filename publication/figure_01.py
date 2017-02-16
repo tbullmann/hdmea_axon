@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from itertools import product
 from scipy.interpolate import griddata
@@ -11,10 +12,9 @@ from publication.plotting import FIGURE_NEURON_FILE, FIGURE_NEURON_FILE_FORMAT, 
     label_subplot, voltage_color_bar, cross_hair, adjust_position
 
 
-def make_figure():
-    fig = plt.figure('Figure 1', figsize=(13, 11))
-    fig.suptitle('Figure 1. Experiment Outline', fontsize=14,
-                 fontweight='bold')
+def make_figure(figurename):
+    fig = plt.figure(figurename, figsize=(13, 11))
+    fig.suptitle(figurename + ' Experiment Outline', fontsize=14, fontweight='bold')
 
     ax1 = plt.subplot2grid((2, 5), (0, 0), rowspan=2)
 
@@ -127,7 +127,6 @@ def plot_array_of_stills(t, V, x, y, t_min=-0.4, period=0.2, layout=(5, 3), marg
 
 
 if __name__ == "__main__":
-    make_figure()
-
+    make_figure(os.path.basename(__file__))
 
 

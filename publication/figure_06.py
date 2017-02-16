@@ -1,168 +1,114 @@
 import logging
-logging.basicConfig(level=logging.DEBUG)
-
+import os
 import numpy as np
 from matplotlib import pyplot as plt
 
-from hana.misc import unique_neurons
-from hana.plotting import plot_axon, plot_dendrite, plot_neuron_points, plot_neuron_id, plot_neuron_pair, plot_network, mea_axes, highlight_connection
-from hana.recording import load_positions, average_electrode_area
-from hana.segmentation import load_compartments, load_neurites, neuron_position_from_trigger_electrode
-from hana.structure import find_overlap, all_overlaps
-from publication.plotting import FIGURE_ARBORS_FILE, label_subplot, adjust_position
+from hana.plotting import annotate_x_bar, mea_axes
+from hana.recording import half_peak_width, half_peak_domain, electrode_neighborhoods, DELAY_EPSILON, load_traces
+from hana.segmentation import segment_dendrite_verbose
+from publication.plotting import FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
+    legend_without_multiple_labels, label_subplot, adjust_position
+
+logging.basicConfig(level=logging.DEBUG)
 
 
+# Final figure 4
 
-# Other plots, mainly used for finding good examples
+def make_figure(figurename):
 
-def test_plot_all_axonal_fields():
-    """Display axonal field for each neuron, good examples are 3605, 9952, 3093"""
-    axon_delay, dendrite_peak = load_neurites(FIGURE_ARBORS_FILE)
-    pos = load_positions(mea='hidens')
-    for neuron in axon_delay :
-        ax=plt.subplot(111)
-        plot_axon(ax, pos, axon_delay[neuron])
-        mea_axes(ax)
-        ax.set_title ('axon for neuron %d' % neuron)
-        plt.show()
+    # Load electrode coordinates
+    neighbors = electrode_neighborhoods(mea='hidens')
 
+    # Load example data
+    V, t, x, y, trigger, neuron = load_traces(FIGURE_NEURON_FILE)
+    t *= 1000  # convert to ms
 
-def test_plot_all_dendritic_fields_vs_one_axonal_field (presynaptic_neuron):
-    """Display one axon and dendritic field for each neuron, good examples are 5-->10"""
-    axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_FILE)
-    pos = load_positions(mea='hidens')
-    for postsynaptic_neuron in dendrite_peak :
-        ax=plt.subplot(111)
-        plot_axon(ax, pos, axon_delay[presynaptic_neuron])
-        plot_dendrite(ax, pos, dendrite_peak[postsynaptic_neuron])
-        mea_axes(ax)
-        ax.set_title ('axon for neuron %d, dendrite for neuron %d' % (presynaptic_neuron, postsynaptic_neuron))
-        plt.show()
-
-
-# Early version
-
-
-def Figure06_only_overlap():
-    """Plot overlap between axonal and dendritic fields of a presumably pre- and post-synaptic neuron pair"""
-    trigger, _, axon_delay, dendrite_peak = load_compartments (FIGURE_ARBORS_FILE)
-    pos = load_positions(mea='hidens')
-    neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
-    presynaptic_neuron = 5  # electrode 3605
-    postsynaptic_neuron = 10  # electrode 4972
-    delay = 2.3  # NOTE Arbitrary used for checking plot function
-    plt.figure('Figure 6', figsize=(16, 8))
-    ax=plt.subplot(111)
-    plot_neuron_pair(ax, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron, presynaptic_neuron, delay)
-    mea_axes(ax)
-    ax.set_title ('neuron pair %d $\longrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron))
-    plt.show()
-
-
-def Figure06_2plots():
-    trigger, _, axon_delay, dendrite_peak = load_compartments(FIGURE_ARBORS_FILE)
-    pos = load_positions(mea='hidens')
-    neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
-
-    presynaptic_neuron = 5 # electrode 3605
-    postsynaptic_neuron = 10 #electrode 4972
-    thr_peak = 5
-    thr_overlap = 0.05
-
-    overlap, ratio, delay = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron, thr_peak,
-                                         thr_overlap)
-
-    plt.figure('Figure 6', figsize=(12, 6))
-    ax1 = plt.subplot(121)
-    plot_neuron_pair(ax1, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron, presynaptic_neuron, delay)
-    mea_axes(ax1)
-    ax1.set_title ('neuron pair %d $\longrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron))
-
-    ax2 = plt.subplot(122)
-    all_overlap, all_ratio, all_delay = all_overlaps(axon_delay, dendrite_peak)
-    plot_neuron_points(ax2, unique_neurons(all_delay), neuron_pos)
-    plot_neuron_id(ax2, trigger, neuron_pos)
-    plot_network (ax2, all_delay, neuron_pos)
-    mea_axes(ax2)
-    ax2.set_title ('structural connectivity graph')
-    plt.show()
-
-# Final version
-
-def make_figure():
-    trigger, _, axon_delay, dendrite_peak = load_compartments(FIGURE_ARBORS_FILE)
-    pos = load_positions(mea='hidens')
-    electrode_area = average_electrode_area(pos)
-    neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
-
-    presynaptic_neuron = 5
-    postsynaptic_neuron = 10
-    postsynaptic_neuron2 = 49  # or 50
-    thr_overlap_area = 3000.  # um2/electrode
-    thr_overlap = np.ceil(thr_overlap_area / electrode_area)  # number of electrodes
-    logging.info('Overlap of at least %d um2 corresponds to %d electrodes.' % (thr_overlap_area, thr_overlap))
-
-    overlap, ratio, delay = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron,
-                                         thr_overlap=thr_overlap)
-    overlap2, ratio2, delay2 = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron2,
-                                         thr_overlap=thr_overlap)
+    # Verbose dendrite segmentation function
+    delay, mean_delay, std_delay, expected_std_delay, thr, valid_delay, index_AIS, min_delay, max_delay, \
+        return_current_delay, dendrite = segment_dendrite_verbose(t, V, neighbors)
 
     # Making figure
-    fig = plt.figure('Figure 6', figsize=(16, 9))
-    fig.suptitle('Figure 6. Structural connectivity', fontsize=14, fontweight='bold')
+    fig = plt.figure(figurename, figsize=(18,9))
+    fig.suptitle(figurename + ' Segmentation of the dendrite based on positive peak at neighboring electrodes', fontsize=14, fontweight='bold')
 
-    ax1 = plt.subplot(221)
-    plot_neuron_pair(ax1, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron, presynaptic_neuron, delay)
-    mea_axes(ax1)
-    ax1.set_title ('neuron pair %d $\longrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron))
-    ax1.text(200,200,r'$\rho=$%3d$\mu m^2$' % thr_overlap_area)
-    plot_two_colorbars(ax1)
-    adjust_position(ax1, yshrink=0.01)
-    label_subplot(ax1, 'A', xoffset=-0.005, yoffset=-0.01)
+    # Position of the AIS
+    x_AIS = x[index_AIS]
+    y_AIS = y[index_AIS]
 
-    ax2 = plt.subplot(223)
-    plot_neuron_pair(ax2, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron2, presynaptic_neuron, delay2)
+    # subplot original unaligned traces
+    ax1 = plt.subplot(231)
+    V_AIS = V[index_AIS]  # Showing AIS trace in different color
+    V_dendrites = V[np.where(dendrite)]  # Showing dendrite trace in different color
+    ax1.plot(t, V.T, '-', color='gray', label='all')
+    ax1.plot(t, V_dendrites.T, '-', color='black', label='dendrite')
+    ax1.plot(t, V_AIS, 'r-', label='AIS')
+    annotate_x_bar(half_peak_domain(t, V_AIS), 150, text=' $|\delta_h$| = %0.3f ms' % half_peak_width(t, V_AIS))
+    legend_without_multiple_labels(ax1, loc=4, frameon=False)
+    ax1.set_ylim((-600, 200))
+    ax1.set_ylabel(r'V [$\mu$V]')
+    ax1.set_xlim((-1, 1))
+    ax1.set_xlabel(r'$\Delta$t [ms]')
+    without_spines_and_ticks(ax1)
+    label_subplot(ax1, 'A', xoffset=-0.04, yoffset=-0.015)
+
+    # subplot std_delay map
+    ax2 = plt.subplot(232)
+    h1 = ax2.scatter(x, y, c=std_delay, s=10, marker='o', edgecolor='None', cmap='gray')
+    h2 = plt.colorbar(h1, boundaries=np.linspace(0, 4, num=256))
+    h2.set_label(r'$s_{\tau}$ [ms]')
+    h2.set_ticks(np.arange(0, 4.5, step=0.5))
+    cross_hair(ax2, x_AIS, y_AIS)
     mea_axes(ax2)
-    ax2.set_title('neuron pair %d $\dashrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron2))
-    ax2.text(200,200,r'$\rho=$%3d$\mu m^2$' % thr_overlap_area)
-    plot_two_colorbars(ax2)
-    adjust_position(ax2, yshrink=0.01)
-    label_subplot(ax2, 'B', xoffset=-0.005, yoffset=-0.01)
+    label_subplot(ax2, 'B', xoffset=-0.015, yoffset=-0.01)
 
-    # Whole network
-    ax3 = plt.subplot(122)
-    all_overlap, all_ratio, all_delay = all_overlaps(axon_delay, dendrite_peak, thr_overlap=thr_overlap)
-    plot_neuron_points(ax3, unique_neurons(all_delay), neuron_pos)
-    plot_neuron_id(ax3, trigger, neuron_pos)
-    plot_network (ax3, all_delay, neuron_pos)
-    highlight_connection(ax3, (presynaptic_neuron, postsynaptic_neuron), neuron_pos)
-    highlight_connection(ax3, (presynaptic_neuron, postsynaptic_neuron2), neuron_pos, connected=False)
-    ax3.text(200,150,r'$\rho=$%3d$\mu m^2$' % thr_overlap_area)
-    mea_axes(ax3)
-    ax3.set_title ('structural connectivity graph')
-    label_subplot(ax3, 'C', xoffset=-0.05, yoffset=-0.05)
+    # subplot std_delay histogram
+    ax3 = plt.subplot(233)
+    ax3.hist(std_delay, bins=np.arange(0, max(delay), step=DELAY_EPSILON), facecolor='gray', edgecolor='gray',
+             label='nothing')
+    ax3.hist(std_delay, bins=np.arange(0, thr, step=DELAY_EPSILON), facecolor='k', edgecolor='k', label='axons and dendrites')
+    ax3.scatter(expected_std_delay, 25, marker='v', s=100, edgecolor='black', facecolor='gray', zorder=10)
+    ax3.text(expected_std_delay, 30, r'$\frac{8}{\sqrt{12}}$ ms', horizontalalignment='center',
+             verticalalignment='bottom', zorder=10)
+    ax3.legend(frameon=False)
+    ax3.vlines(0, 0, 180, color='k', linestyles=':')
+    ax3.set_ylim((0, 600))
+    ax3.set_xlim((0, 4))
+    ax3.set_ylabel(r'count')
+    ax3.set_xlabel(r'$s_{\tau}$ [ms]')
+    without_spines_and_ticks(ax3)
+    adjust_position(ax3, xshrink=0.01)
+    label_subplot(ax3, 'C', xoffset=-0.04, yoffset=-0.01)
+
+    # -------------- second row
+
+    # plot map of delay within half peak domain == return_current_delay
+    ax4 = plt.subplot(234)
+    ax4.scatter(x, y, c=return_current_delay, s=10, marker='o', edgecolor='None', cmap='gray_r')
+    cross_hair(ax4, x_AIS, y_AIS)
+    ax4.text(300, 300, r'$\tau \in \delta_h$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
+    mea_axes(ax4)
+    label_subplot(ax4, 'D', xoffset=-0.005, yoffset=-0.01)
+
+    # plot map of thresholded std_delay
+    ax5 = plt.subplot(235)
+    ax5.scatter(x, y, c=valid_delay, s=10, marker='o', edgecolor='None', cmap='gray_r')
+    ax5.text(300, 300, r'$s_{\tau} < s_{min}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
+    cross_hair(ax5, x_AIS, y_AIS)
+    mea_axes(ax5)
+    label_subplot(ax5, 'E', xoffset=-0.005, yoffset=-0.01)
+
+    # plot map of dendrite
+    ax6 = plt.subplot(236)
+    ax6.scatter(x, y, c=dendrite, s=10, marker='o', edgecolor='None', cmap='gray_r')
+    ax6.text(300, 300, 'dendrite', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
+    cross_hair(ax6, x_AIS, y_AIS)
+    mea_axes(ax6)
+    label_subplot(ax6, 'F', xoffset=-0.005, yoffset=-0.01)
 
     plt.show()
 
-
-def plot_two_colorbars(ax1):
-    from mpl_toolkits.axes_grid1 import make_axes_locatable
-    divider = make_axes_locatable(ax1)
-    cax1 = divider.append_axes("right", size="10%", pad=0.2)
-    cax2 = divider.append_axes("left", size="10%", pad=1.0)
-    import matplotlib as mpl
-    cb1 = mpl.colorbar.ColorbarBase(cax1, cmap=plt.cm.summer, norm=plt.Normalize(vmin=0, vmax=2),
-                                    orientation='vertical')
-    cb1.set_label(r'axonal delay $\tau$ [ms]')
-    cb2 = mpl.colorbar.ColorbarBase(cax2, cmap=plt.cm.gray_r, norm=plt.Normalize(vmin=0, vmax=50),
-                                    orientation='vertical')
-    cb2.set_label(r'dendrite positive peak $V_p$ [$\mu$V]')
-    cb2.ax.yaxis.set_ticks_position('left')
-    cb2.ax.yaxis.set_label_position('left')
+    plt.show()
 
 
 if __name__ == "__main__":
-    make_figure()
-    # test_plot_all_axonal_fields()
-    # test_plot_all_dendritic_fields_vs_one_axonal_field(5)
-    # Figure06_only_overlap()
+    make_figure(os.path.basename(__file__))
