@@ -11,7 +11,7 @@ from publication.plotting import FIGURE_NEURON_FILE, FIGURE_NEURON_FILE_FORMAT, 
     label_subplot, voltage_color_bar, cross_hair, adjust_position
 
 
-def figure_01():
+def make_figure():
     fig = plt.figure('Figure 1', figsize=(13, 11))
     fig.suptitle('Figure 1. Experiment Outline', fontsize=14,
                  fontweight='bold')
@@ -126,8 +126,8 @@ def plot_array_of_stills(t, V, x, y, t_min=-0.4, period=0.2, layout=(5, 3), marg
     voltage_color_bar(h1, label = r'$V$ [$\mu$V]')
 
 
-
-figure_01()
+if __name__ == "__main__":
+    make_figure()
 
 
 

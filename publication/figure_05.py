@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.DEBUG)
 DISCRIMINATOR_EVALUATION_FILENAME = 'temp/comparison_of_discriminators.csv'
 
 
-def figure05():
+def make_figure():
     # Load electrode coordinates
     neighbors = electrode_neighborhoods(mea='hidens')
 
@@ -144,4 +144,4 @@ def compare_discriminators():
 
 
 if __name__ == "__main__":
-    figure05()
+    make_figure()

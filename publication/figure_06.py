@@ -89,7 +89,7 @@ def Figure06_2plots():
 
 # Final version
 
-def Figure06():
+def make_figure():
     trigger, _, axon_delay, dendrite_peak = load_compartments(FIGURE_ARBORS_FILE)
     pos = load_positions(mea='hidens')
     electrode_area = average_electrode_area(pos)
@@ -161,7 +161,8 @@ def plot_two_colorbars(ax1):
     cb2.ax.yaxis.set_label_position('left')
 
 
-# test_plot_all_axonal_fields()
-# test_plot_all_dendritic_fields_vs_one_axonal_field(5)
-# Figure06_only_overlap()
-Figure06()
+if __name__ == "__main__":
+    make_figure()
+    # test_plot_all_axonal_fields()
+    # test_plot_all_dendritic_fields_vs_one_axonal_field(5)
+    # Figure06_only_overlap()

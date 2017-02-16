@@ -87,39 +87,12 @@ def plot_func_example_and_network(ax1, ax2, ax3, pre, post, direction, thr, pos,
     mea_axes(ax1)
 
 
-# Previous version
-
-def figure07_only_forward_and_reverse_networks(thr =20):
-    """FIGURE showing functional networks according to forward and reverse definition"""
-    timelags, std_score_dict, timeseries_hist_dict = pickle.load(open( 'temp/standardscores.p','rb'))
-    pos = load_positions('data/hidens_electrodes.mat')
-    plot_func_network_forward_vs_reverse(thr, pos, timelags, std_score_dict)
-    plt.show()
-
-
-# Final version
-
-def Figure07_seq (thr =20):
+def make_figure(thr =20):
     """FIGURE showing Displays functional connectivity according to forward and reverse definition for two
     neuron pairs within the network"""
-    timeseries, timeseries_surrogates = pickle.load(open( 'temp/timeseries_and_surrogates.p','rb'))
-    timelags, std_score_dict, timeseries_hist_dict = pickle.load(open( 'temp/standardscores.p','rb'))
-    pos = load_positions('data/hidens_electrodes.mat')
-    for pre,post in ((4972,3240), (8060,7374)):
-        for direction in ('forward', 'reverse'):
-            # Plotting
-            plt.figure(figsize=(20, 10))
-            ax1 = plt.subplot(122)
-            ax2 = plt.subplot(221)
-            ax3 = plt.subplot(223)
-            plot_func_example_and_network(ax1, ax2, ax3, pre, post, direction, thr, pos, std_score_dict,
-                                          timelags, timeseries, timeseries_surrogates)
-            plt.show()
+    if not os.path.isfile('temp/standardscores.p'):
+        detect_function_networks()
 
-
-def Figure07(thr =20):
-    """FIGURE showing Displays functional connectivity according to forward and reverse definition for two
-    neuron pairs within the network"""
     timeseries, timeseries_surrogates = pickle.load(open( 'temp/timeseries_and_surrogates.p','rb'))
     timelags, std_score_dict, timeseries_hist_dict = pickle.load(open( 'temp/standardscores.p','rb'))
 
@@ -162,9 +135,6 @@ def Figure07(thr =20):
     plt.show()
 
 
-
-if not os.path.isfile('temp/standardscores.p'): detect_function_networks()
-
-# figure07_only_forward_and_reverse_networks()
-Figure07()
+if __name__ == "__main__":
+    make_figure()
 

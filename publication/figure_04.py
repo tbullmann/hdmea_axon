@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Final figure 4
 
-def figure04():
+def make_figure():
 
     # Load electrode coordinates
     neighbors = electrode_neighborhoods(mea='hidens')
@@ -108,4 +108,5 @@ def figure04():
     plt.show()
 
 
-figure04()
+if __name__ == "__main__":
+    make_figure()

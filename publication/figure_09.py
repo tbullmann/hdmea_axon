@@ -18,9 +18,10 @@ from publication.plotting import FIGURE_ARBORS_FILE, TEMPORARY_PICKELED_NETWORKS
 
 logging.basicConfig(level=logging.DEBUG)
 
-def figure09 (networks_pickel_name):
+def make_figure ():
 
-    structural_strengths, structural_delays, functional_strengths, functional_delays = pickle.load( open(networks_pickel_name, 'rb'))
+    structural_strengths, structural_delays, functional_strengths, functional_delays \
+        = pickle.load( open(TEMPORARY_PICKELED_NETWORKS, 'rb'))
 
     # Making figure
     fig = plt.figure('Figure 9', figsize=(13, 6))
@@ -146,4 +147,5 @@ def dict2array_like_index(dictionary, keys):
     return strength_synapse
 
 
-figure09(TEMPORARY_PICKELED_NETWORKS)
+if __name__ == "__main__":
+    make_figure()

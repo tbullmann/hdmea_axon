@@ -14,7 +14,7 @@ from publication.comparison import ModelFunction
 
 # Final figure 3
 
-def figure3(center_id = 4961, time=1):
+def make_figure(center_id = 4961, time=1):
     """
     Plot figure 3, showing the spatial spread of the a point source and negative peak of an action potential,
     deducting the distance of the axon from the surface of the HDMEA.
@@ -80,6 +80,7 @@ def figure3(center_id = 4961, time=1):
     ax2.text(-45, 80, r'Potential $\Phi(d,r)$', color='gray', size=12,
              bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     adjust_position(ax2,xshrink=0.01,yshrink=0.01, yshift=0.01)
+    without_spines_and_ticks(ax2)
 
     # Potential at HDMEA surface according to Obien et al., ...
     ax3 = plt.subplot(233)
@@ -96,7 +97,7 @@ def figure3(center_id = 4961, time=1):
     ax3.set_xlim((-50, 50))
     ax3.set_ylim((-0.1, 1.6))
     ax3.plot((-radius,+radius),(0,0), 'k:')
-    # without_spines_and_ticks(ax3)
+    without_spines_and_ticks(ax3)
     adjust_position(ax3,xshrink=0.01,yshrink=0.01, yshift=0.01)
 
     # Map voltage
@@ -134,14 +135,7 @@ def figure3(center_id = 4961, time=1):
     ax6.set_ylabel(r'$A = V/V_{n}$')
     ax6.set_xlabel (r'r [$\mu$m]')
     ax6.xaxis.set_ticks(np.linspace(-200, 200, 5))
-
-    # ax3sub = inset_axes(ax3,
-    #                         width="25%",
-    #                         height="25%",
-    #                         loc=1)
-    # ax3sub.plot(rfit,Afit)
-    # ax3sub.set_ylim(0,1)
-    # ax3sub.set_xlim(-30,30)
+    without_spines_and_ticks(ax6)
 
     # Label subplots
     label_subplot(ax1, 'A', xoffset=-0.05, yoffset=-0.01)
@@ -210,4 +204,5 @@ def replace_axis(ax, **kwargs):
     return ax
 
 
-figure3()
+if __name__ == "__main__":
+    make_figure()

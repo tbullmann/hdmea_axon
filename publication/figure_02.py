@@ -24,7 +24,7 @@ def testing_load_traces():
 
 # Final figure 2
 
-def figure02():
+def make_figure():
 
     # Load electrode coordinates
     neighbors = electrode_neighborhoods(mea='hidens')
@@ -172,12 +172,11 @@ def figure02():
     plt.show()
 
 
-
-
 def add_AIS_and_example_neighborhoods(ax6, x, y, index_AIS, indicies_background, indicies_foreground):
     cross_hair(ax6, x[index_AIS], y[index_AIS])
     ax6.scatter(x[indicies_background], y[indicies_background], s=10, marker='o', edgecolor='None', facecolor='green')
     ax6.scatter(x[indicies_foreground], y[indicies_foreground], s=10, marker='o', edgecolor='None', facecolor='blue')
 
 
-figure02()
+if __name__ == "__main__":
+    make_figure()

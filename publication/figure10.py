@@ -190,5 +190,9 @@ def neighbors_from_electrode_positions(x, y, neighborhood_radius = 20):
     return neighbors
 
 
+def make_figure():
+    figure10(neuron=1544)  # TODO add ground truth for neuron 1536
+
+
 if __name__ == "__main__":
-    figure10(neuron=1544)   # TODO add ground truth for neuron 1536
+    make_figure()

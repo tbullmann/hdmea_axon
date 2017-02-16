@@ -39,9 +39,12 @@ def maybe_get_functional_and_structural_networks(arbors_filename, events_filenam
     logging.info('Saved data')
 
 
-def figure08 (networks_pickel_name):
+def make_figure ():
 
-    structural_strengths, structural_delays, functional_strengths, functional_delays = pickle.load( open(networks_pickel_name, 'rb'))
+    maybe_get_functional_and_structural_networks(FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, TEMPORARY_PICKELED_NETWORKS)
+
+    structural_strengths, structural_delays, functional_strengths, functional_delays \
+        = pickle.load( open(TEMPORARY_PICKELED_NETWORKS, 'rb'))
 
     # Map electrode number to area covered by that electrodes
     electrode_area = average_electrode_area(None, mea='hidens')
@@ -184,6 +187,5 @@ def plot_correlation(ax, xdict, ydict, best_keys=None, xlim = None, ylim = None,
     return axScatter
 
 
-maybe_get_functional_and_structural_networks(FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, TEMPORARY_PICKELED_NETWORKS)
-
-figure08(TEMPORARY_PICKELED_NETWORKS)
+if __name__ == "__main__":
+    make_figure()
