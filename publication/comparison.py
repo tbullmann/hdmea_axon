@@ -183,16 +183,19 @@ class ModelDiscriminator(ModelFunction):
         self.FPR_at_threshold, self.TPR_at_threshold = at_threshold(self.FPR, self.TPR, self.midpoints, self.threshold)
         self.AUC = AUC(self.FPR, self.TPR)
 
-    def plot(self, ax, xlabel = 'value', ylabel = 'counts'):
+    def plot(self, ax, xlabel = 'value', ylabel = 'counts', fontsize=None):
         ax.step(self.midpoints, self.counts, where='mid', color='gray', label='NP')
-        ax.plot(self.midpoints, self.fitted_counts, color='black', label='fit NP')
+        ax.fill_between(self.midpoints, 0, self.fitted_counts_N_only, edgecolor='none', facecolor='red', alpha=0.2)
+        ax.fill_between(self.midpoints, 0, self.fitted_counts_P_only, edgecolor='none', facecolor='green', alpha=0.2)
         ax.plot(self.midpoints, self.fitted_counts_N_only, color='red', label='fitted N')
         ax.plot(self.midpoints, self.fitted_counts_P_only, color='green', label='fitted P')
-        ax.legend()
-        ax.set_xlabel(xlabel)
+        ax.plot(self.midpoints, self.fitted_counts, color='black', label='fit NP')
+        ax.legend(frameon=False)
+        ax.set_xlabel(xlabel, fontsize=fontsize)
         ax.set_ylabel(ylabel)
 
-    def plot_ROC(self,ax, color='blue', marker='x', label = 'ROC'):
+    def plot_ROC(self,ax, color='blue', marker='x', label = 'ROC', AUC=True):
+        ax.fill_between(self.FPR, self.FPR, self.TPR, edgecolor='none', facecolor=color, alpha=0.2)
         ax.plot(self.FPR, self.TPR, color=color, label=label)
         ax.scatter(self.FPR_at_threshold, self.TPR_at_threshold, color=color, marker=marker, label='%s threshold' % label)
         ax.set_xlabel ('FPR')
