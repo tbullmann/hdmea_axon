@@ -1,4 +1,4 @@
-from hana.plotting import annotate_x_bar, set_axis_hidens
+from hana.plotting import annotate_x_bar, mea_axes
 from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain, DELAY_EPSILON, neighborhood, \
     electrode_neighborhoods, load_traces, load_positions
 from hana.segmentation import segment_axon_verbose, restrict_to_compartment
@@ -78,7 +78,7 @@ def figure02():
     h2.set_label(r'$\tau$ [ms]')
     h2.set_ticks(np.linspace(-4, 4, num=9))
     add_AIS_and_example_neighborhoods(ax2, x, y, index_AIS, indices_background, indices_foreground)
-    set_axis_hidens(ax2)
+    mea_axes(ax2)
     label_subplot(ax2, 'B', xoffset=-0.015, yoffset=-0.015)
 
     # subplot histogram of delays
@@ -120,7 +120,7 @@ def figure02():
     h2.set_label(r'$s_{\tau}$ [ms]')
     h2.set_ticks(np.arange(0, 4.5, step=0.5))
     add_AIS_and_example_neighborhoods(ax6, x, y, index_AIS, indices_background, indices_foreground)
-    set_axis_hidens(ax6)
+    mea_axes(ax6)
     label_subplot(ax6, 'F', xoffset=-0.015, yoffset=-0.01)
 
     # subplot std_delay histogram
@@ -148,7 +148,7 @@ def figure02():
     ax8.scatter(x, y, c=positive_delay, s=10, marker='o', edgecolor='None', cmap='gray_r')
     add_AIS_and_example_neighborhoods(ax8, x, y, index_AIS, indices_background, indices_foreground)
     ax8.text(300, 300, r'$\tau > \tau_{AIS}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
-    set_axis_hidens(ax8)
+    mea_axes(ax8)
     label_subplot(ax8, 'H', xoffset=-0.005, yoffset=-0.01)
 
     # plot map of thresholded std_delay
@@ -156,7 +156,7 @@ def figure02():
     ax9.scatter(x, y, c=valid_delay, s=10, marker='o', edgecolor='None', cmap='gray_r')
     ax9.text(300, 300, r'$s_{\tau} < s_{min}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     add_AIS_and_example_neighborhoods(ax9, x, y, index_AIS, indices_background, indices_foreground)
-    set_axis_hidens(ax9)
+    mea_axes(ax9)
     label_subplot(ax9, 'I', xoffset=-0.005, yoffset=-0.01)
 
     # plot map of axon
@@ -164,7 +164,7 @@ def figure02():
     ax10.scatter(x, y, c=axon, s=10, marker='o', edgecolor='None', cmap='gray_r')
     ax10.text(300, 300, 'axon', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     add_AIS_and_example_neighborhoods(ax10, x, y, index_AIS, indices_background, indices_foreground)
-    set_axis_hidens(ax10)
+    mea_axes(ax10)
     label_subplot(ax10, 'J', xoffset=-0.005, yoffset=-0.01)
 
     plt.savefig('temp/figures/figure02.eps', format='eps', dpi=300)

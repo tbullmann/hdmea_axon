@@ -1,5 +1,5 @@
 from hana.misc import unique_neurons
-from hana.plotting import plot_neuron_points, plot_network, highlight_connection, set_axis_hidens
+from hana.plotting import plot_neuron_points, plot_network, highlight_connection, mea_axes
 
 import numpy as np
 import networkx as nx
@@ -129,7 +129,7 @@ def plot_pcg_on_network(ax, polychronous_group, delays, pos):
     for i, ((time1, neuron1), (time2, neuron2)) in enumerate(polychronous_group.edges(), start=1):
         if time2 < time1: time1, neuron1, time2, neuron2 = time2, neuron2, time1, neuron1
         highlight_connection(ax, (neuron1, neuron2), pos)
-    set_axis_hidens(ax)
+    mea_axes(ax)
 
 
 def plot_pcgs(ax, list_of_polychronous_groups):

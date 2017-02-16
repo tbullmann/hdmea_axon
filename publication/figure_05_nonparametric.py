@@ -1,6 +1,6 @@
 from hana.segmentation import segment_dendrite_verbose, segment_axon_verbose
 from publication.plotting import FIGURE_NEURON_FILE, cross_hair, label_subplot, voltage_color_bar, adjust_position
-from hana.plotting import set_axis_hidens
+from hana.plotting import mea_axes
 from hana.recording import electrode_neighborhoods, load_traces
 
 from scipy.stats import binom
@@ -84,13 +84,13 @@ def figure05():
     ax4 = plt.subplot(234)
     ax4.scatter(x, y, c=valid_peaks, s=10, marker='o', edgecolor='None', cmap='gray_r')
     ax4.text(300, 300, r'I: $V_{n} > %d\sigma_{V}; \tau > \tau_{AIS}$' % pnr_threshold , bbox=dict(facecolor='white', pad=5, edgecolor='none'), size=14)
-    set_axis_hidens(ax4)
+    mea_axes(ax4)
     label_subplot(ax4, 'D', xoffset=-0.03, yoffset=-0.01)
 
     ax5 = plt.subplot(235)
     ax5.scatter(x, y, c=axon, s=10, marker='o', edgecolor='None', cmap='gray_r')
     ax5.text(300, 300, r'II: $s_{\tau} < s_{min}; \tau > \tau_{AIS}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'), size=14)
-    set_axis_hidens(ax5)
+    mea_axes(ax5)
     label_subplot(ax5, 'E', xoffset=-0.03, yoffset=-0.01)
 
     plt.show()
@@ -255,7 +255,7 @@ def figure05_old():
     ax1.text(300, 300, 'negative peak', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     voltage_color_bar(ax1_h1, label=r'$V_n$ [$\mu$V]')
     cross_hair(ax1, x_AIS, y_AIS, color='white')
-    set_axis_hidens(ax1)
+    mea_axes(ax1)
     label_subplot(ax1, 'A', xoffset=-0.005, yoffset=-0.01)
 
     # Map of axon
@@ -263,7 +263,7 @@ def figure05_old():
     ax2.scatter(x, y, c=axon, s=10, marker='o', edgecolor='None', cmap='gray_r')
     ax2.text(300, 300, 'axon', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     cross_hair(ax2, x_AIS, y_AIS, color='white')
-    set_axis_hidens(ax2)
+    mea_axes(ax2)
     label_subplot(ax2, 'B', xoffset=-0.005, yoffset=-0.01)
 
     # Std_delay vs max V for dendrite..
@@ -289,7 +289,7 @@ def figure05_old():
     ax4.text(300, 300, 'positive peak', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     voltage_color_bar(ax4_h1, label=r'$V_p$ [$\mu$V]')
     cross_hair(ax4, x_AIS, y_AIS, color='white')
-    set_axis_hidens(ax4)
+    mea_axes(ax4)
     label_subplot(ax4, 'D', xoffset=-0.005, yoffset=-0.01)
 
     # Map of dendrite
@@ -297,7 +297,7 @@ def figure05_old():
     ax5.scatter(x, y, c=dendrite, s=10, marker='o', edgecolor='None', cmap='gray_r')
     ax5.text(300, 300, 'dendrite', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     cross_hair(ax5, x_AIS, y_AIS, color='white')
-    set_axis_hidens(ax5)
+    mea_axes(ax5)
     label_subplot(ax5, 'E', xoffset=-0.005, yoffset=-0.01)
 
     # Std_delay vs max V for dendrite..

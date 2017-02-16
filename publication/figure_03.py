@@ -7,7 +7,7 @@ from matplotlib import patches as ptc
 
 from hana.segmentation import find_AIS
 from publication.plotting import FIGURE_NEURON_FILE, cross_hair, label_subplot, voltage_color_bar, adjust_position, without_spines_and_ticks
-from hana.plotting import set_axis_hidens
+from hana.plotting import mea_axes
 from hana.recording import electrode_neighborhoods, load_traces
 from publication.comparison import ModelFunction
 
@@ -107,7 +107,7 @@ def figure3(center_id = 4961, time=1):
     cross_hair(ax4, x_AIS, y_AIS, color='black')
     neighborhood =plt.Circle((x[center_id], y[center_id]), radius, edgecolor='green', facecolor='None')
     ax4.add_artist(neighborhood)
-    set_axis_hidens(ax4)
+    mea_axes(ax4)
 
     # Map voltage in a small neighborhood
     ax5 = plt.subplot(235, polar=True)

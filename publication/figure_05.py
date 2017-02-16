@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from hana.plotting import set_axis_hidens
+from hana.plotting import mea_axes
 from hana.recording import electrode_neighborhoods, load_traces
 from publication.comparison import ModelDiscriminatorBakkum, ModelDiscriminatorBullmann
 from publication.plotting import FIGURE_NEURON_FILE_FORMAT, FIGURE_NEURONS, label_subplot, adjust_position, \
@@ -74,12 +74,12 @@ def figure05():
     ax4.text(300, 300, r'I: $V_{n} > %d\sigma_{V}; \tau > \tau_{AIS}$' % np.power(10, Model1.threshold),
             bbox=dict(facecolor='white', pad=5, edgecolor='none'), size=14)
     ax4.text(300, 300, r'+1.0ms', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
-    set_axis_hidens(ax4)
+    mea_axes(ax4)
 
     ax5 = plt.subplot(235)
     Model2.plot_Map(ax5, x, y)
     ax5.text(300, 300, r'II: $s_{\tau} < s_{min}; \tau > \tau_{AIS}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'), size=14)
-    set_axis_hidens(ax5)
+    mea_axes(ax5)
 
     # Additional statistics by evaluating both models for all neurons
 

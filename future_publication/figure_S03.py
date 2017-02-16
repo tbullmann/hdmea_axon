@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 import matplotlib as mpl
 from matplotlib.pyplot import cm
 from hana.recording import load_traces, load_positions
-from hana.plotting import set_axis_hidens, plot_neuron_points, plot_neuron_id
+from hana.plotting import mea_axes, plot_neuron_points, plot_neuron_id
 from hana.segmentation import load_compartments, load_neurites, neuron_position_from_trigger_electrode
 from publication.plotting import FIGURE_NEURON_FILE, FIGURE_NEURON_FILE_FORMAT, FIGURE_NEURONS, FIGURE_ARBORS_FILE, \
     label_subplot, voltage_color_bar, cross_hair
@@ -69,7 +69,7 @@ def figure_S03():
     # CS2 = plt.contour(new_x, new_y, Z, colors='red', levels=(-5,))
     voltage_color_bar(h1)
     plt.plot(x[int(trigger)],y[int(trigger)],'k.')
-    set_axis_hidens(ax1)
+    mea_axes(ax1)
 
     ax2 = plt.subplot(222)
     transformed_ridge = 1-np.sqrt(ridge)
@@ -79,12 +79,12 @@ def figure_S03():
     h2 = plt.scatter(new_x, new_y, c=transformed_ridge, s=10, marker='o', edgecolor='None', cmap='gray')
     plt.colorbar(h2)
     plt.plot(x[int(trigger)],y[int(trigger)],'k.')
-    set_axis_hidens(ax2)
+    mea_axes(ax2)
 
     ax3 = plt.subplot(223)
     h3 = plt.scatter(new_x, new_y, c=transformed_ridge>0.95, s=10, marker='o', edgecolor='None', cmap='gray')
     plt.plot(x[int(trigger)],y[int(trigger)],'k.')
-    set_axis_hidens(ax3)
+    mea_axes(ax3)
 
 
     ax3 = plt.subplot(224)

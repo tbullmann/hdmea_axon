@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 import matplotlib as mpl
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from hana.plotting import set_axis_hidens
+from hana.plotting import mea_axes
 from hana.recording import load_traces
 from hana.segmentation import segment_axon_verbose, find_AIS
 from publication.plotting import cross_hair, label_subplot, adjust_position
@@ -75,7 +75,7 @@ def figure10(neuron):
     ax1 = plt.subplot(331)
     plot_image_axon_delay_voltage(ax1, path+'axon', axon_Bakkum[5], delay_Bakkum, Vmin_Bakkum, x, y, transform=V2size)
     cross_hair(ax1, x_AIS, y_AIS, color='red')
-    set_axis_hidens(ax1, bbox=bbox)
+    mea_axes(ax1, bbox=bbox)
     ax1.set_title('Method I')
     plt.text(0.1, 0.9, r'$\mathsf{V_n>5\sigma_{V}}$', ha='left', va='center', transform=ax1.transAxes)
 
@@ -83,7 +83,7 @@ def figure10(neuron):
     ax2 = plt.subplot(332)
     ax2h = plot_image_axon_delay_voltage(ax2, path+'axon', axon_Bullmann[1], delay_Bullmann[1], Vmin_Bullmann[1], x_Bullmann[1], y_Bullmann[1], transform=V2size)
     cross_hair(ax2, x_AIS, y_AIS, color='red')
-    set_axis_hidens(ax2, bbox=bbox)
+    mea_axes(ax2, bbox=bbox)
     ax2.set_title('Method II')
     plt.text(0.1, 0.9, r'$\mathsf{r\approx20\mu m}$', ha='left', va='center', transform=ax2.transAxes)
 
@@ -91,21 +91,21 @@ def figure10(neuron):
     ax3 = plt.subplot(333)
     ImageIterator(path).plot()
     cross_hair(ax2, x_AIS, y_AIS, color='red')
-    set_axis_hidens(ax3, bbox=bbox)
+    mea_axes(ax3, bbox=bbox)
     ax3.set_title('Groundtruth')
 
     # Map axons for Bakkum's method, low threshold
     ax4 = plt.subplot(334)
     plot_image_axon_delay_voltage(ax4, path+'axon', axon_Bakkum[3], delay_Bakkum, Vmin_Bakkum, x, y, transform=V2size)
     cross_hair(ax4, x_AIS, y_AIS, color='red')
-    set_axis_hidens(ax4, bbox=bbox)
+    mea_axes(ax4, bbox=bbox)
     plt.text(0.1, 0.9, r'$\mathsf{V_n>3\sigma_{V}}$', ha='left', va='center', transform=ax4.transAxes)
 
     # Map axons for Bullmann's method, grid spacing ~ 40um
     ax5 = plt.subplot(335)
     plot_image_axon_delay_voltage(ax5, path+'axon', axon_Bullmann[2], delay_Bullmann[2], Vmin_Bullmann[2], x_Bullmann[2], y_Bullmann[2], transform=V2size)
     cross_hair(ax5, x_AIS, y_AIS, color='red')
-    set_axis_hidens(ax5, bbox=bbox)
+    mea_axes(ax5, bbox=bbox)
     plt.text(0.1, 0.9, r'$\mathsf{r\approx40\mu m}$', ha='left', va='center', transform=ax5.transAxes)
 
     # Colorbar for A, B, D, E

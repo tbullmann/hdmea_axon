@@ -1,5 +1,5 @@
 from hana.recording import load_positions
-from hana.plotting import set_axis_hidens
+from hana.plotting import mea_axes
 from hana.segmentation import extract_and_save_compartments, load_compartments, load_neurites
 from publication.plotting import cross_hair, adjust_position, FIGURE_ARBORS_FILE, FIGURE_NEURONS, FIGURE_NEURON_FILE_FORMAT
 
@@ -52,7 +52,7 @@ def figureS1(neurons):
         ax.scatter(x[index_dendrite], y[index_dendrite], c='red', s=20, marker='.', edgecolor='None', label='dendrite',
                    alpha=0.5)
         cross_hair(ax, x[index_AIS], y[index_AIS], color='black')
-        set_axis_hidens(ax)
+        mea_axes(ax)
         ax.set_title('neuron %d' % (neuron))
         # legend_without_multiple_labels(ax)
 

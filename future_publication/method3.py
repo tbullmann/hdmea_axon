@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from future_publication.flow import LucasKanade, interpolate
-from hana.plotting import set_axis_hidens
+from hana.plotting import mea_axes
 from hana.recording import load_traces
 from publication.plotting import FIGURE_NEURON_FILE_FORMAT
 
@@ -25,7 +25,7 @@ def test_flows(neuron=5, coarse=True):
     ax1 = plt.subplot(121)
     plt.quiver(gxB, gyB, gvxB, gvyB, color='blue', label='before (-4ms)')
     plt.quiver(gx, gy, gvx, gvy, color='red', label='after (+1ms)')
-    set_axis_hidens(ax1)
+    mea_axes(ax1)
 
     ax2 = plt.subplot(122)
     bins = np.linspace(0, 400, num=200)

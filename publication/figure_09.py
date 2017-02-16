@@ -12,7 +12,7 @@ from matplotlib.ticker import NullFormatter
 from hana.misc import unique_neurons
 from hana.recording import load_positions
 from hana.segmentation import neuron_position_from_trigger_electrode, load_compartments
-from hana.plotting import plot_neuron_points, plot_neuron_id, plot_network, set_axis_hidens
+from hana.plotting import plot_neuron_points, plot_neuron_id, plot_network, mea_axes
 from publication.plotting import FIGURE_ARBORS_FILE, TEMPORARY_PICKELED_NETWORKS, compare_networks, \
     label_subplot, correlate_two_dicts_verbose, kernel_density, axes_to_3_axes
 
@@ -45,7 +45,7 @@ def figure09 (networks_pickel_name):
     ax2.hlines(0,0,0,linestyle='-',color='green',label='>1ms')
     ax2.text(200,200,r'$\mathsf{\rho=300\mu m^2}$', fontsize=14)
     plt.legend(frameon=False)
-    set_axis_hidens(ax2)
+    mea_axes(ax2)
 
     # Label subplots
     label_subplot(ax1,'A', xoffset=-0.04, yoffset=-0.02)

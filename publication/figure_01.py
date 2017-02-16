@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 import matplotlib as mpl
 from matplotlib.pyplot import cm
 from hana.recording import load_traces, load_positions
-from hana.plotting import set_axis_hidens, plot_neuron_points, plot_neuron_id
+from hana.plotting import mea_axes, plot_neuron_points, plot_neuron_id
 from hana.segmentation import load_compartments, load_neurites, neuron_position_from_trigger_electrode
 from publication.plotting import FIGURE_NEURON_FILE, FIGURE_NEURON_FILE_FORMAT, FIGURE_NEURONS, FIGURE_ARBORS_FILE, \
     label_subplot, voltage_color_bar, cross_hair, adjust_position
@@ -32,7 +32,7 @@ def figure_01():
     plot_neuron_points(ax2, trigger, neuron_pos)
     plot_neuron_id(ax2, trigger, neuron_pos)
     ax2.text(250, 250, r'isocontours for -50$\mu$V at 0ms', size=12, bbox=dict(facecolor='white', pad=5, edgecolor='none'))
-    set_axis_hidens(ax2)
+    mea_axes(ax2)
     adjust_position(ax2, xshrink=0.01, yshrink=0.01)
 
     # ---- Plot traveling signals for one neuron ---
@@ -48,7 +48,7 @@ def figure_01():
     ax3.legend(loc=4,frameon=False,prop={'size':12})
     ax3.text(250, 250, r'isocontours for -5$\mu$V', size=12, bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     cross_hair(ax3, x[int(trigger)], y[int(trigger)], color='black')
-    set_axis_hidens(ax3)
+    mea_axes(ax3)
     adjust_position(ax3, xshrink=0.01, yshrink=0.01)
 
     ax4 = plt.subplot2grid((2, 5), (1, 1), rowspan=1, colspan=4)
