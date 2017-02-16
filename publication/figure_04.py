@@ -109,10 +109,10 @@ def make_figure(figurename, neuron=1544):  # TODO add ground truth for neuron 15
     mea_axes(ax5, bbox=bbox)
     plt.text(0.1, 0.9, r'$\mathsf{r\approx40\mu m}$', ha='left', va='center', transform=ax5.transAxes)
 
-    # Colorbar for A, B, D, E
+    # Colorbar and Size legend for A, B, D, E
     ax6 = plt.subplot(336)
     for V in [1, 3, 10, 30, 100]:
-        plt.scatter([],[],s=V2size(V), color='white', edgecolor='black', label='%d' % V)
+        plt.scatter([],[],s=V2size(V), color='gray', edgecolor='none', label='%d' % V)
     leg = plt.legend(loc=2, scatterpoints=1, frameon=False, title = r'$\mathsf{V_n\ [\mu V]}\ \ \ \ \ $')
     leg.get_title().set_fontsize(14)
     plt.axis('off')
@@ -137,7 +137,7 @@ def make_figure(figurename, neuron=1544):  # TODO add ground truth for neuron 15
     for pnr in axon_Bakkum.keys():
         xx.append(pnr)
         yy.append(compare_with_groundtruth(x[axon_Bakkum[pnr]], y[axon_Bakkum[pnr]], xg, yg))
-    plt.plot (xx,yy,'o--')
+    plt.plot (xx,yy,'ko--')
     plt.xlabel(r'$\mathsf{V_{thr}\ [\sigma_{V}]}$')
     plt.ylabel(r'$\mathsf{H\ [\mu m]}$')
     plt.ylim((0,400))
@@ -152,7 +152,7 @@ def make_figure(figurename, neuron=1544):  # TODO add ground truth for neuron 15
     for period in axon_Bullmann.keys():
         xx.append(period * 20)
         yy.append(compare_with_groundtruth(x_Bullmann[period][axon_Bullmann[period]], y_Bullmann[period][axon_Bullmann[period]], xg, yg))
-    plt.plot(xx, yy, 'o--')
+    plt.plot(xx, yy, 'ko--')
     plt.xlabel(r'$\mathsf{r\ [\mu m]}$')
     plt.ylabel(r'$\mathsf{H\ [\mu m]}$')
     plt.ylim((0,400))
@@ -181,7 +181,9 @@ def compare_with_groundtruth(x, y, xg, yg):
 def plot_image_axon_delay_voltage(ax, path, axon, delay, V, x, y, transform=np.abs):
     ImageIterator(path).plot()
     radius = transform(V) if transform else V
-    s = ax.scatter(x[axon], y[axon], s=radius[axon], c=delay[axon], marker='o', cmap=plt.cm.summer, vmin=0, vmax=2, alpha=0.8)
+    s = ax.scatter(x[axon], y[axon], s=radius[axon], c=delay[axon],
+                   marker='o', edgecolor='none',
+                   cmap=plt.cm.summer, vmin=0, vmax=2, alpha=0.8)
     return s
 
 
