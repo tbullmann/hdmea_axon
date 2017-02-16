@@ -1,8 +1,11 @@
 import logging
+import os as os
 
 import numpy as np
+import pandas as pd
 from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
+from scipy.spatial.distance import cdist
 from scipy.stats import binom, norm, beta, expon  # Note: binom, norm, beta and expon are used by eval from a string
 
 from statsmodels import robust
@@ -258,3 +261,73 @@ class ModelDiscriminatorBullmann(ModelDiscriminator):
 
     def predict(self):
         ModelDiscriminator.predict(self, threshold=self.threshold, threshold_type='below')
+
+
+class ImageIterator:
+    def __init__(self, path, filename='tilespecs.txt'):
+        """
+        :param path: base path containing a csv file with coordinates and (in subfolder) image files
+        :param filename: name of the csv file
+        """
+        self.path = path
+        textfilename = os.path.join(path, filename)
+        tiles = pd.read_table(textfilename)
+        self.images = tiles.iterrows()
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        index, tile = self.images.next()
+        if tile is None:
+            raise StopIteration()
+        else:
+            fullfilename = os.path.join(self.path, tile.filename)
+            raw_image = plt.imread(fullfilename)
+            return raw_image, tile
+
+    def plot(self, transform=np.sqrt, cmap='gray_r'):
+        """
+        :param transform: image transformation; default sqrt, could be None as well
+        :param cmap: colormap; default: inverted gray scale
+        :return: ?
+        """
+        for raw_image, tile in self:
+            image = transform(raw_image) if transform else raw_image
+            plt.imshow(image,
+                       cmap=cmap,
+                       extent=[tile.xstart, tile.xend, tile.yend, tile.ystart])
+            # NOTE: yend and ystart are reverted due to hidens coordinate system TODO: Maybe fix in tilespec.txt file
+
+    def truth(self):
+        """
+        :return: x, y: coordinates of foreground pixels (value>0)
+        """
+        x_list = list()
+        y_list = list()
+        for raw_image, tile in self:
+            heigth, width = np.shape(raw_image>0)
+            i, j = np.where(raw_image)
+            x_list.append((tile.xend - tile.xstart) / width * j + tile.xstart)
+            y_list.append((tile.yend - tile.ystart) / heigth * i + tile.ystart)
+        x = np.hstack(x_list)
+        y = np.hstack(y_list)
+        return x, y
+
+
+def distanceBetweenCurves(C1, C2):
+    """
+    From http://stackoverflow.com/questions/13692801/distance-matrix-of-curves-in-python
+    Note: According to https://en.wikipedia.org/wiki/Hausdorff_distance this is defined
+    as max(H1, H2) and not (H1 + H2) / 2 as in the code example
+    :param C1, C2: to curves as their points
+    :return:
+    """
+    D = cdist(C1, C2, 'euclidean')
+
+    #none symmetric Hausdorff distances
+    H1 = np.max(np.min(D, axis=1))
+    H2 = np.max(np.min(D, axis=0))
+
+    Hmax = np.max((H1 ,H2))
+    return Hmax
