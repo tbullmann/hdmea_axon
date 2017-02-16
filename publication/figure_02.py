@@ -38,21 +38,25 @@ def make_figure(figure_name, center_id = 4961, time=1):
 
     # Select frame and circular neighborhood around that action potential
     frameV = V[:, t==time]
-    frameV = np.min(V,axis=1)
+    minV = np.min(V,axis=1)
+    from statsmodels.robust import mad
+    noiseV = mad(V[:,:40], axis=1) * 1.1343
+    print np.shape(noiseV)
     new_V, new_x, new_y = within_neighborhood(frameV, x, y, center_id, neighbors)
     r, theta = cart2pol(new_x, -new_y)  # inverted orientation of y axis on hidens chip
 
     # Select good signals from electrodes in the area perpendicular to axon
+    period = 3
     phi = np.pi * 5/6
-    epsilon = np.pi / 5
-    good = np.logical_or(np.logical_or(abs(theta-phi)<epsilon,abs(theta-phi+np.pi)<epsilon),r<10)
-    not_good = np.logical_not(good)
+    epsilon = np.pi/20 % np.pi / 5
+    perpendicular = np.logical_or(np.logical_or(abs(theta-phi)<epsilon,abs(theta-phi+np.pi)<epsilon),r<10)
+    circular = r<20*period
 
     # Fit spatial attenuation
-    A = (new_V+np.median(new_V[good]))/min(new_V[good])
+    A = (new_V+np.median(new_V[perpendicular]))/min(new_V[perpendicular])
     model = ModelFunction(formula_string='z / np.sqrt(z * z + x * x)',
                           bounds_dict=dict(z=[0,20]))
-    model.fit(np.ravel(r[good]), np.ravel(A[good]))
+    model.fit(np.ravel(r[perpendicular]), np.ravel(A[perpendicular]))
     rfit = np.linspace(-radius, radius, 401)
     Afit = model.predict(rfit)
 
@@ -116,6 +120,7 @@ def make_figure(figure_name, center_id = 4961, time=1):
     ax5 = plt.subplot(235, polar=True)
     ax5_h1 = plt.scatter(theta, r, c=new_V, s=50, marker='o', edgecolor='None', cmap='seismic')
     plot_pie(ax5, phi, epsilon)
+    plot_circle(ax5, 20 * period)
     ax5.set_ylim(0,radius)
     ax5_h1.set_clim(vmin=-20, vmax=20)
     adjust_position(ax5, xshift=-0.01)
@@ -125,11 +130,13 @@ def make_figure(figure_name, center_id = 4961, time=1):
 
     # Fit distribution
     ax6 = plt.subplot(236)
-    ax6.scatter(-r[good], A[good], c='green', s=20, marker='o', edgecolor='None')
-    ax6.scatter(r[good], A[good], c='green', s=20, marker='o', edgecolor='None', label='fitted data')
-    ax6.scatter(r[not_good], A[not_good], c='gray', s=20, marker='o', edgecolor='None', label='excluded', zorder=0)
-    ax6.scatter(-r[not_good], A[not_good], c='gray', s=20, marker='o', edgecolor='None', zorder=0)
-    ax6.plot(rfit,Afit, label=r'fit, z=%1.1f $\mu$m' % model.parameters['z'])
+    ax6.scatter(-r[circular], A[circular], c='gray', s=20, marker='o', edgecolor='None')
+    ax6.scatter(r[circular], A[circular], c='gray', s=20, marker='o', edgecolor='None', label='circular')
+    ax6.scatter(-r[circular], A[circular], c='gray', s=20, marker='o', edgecolor='None')
+    ax6.scatter(r[circular], A[circular], c='gray', s=20, marker='o', edgecolor='None', label='circular')
+    ax6.scatter(-r[perpendicular], A[perpendicular], c='green', s=20, marker='o', edgecolor='None')
+    ax6.scatter(r[perpendicular], A[perpendicular], c='green', s=20, marker='o', edgecolor='None', label='perpendicular')
+    ax6.plot(rfit,Afit, label=r'fit, z=%1.1f $\mu$m' % model.parameters['z'],color='green')
     ax6.plot((-radius,+radius),(0,0), 'k:')
     ax6.set_xlim(-radius,radius)
     ax6.legend(loc=2, frameon=False,prop={'size':12}, scatterpoints=1)
@@ -171,6 +178,12 @@ def plot_pie(ax1, phi, epsilon):
     r = (0, 250, 250, 0, 250, 250, 0)
     theta = (0, phi - epsilon, phi + epsilon, 0, np.pi + phi - epsilon, np.pi + phi + epsilon, 0)
     polygon = ptc.Polygon(zip(theta, r), color='green', alpha=0.2)
+    ax1.add_line(polygon)
+
+def plot_circle(ax1, r):
+    r = r * np.ones(100)
+    theta = np.linspace(-np.pi,np.pi,100)
+    polygon = ptc.Polygon(zip(theta, r), color='gray', alpha=0.2)
     ax1.add_line(polygon)
 
 
