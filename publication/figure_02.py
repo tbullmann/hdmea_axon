@@ -5,6 +5,7 @@ import os
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import patches as ptc
+from statsmodels.robust import mad
 
 from hana.segmentation import find_AIS
 from publication.plotting import FIGURE_NEURON_FILE, cross_hair, label_subplot, voltage_color_bar, adjust_position, without_spines_and_ticks
@@ -39,9 +40,7 @@ def make_figure(figure_name, center_id = 4961, time=1):
     # Select frame and circular neighborhood around that action potential
     frameV = V[:, t==time]
     minV = np.min(V,axis=1)
-    from statsmodels.robust import mad
-    noiseV = mad(V[:,:40], axis=1) * 1.1343
-    print np.shape(noiseV)
+    noiseV = mad(V[:,:40], axis=1) * 1.4826
     new_V, new_x, new_y = within_neighborhood(frameV, x, y, center_id, neighbors)
     r, theta = cart2pol(new_x, -new_y)  # inverted orientation of y axis on hidens chip
 
@@ -130,8 +129,6 @@ def make_figure(figure_name, center_id = 4961, time=1):
 
     # Fit distribution
     ax6 = plt.subplot(236)
-    ax6.scatter(-r[circular], A[circular], c='gray', s=20, marker='o', edgecolor='None')
-    ax6.scatter(r[circular], A[circular], c='gray', s=20, marker='o', edgecolor='None', label='circular')
     ax6.scatter(-r[circular], A[circular], c='gray', s=20, marker='o', edgecolor='None')
     ax6.scatter(r[circular], A[circular], c='gray', s=20, marker='o', edgecolor='None', label='circular')
     ax6.scatter(-r[perpendicular], A[perpendicular], c='green', s=20, marker='o', edgecolor='None')
