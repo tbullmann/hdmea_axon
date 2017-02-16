@@ -77,7 +77,7 @@ def make_figure(figurename):
                                          thr_overlap=thr_overlap)
 
     # Making figure
-    fig = plt.figure('figurename', figsize=(16, 9))
+    fig = plt.figure(figurename, figsize=(16, 9))
     fig.suptitle(figurename + ' Structural connectivity', fontsize=14, fontweight='bold')
 
     ax1 = plt.subplot(221)
@@ -122,10 +122,10 @@ def plot_two_colorbars(ax1):
     import matplotlib as mpl
     cb1 = mpl.colorbar.ColorbarBase(cax1, cmap=plt.cm.summer, norm=plt.Normalize(vmin=0, vmax=2),
                                     orientation='vertical')
-    cb1.set_label(r'axonal delay $\tau$ [ms]')
+    cb1.set_label(r'$\mathsf{\tau_{axon}\ [ms]}$', fontsize=14)
     cb2 = mpl.colorbar.ColorbarBase(cax2, cmap=plt.cm.gray_r, norm=plt.Normalize(vmin=0, vmax=50),
                                     orientation='vertical')
-    cb2.set_label(r'dendrite positive peak $V_p$ [$\mu$V]')
+    cb2.set_label(r'$\mathsf{V_p\ [\mu V]}$', fontsize=14)
     cb2.ax.yaxis.set_ticks_position('left')
     cb2.ax.yaxis.set_label_position('left')
 
