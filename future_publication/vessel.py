@@ -14,7 +14,7 @@ from hana.segmentation import segment_axon_verbose, find_AIS
 from publication.plotting import cross_hair
 from _frangi import frangi
 from flow import interpolate
-from publication.figure10 import plot_neuron_image, neighbors_from_electrode_positions, set_bbox
+from publication.figure_04 import plot_neuron_image, neighbors_from_electrode_positions, set_bbox
 
 # Testing code
 
