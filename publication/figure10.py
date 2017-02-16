@@ -172,15 +172,12 @@ def compare_with_groundtruth(x, y, xg, yg):
     distance = distanceBetweenCurves(C1, C2)
     return distance
 
+
 def set_axis_data(bbox):
-    set_bbox(bbox)
-    plt.xlabel(r'$\mathsf{x\ [\mu m]}$')
-    plt.ylabel(r'$\mathsf{y\ [\mu m]}$')
-
-
-def set_bbox(bbox):
     plt.xlim((bbox[0], bbox[1]))
     plt.ylim((bbox[2], bbox[3]))
+    plt.xlabel(r'$\mathsf{x\ [\mu m]}$')
+    plt.ylabel(r'$\mathsf{y\ [\mu m]}$')
 
 
 def plot_image_axon_delay_voltage(ax, path, axon, delay, V, x, y, transform=np.abs):
