@@ -79,12 +79,11 @@ def plot_func_example_and_network(ax1, ax2, ax3, pre, post, direction, thr, pos,
     neuron_dict = unique_neurons(peak_score)
     plot_neuron_points(ax1, neuron_dict, pos)
     plot_neuron_id(ax1, neuron_dict, pos)
-    mea_axes(ax1)
     if direction == 'forward': ax1.set_title(r'pre-synaptic spike followed by post-synaptic spike')
     if direction == 'reverse': ax1.set_title(r'post-synaptic spike preceded by pre-synaptic spike ')
     if peak is not None: highlight_connection(ax1, (pre, post), pos)
     ax1.text(200,150,r'$\zeta=$%d' % thr)
-    mea_axes(ax1)
+    mea_axes(ax1, barposition='inside')
 
 
 def make_figure(thr =20):
