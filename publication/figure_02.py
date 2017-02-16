@@ -37,8 +37,9 @@ def make_figure(figure_name, center_id = 4961, time=1):
     y_AIS = y[index_AIS]
 
     # Select frame and circular neighborhood around that action potential
-    V = V[:, t==time]
-    new_V, new_x, new_y = within_neighborhood(V, x, y, center_id, neighbors)
+    frameV = V[:, t==time]
+    frameV = np.min(V,axis=1)
+    new_V, new_x, new_y = within_neighborhood(frameV, x, y, center_id, neighbors)
     r, theta = cart2pol(new_x, -new_y)  # inverted orientation of y axis on hidens chip
 
     # Select good signals from electrodes in the area perpendicular to axon
@@ -103,7 +104,7 @@ def make_figure(figure_name, center_id = 4961, time=1):
 
     # Map voltage
     ax4 = plt.subplot(234)
-    ax4_h1 = ax4.scatter(x, y, c=V, s=20, marker='o',
+    ax4_h1 = ax4.scatter(x, y, c=frameV, s=20, marker='o',
                          edgecolor='None', cmap='seismic')
     voltage_color_bar(ax4_h1, label=r'$V$ [$\mu$V]')
     cross_hair(ax4, x_AIS, y_AIS, color='black')
