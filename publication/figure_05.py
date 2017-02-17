@@ -8,14 +8,14 @@ from matplotlib import pyplot as plt
 from hana.plotting import mea_axes
 from hana.recording import electrode_neighborhoods, load_traces
 from publication.comparison import ModelDiscriminatorBakkum, ModelDiscriminatorBullmann
-from publication.plotting import FIGURE_NEURON_FILE_FORMAT, FIGURE_NEURONS, label_subplot, adjust_position, \
+from publication.plotting import show_or_savefig, FIGURE_NEURON_FILE_FORMAT, FIGURE_NEURONS, label_subplot, adjust_position, \
     plot_pairwise_comparison, without_spines_and_ticks
 
 logging.basicConfig(level=logging.DEBUG)
 DISCRIMINATOR_EVALUATION_FILENAME = 'temp/comparison_of_discriminators.csv'
 
 
-def make_figure(figurename):
+def make_figure(figurename, figpath=None):
     # Load electrode coordinates
     neighbors = electrode_neighborhoods(mea='hidens')
 
@@ -104,7 +104,7 @@ def make_figure(figurename):
     label_subplot(ax5, 'E', xoffset=-0.03, yoffset=-0.01)
     label_subplot(ax6, 'F', xoffset=-0.04, yoffset=-0.01)
 
-    plt.show()
+    show_or_savefig(figpath, figurename)
 
 
 def compare_discriminators():

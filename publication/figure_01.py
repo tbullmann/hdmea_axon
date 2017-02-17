@@ -8,11 +8,11 @@ from matplotlib.pyplot import cm
 from hana.recording import load_traces, load_positions
 from hana.plotting import mea_axes, plot_neuron_points, plot_neuron_id
 from hana.segmentation import load_compartments, load_neurites, neuron_position_from_trigger_electrode
-from publication.plotting import FIGURE_NEURON_FILE, FIGURE_NEURON_FILE_FORMAT, FIGURE_NEURONS, FIGURE_ARBORS_FILE, \
+from publication.plotting import show_or_savefig, FIGURE_NEURON_FILE, FIGURE_NEURON_FILE_FORMAT, FIGURE_NEURONS, FIGURE_ARBORS_FILE, \
     label_subplot, voltage_color_bar, cross_hair, adjust_position
 
 
-def make_figure(figurename):
+def make_figure(figurename, figpath=None):
     fig = plt.figure(figurename, figsize=(13, 11))
     fig.suptitle(figurename + ' Experiment Outline', fontsize=14, fontweight='bold')
 
@@ -63,9 +63,7 @@ def make_figure(figurename):
     label_subplot(ax3, 'C', xoffset=-0.035, yoffset=-0.015)
     label_subplot(ax4, 'D', xoffset=0.005, yoffset=-0.035)
 
-    plt.savefig('temp/figures/figure01.pdf', format='eps', dpi=300)
-
-    plt.show()
+    show_or_savefig(figpath, figurename)
 
 
 def plot_activity_map(template, neurons):

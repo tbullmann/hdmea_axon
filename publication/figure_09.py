@@ -10,7 +10,7 @@ from hana.function import timeseries_to_surrogates, all_timelag_standardscore, a
 from hana.recording import load_timeseries, average_electrode_area
 from hana.segmentation import load_neurites
 from hana.structure import all_overlaps
-from publication.plotting import FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, TEMPORARY_PICKELED_NETWORKS, \
+from publication.plotting import show_or_savefig, FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, TEMPORARY_PICKELED_NETWORKS, \
     plot_parameter_dependency, format_parameter_plot, compare_networks, analyse_networks, label_subplot, adjust_position, \
     correlate_two_dicts, kernel_density, axes_to_3_axes
 
@@ -37,7 +37,7 @@ def maybe_get_functional_and_structural_networks(arbors_filename, events_filenam
     logging.info('Saved data')
 
 
-def make_figure(figurename):
+def make_figure(figurename, figpath=None):
 
     maybe_get_functional_and_structural_networks(FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, TEMPORARY_PICKELED_NETWORKS)
 
@@ -90,7 +90,7 @@ def make_figure(figurename):
     label_subplot(ax4,'D',xoffset=-0.04)
     label_subplot(ax5,'E',xoffset=-0.04)
 
-    plt.show()
+    show_or_savefig(figpath, figurename)
 
 
 def plot_vs_weigth(ax1, dictionary):

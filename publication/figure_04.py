@@ -10,13 +10,13 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from hana.plotting import mea_axes
 from hana.recording import load_traces
 from hana.segmentation import segment_axon_verbose, find_AIS
-from publication.plotting import cross_hair, label_subplot, adjust_position, without_spines_and_ticks
+from publication.plotting import show_or_savefig, cross_hair, label_subplot, adjust_position, without_spines_and_ticks
 from publication.comparison import segment_axon_Bakkum, ImageIterator, distanceBetweenCurves
 
 logging.basicConfig(level=logging.DEBUG)
 
 
-def make_figure(figurename, neuron=1544):  # TODO add ground truth for neuron 1536
+def make_figure(figurename, figpath=None, neuron=1544):  # TODO add ground truth for neuron 1536
 
     path ='data/groundtruth/neuron%d' % neuron
 
@@ -168,7 +168,7 @@ def make_figure(figurename, neuron=1544):  # TODO add ground truth for neuron 15
     label_subplot(ax7, 'F', xoffset=-0.05, yoffset=-0.015)
     label_subplot(ax8, 'G', xoffset=-0.05, yoffset=-0.015)
 
-    plt.show()
+    show_or_savefig(figpath, figurename)
 
 
 def compare_with_groundtruth(x, y, xg, yg):

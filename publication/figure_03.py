@@ -7,13 +7,13 @@ from hana.plotting import annotate_x_bar, mea_axes
 from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain, DELAY_EPSILON, neighborhood, \
     electrode_neighborhoods, load_traces, load_positions
 from hana.segmentation import segment_axon_verbose, restrict_to_compartment
-from publication.plotting import FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
+from publication.plotting import show_or_savefig, FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
     legend_without_multiple_labels, label_subplot, plot_traces_and_delays, adjust_position
 
 logging.basicConfig(level=logging.DEBUG)
 
 
-def make_figure(figurename):
+def make_figure(figurename, figpath=None):
 
     # Load electrode coordinates
     neighbors = electrode_neighborhoods(mea='hidens')
@@ -157,9 +157,7 @@ def make_figure(figurename):
     mea_axes(ax10)
     label_subplot(ax10, 'J', xoffset=-0.005, yoffset=-0.01)
 
-    plt.savefig('temp/figures/figure02.eps', format='eps', dpi=300)
-
-    plt.show()
+    show_or_savefig(figpath, figurename)
 
 
 def add_AIS_and_example_neighborhoods(ax6, x, y, index_AIS, indicies_background, indicies_foreground):

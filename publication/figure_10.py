@@ -12,12 +12,12 @@ from hana.misc import unique_neurons
 from hana.recording import load_positions
 from hana.segmentation import neuron_position_from_trigger_electrode, load_compartments
 from hana.plotting import plot_neuron_points, plot_neuron_id, plot_network, mea_axes
-from publication.plotting import FIGURE_ARBORS_FILE, TEMPORARY_PICKELED_NETWORKS, compare_networks, \
+from publication.plotting import show_or_savefig, FIGURE_ARBORS_FILE, TEMPORARY_PICKELED_NETWORKS, compare_networks, \
     label_subplot, correlate_two_dicts_verbose, kernel_density, axes_to_3_axes
 
 logging.basicConfig(level=logging.DEBUG)
 
-def make_figure(figurename):
+def make_figure(figurename, figpath=None):
 
     structural_strengths, structural_delays, functional_strengths, functional_delays \
         = pickle.load( open(TEMPORARY_PICKELED_NETWORKS, 'rb'))
@@ -51,7 +51,7 @@ def make_figure(figurename):
     label_subplot(ax1,'A', xoffset=-0.04, yoffset=-0.02)
     label_subplot(ax2,'B', xoffset=-0.04, yoffset=-0.02)
 
-    plt.show()
+    show_or_savefig(figpath, figurename)
 
 
 def plot_synapse_delays(ax, structural_delay, functional_delay, functional_strength, xlim=None, ylim=None, xscaling='log', yscaling ='count', naxes=3):

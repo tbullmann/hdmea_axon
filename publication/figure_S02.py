@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 from matplotlib import pyplot as plt
 
-from publication.plotting import plot_parameter_dependency, TEMPORARY_PICKELED_NETWORKS, compare_networks, \
+from publication.plotting import show_or_savefig, plot_parameter_dependency, TEMPORARY_PICKELED_NETWORKS, compare_networks, \
     format_parameter_plot
 
 
@@ -44,7 +44,7 @@ def figure02(networks_pickel_name):
     ax4.set_title(r'Functional index ${|F \cup S|}/{|F|}$')
 
 
-    plt.show()
+    show_or_savefig(figpath, figurename)
 
 
 figure02(TEMPORARY_PICKELED_NETWORKS)

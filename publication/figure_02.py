@@ -8,7 +8,8 @@ from matplotlib import patches as ptc
 from statsmodels.robust import mad
 
 from hana.segmentation import find_AIS
-from publication.plotting import FIGURE_NEURON_FILE, cross_hair, label_subplot, voltage_color_bar, adjust_position, without_spines_and_ticks
+from publication.plotting import FIGURE_NEURON_FILE, cross_hair, label_subplot, voltage_color_bar, adjust_position, without_spines_and_ticks, \
+    show_or_savefig
 from hana.plotting import mea_axes
 from hana.recording import electrode_neighborhoods, load_traces
 from publication.comparison import ModelFunction
@@ -16,7 +17,7 @@ from publication.comparison import ModelFunction
 
 # Final figure
 
-def make_figure(figure_name, center_id = 4961, time=1):
+def make_figure(figurename, figpath=None, center_id = 4961, time=1, path=None):
     """
     Showing the spatial spread of the a point source and negative peak of an action potential,
     deducting the distance of the axon from the surface of the HDMEA.
@@ -63,8 +64,8 @@ def make_figure(figure_name, center_id = 4961, time=1):
     print (model.parameters)
 
     # Plotting
-    fig = plt.figure(figure_name, figsize=(13, 7))
-    fig.suptitle(figure_name+' Spatial spread of axonal signals', fontsize=14, fontweight='bold')
+    fig = plt.figure(figurename, figsize=(13, 7))
+    fig.suptitle(figurename+' Spatial spread of axonal signals', fontsize=14, fontweight='bold')
 
     ax1 = plt.subplot(231)
     img = plt.imread('data/hdmea_neighborhoods.png')
@@ -151,7 +152,7 @@ def make_figure(figure_name, center_id = 4961, time=1):
     label_subplot(ax5, 'E', xoffset=-0.00, yoffset=0.00)
     label_subplot(ax6, 'F', xoffset=-0.05, yoffset=-0.01)
 
-    plt.show()
+    show_or_savefig(figpath, figurename)
 
 
 def plot_potential(ax3, z0=10):

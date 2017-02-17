@@ -4,7 +4,7 @@ from hana.recording import load_timeseries, load_positions
 from hana.plotting import plot_network, plot_neuron_points, plot_neuron_id, mea_axes, \
     plot_timeseries_hist_and_surrogates, plot_std_score_and_peaks, highlight_connection
 from hana.misc import unique_neurons
-from publication.plotting import FIGURE_EVENTS_FILE, FIGURE_ARBORS_FILE, label_subplot, adjust_position
+from publication.plotting import show_or_savefig, FIGURE_EVENTS_FILE, FIGURE_ARBORS_FILE, label_subplot, adjust_position
 
 import pickle
 import os
@@ -86,7 +86,7 @@ def plot_func_example_and_network(ax1, ax2, ax3, pre, post, direction, thr, pos,
     mea_axes(ax1, barposition='inside')
 
 
-def make_figure(figurename, thr =20):
+def make_figure(figurename, figpath=None, thr =20):
     """FIGURE showing Displays functional connectivity according to forward and reverse definition for two
     neuron pairs within the network"""
     if not os.path.isfile('temp/standardscores.p'):
@@ -131,7 +131,7 @@ def make_figure(figurename, thr =20):
     label_subplot(ax5, 'D', xoffset=-0.05, yoffset=-0.01)
     label_subplot(ax6, 'E', xoffset=-0.05, yoffset=-0.01)
 
-    plt.show()
+    show_or_savefig(figpath, figurename)
 
 
 if __name__ == "__main__":

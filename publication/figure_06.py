@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from hana.plotting import annotate_x_bar, mea_axes
 from hana.recording import half_peak_width, half_peak_domain, electrode_neighborhoods, DELAY_EPSILON, load_traces
 from hana.segmentation import segment_dendrite_verbose
-from publication.plotting import FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
+from publication.plotting import show_or_savefig, FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
     legend_without_multiple_labels, label_subplot, adjust_position
 
 logging.basicConfig(level=logging.DEBUG)
@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Final figure 4
 
-def make_figure(figurename):
+def make_figure(figurename, figpath=None):
 
     # Load electrode coordinates
     neighbors = electrode_neighborhoods(mea='hidens')
@@ -105,9 +105,7 @@ def make_figure(figurename):
     mea_axes(ax6)
     label_subplot(ax6, 'F', xoffset=-0.005, yoffset=-0.01)
 
-    plt.show()
-
-    plt.show()
+    show_or_savefig(figpath, figurename)
 
 
 if __name__ == "__main__":

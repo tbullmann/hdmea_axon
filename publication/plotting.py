@@ -1,4 +1,5 @@
 import logging
+import os
 
 import networkx as nx
 import numpy as np
@@ -332,3 +333,11 @@ def plot_pairwise_comparison(ax, data, measure, ylim=None, legend=True):
         which='both',  # both major and minor ticks are affected
         bottom='off',  # ticks along the bottom edge are off
         top='off')  # ticks along the top edge are off
+
+
+def show_or_savefig(path, figure_name):
+    if path:
+        plt.savefig(os.path.join(path, figure_name + '.eps'))
+        plt.savefig(os.path.join(path, figure_name + '.png'))
+    else:
+        plt.show()

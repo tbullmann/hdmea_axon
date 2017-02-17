@@ -8,7 +8,7 @@ from hana.plotting import plot_axon, plot_dendrite, plot_neuron_points, plot_neu
 from hana.recording import load_positions, average_electrode_area
 from hana.segmentation import load_compartments, load_neurites, neuron_position_from_trigger_electrode
 from hana.structure import find_overlap, all_overlaps
-from publication.plotting import FIGURE_ARBORS_FILE, label_subplot, adjust_position
+from publication.plotting import show_or_savefig, FIGURE_ARBORS_FILE, label_subplot, adjust_position
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -58,7 +58,7 @@ def test_plot_only_overlap():
 
 # Final version
 
-def make_figure(figurename):
+def make_figure(figurename, figpath=None):
     trigger, _, axon_delay, dendrite_peak = load_compartments(FIGURE_ARBORS_FILE)
     pos = load_positions(mea='hidens')
     electrode_area = average_electrode_area(pos)
@@ -111,7 +111,7 @@ def make_figure(figurename):
     ax3.set_title ('structural connectivity graph')
     label_subplot(ax3, 'C', xoffset=-0.05, yoffset=-0.05)
 
-    plt.show()
+    show_or_savefig(figpath, figurename)
 
 
 def plot_two_colorbars(ax1):

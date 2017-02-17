@@ -1,7 +1,7 @@
 from hana.recording import load_positions
 from hana.plotting import mea_axes
 from hana.segmentation import extract_and_save_compartments, load_compartments, load_neurites
-from publication.plotting import cross_hair, adjust_position, FIGURE_ARBORS_FILE, FIGURE_NEURONS, FIGURE_NEURON_FILE_FORMAT
+from publication.plotting import show_or_savefig, cross_hair, adjust_position, FIGURE_ARBORS_FILE, FIGURE_NEURONS, FIGURE_NEURON_FILE_FORMAT
 
 import os
 import numpy as np
@@ -60,9 +60,11 @@ def figureS1(neurons):
         logging.info('Plot %d on ' % (index_plot + 1) + figure_title)
         index_plot += 1
 
-    plt.show()
     logging.info('Plotted neurons:')
     logging.info(plotted_neurons)
+
+    show_or_savefig(figpath, figurename)
+
 
 
 # Testing extraction
