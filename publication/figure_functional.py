@@ -16,11 +16,6 @@ def detect_function_networks():
     timeseries_surrogates = timeseries_to_surrogates(timeseries)
     timelags, std_score_dict, timeseries_hist_dict = all_timelag_standardscore(timeseries, timeseries_surrogates)
 
-    import matplotlib.pyplot as plt
-    for pair in std_score_dict:
-        plt.plot(timelags*1000, std_score_dict[pair])
-    plt.show()
-
     pickle.dump((timeseries, timeseries_surrogates),open('temp/timeseries_and_surrogates.p','wb'))
     pickle.dump((timelags, std_score_dict, timeseries_hist_dict),open('temp/standardscores.p','wb'))
 
