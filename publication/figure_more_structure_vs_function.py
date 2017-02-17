@@ -7,14 +7,14 @@ from publication.plotting import show_or_savefig, plot_parameter_dependency, TEM
     format_parameter_plot
 
 
-def figure02(networks_pickel_name):
+def make_figure(figurename, figpath=None, networks_pickel_name=TEMPORARY_PICKELED_NETWORKS):
 
     structural_strengths, structural_delays, functional_strengths, functional_delays \
         = pickle.load( open(networks_pickel_name, 'rb'))
 
     # Making figure
-    fig = plt.figure('Figure S2', figsize=(16, 16))
-    fig.suptitle('Figure S2. Compare structural and functional connectivity', fontsize=14, fontweight='bold')
+    fig = plt.figure(figurename, figsize=(16, 16))
+    fig.suptitle(figurename + ' Compare structural and functional connectivity', fontsize=14, fontweight='bold')
 
     structural_thresholds, functional_thresholds, intersection_size, structural_index, jaccard_index, functional_index\
         = compare_networks(structural_strengths, functional_strengths, scale='log')
@@ -43,8 +43,8 @@ def figure02(networks_pickel_name):
     format_parameter_plot(ax4)
     ax4.set_title(r'Functional index ${|F \cup S|}/{|F|}$')
 
-
     show_or_savefig(figpath, figurename)
 
 
-figure02(TEMPORARY_PICKELED_NETWORKS)
+if __name__ == "__main__":
+    make_figure(os.path.basename(__file__))

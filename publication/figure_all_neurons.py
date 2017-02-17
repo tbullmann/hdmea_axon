@@ -14,10 +14,11 @@ logging.basicConfig(level=logging.DEBUG)
 
 # figure S1
 
-def figureS1(neurons):
+def make_figure(figurename, figpath=None, neurons=FIGURE_NEURONS):
 
     # Load electrode coordinates and calculate neighborhood
-    pos = load_positions(HIDENS_ELECTRODES_FILE)
+    pos = load_positions(mea='hidens')
+
     x = pos.x
     y = pos.y
 
@@ -35,10 +36,10 @@ def figureS1(neurons):
 
         # New figure every 6 plots
         if index_plot % 6 == 0:
-            figure_title = 'Figure S1-%d' % (1 + (index_plot / 6))
-            logging.info(figure_title)
-            fig = plt.figure(figure_title, figsize=(12, 8))
-            fig.suptitle(figure_title + '. Axons and dendrites', fontsize=14, fontweight='bold')
+            longfigurename = figurename +'-%d' % (1 + (index_plot / 6))
+            logging.info(longfigurename)
+            fig = plt.figure(longfigurename, figsize=(12, 8))
+            fig.suptitle(longfigurename + '. Axons and dendrites', fontsize=14, fontweight='bold')
 
         # Get electrodes
         index_AIS = all_AIS[neuron]
@@ -57,13 +58,14 @@ def figureS1(neurons):
         # legend_without_multiple_labels(ax)
 
         # Report plot and increase index_plot
-        logging.info('Plot %d on ' % (index_plot + 1) + figure_title)
+        logging.info('Plot %d on ' % (index_plot + 1) + longfigurename)
         index_plot += 1
+
+        show_or_savefig(figpath, longfigurename)
 
     logging.info('Plotted neurons:')
     logging.info(plotted_neurons)
 
-    show_or_savefig(figpath, figurename)
 
 
 
@@ -84,8 +86,9 @@ def test_neurite_extraction():
     print('OLD: electrode indices as keys')
     print (delay2.keys())
 
-
-# test_neurite_extraction()
-# figureS1(range(2, 63))  # Plots all neurons
-figureS1(FIGURE_NEURONS)
+if __name__ == "__main__":
+    make_figure()
+    # test_neurite_extraction()
+    # figureS1(range(2, 63))  # Plots all neurons
+    make_figure(os.path.basename(__file__))
 
