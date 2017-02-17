@@ -34,7 +34,7 @@ def make_figure(figurename, figpath=None, neuron=1544):  # TODO add ground truth
 
     # Segmentation according Bakkum
     axon_Bakkum = dict()
-    for pnr in (2, 3, 4, 5):
+    for pnr in (2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 4.25, 4.5, 4.75, 5):
         delay, _, _, _, axon = segment_axon_Bakkum(V, t, pnr_threshold=pnr)
         axon_Bakkum[pnr] = axon
     delay_Bakkum = delay
@@ -134,10 +134,10 @@ def make_figure(figurename, figpath=None, neuron=1544):  # TODO add ground truth
     ax7 = plt.subplot(337)
     xx = list()
     yy = list()
-    for pnr in axon_Bakkum.keys():
+    for pnr in np.sort(axon_Bakkum.keys()):
         xx.append(pnr)
         yy.append(compare_with_groundtruth(x[axon_Bakkum[pnr]], y[axon_Bakkum[pnr]], xg, yg))
-    plt.plot (xx,yy,'ko--')
+    plt.plot (xx,yy,'ko-')
     plt.xlabel(r'$\mathsf{V_{thr}\ [\sigma_{V}]}$')
     plt.ylabel(r'$\mathsf{H\ [\mu m]}$')
     plt.ylim((0,400))
