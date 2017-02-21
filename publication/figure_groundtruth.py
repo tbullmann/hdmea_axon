@@ -18,14 +18,14 @@ logging.basicConfig(level=logging.DEBUG)
 
 def make_figure(figurename, figpath=None, neuron=1544):  # TODO add ground truth for neuron 1536
 
-    path ='data/groundtruth/neuron%d' % neuron
+    path ='data/neuron%d' % neuron
 
     # Get traces
     V, t, x, y, trigger, neuron = load_traces(path+'.h5')
     if trigger<0:  # may added to load_traces with trigger>-1 as condition
         trigger = find_AIS(V)
 
-    t = t/20 * 1000  # convert to ms TODO Fix factor 20 in Matlab export
+    t *= 1000  # convert to ms
 
     # AIS coordinates
     index_AIS = find_AIS(V)
