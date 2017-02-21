@@ -16,15 +16,16 @@ DISCRIMINATOR_EVALUATION_FILENAME = 'temp/comparison_of_discriminators.csv'
 
 
 def make_figure(figurename, figpath=None):
-    # Load electrode coordinates
-    neighbors = electrode_neighborhoods(mea='hidens')
 
     # Load example data
-    neuron = 5  # other neurons 5, 10, 11, 20, 25, 2, 31, 41
+    neuron = 1544  # other neurons 5, 10, 11, 20, 25, 2, 31, 41
     filename = FIGURE_NEURON_FILE_FORMAT % neuron
 
     V, t, x, y, trigger, neuron = load_traces(filename)
     t *= 1000  # convert to ms
+
+    # Neighborhood from electrode positions
+    neighbors = electrode_neighborhoods(mea='hidens', x=x, y=y)
 
     Model1 = ModelDiscriminatorBakkum()
     Model1.fit(t, V, pnr_threshold=5)
