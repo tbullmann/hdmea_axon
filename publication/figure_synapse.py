@@ -88,7 +88,7 @@ def plot_synapse_delays(ax, structural_delay, functional_delay, functional_stren
     axScatter.set_xscale(xscaling)
     axScatter.legend(frameon=False, scatterpoints=1)
     axScatter.set_xlabel(r'$\mathsf{z_{max}}$', fontsize=14)
-    axScatter.set_ylabel(r'$\mathsf{\tau_{synapse}\ [ms]}$', fontsize=14)
+    axScatter.set_ylabel(r'$\mathsf{\tau_{synapse}=\tau_{spike}-\tau_{axon}\ [ms]}$', fontsize=14)
 
     # density plot
     kernel_density(axHisty, tau_synapse, scaling=yscaling, style='k-', orientation='horizontal')
