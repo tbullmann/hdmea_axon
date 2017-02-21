@@ -18,7 +18,7 @@ DISCRIMINATOR_EVALUATION_FILENAME = 'temp/comparison_of_discriminators.csv'
 def make_figure(figurename, figpath=None):
 
     # Load example data
-    neuron = 1544  # other neurons 5, 10, 11, 20, 25, 2, 31, 41
+    neuron = 5  # other neurons 5, 10, 11, 20, 25, 2, 31, 41
     filename = FIGURE_NEURON_FILE_FORMAT % neuron
 
     V, t, x, y, trigger, neuron = load_traces(filename)
