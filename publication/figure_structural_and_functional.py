@@ -37,7 +37,7 @@ def make_figure(figurename, figpath=None,
 
     # Making figure
     fig = plt.figure(figurename, figsize=(14, 14))
-    fig.suptitle(figurename + ' Structural connectivity', fontsize=14, fontweight='bold')
+    fig.suptitle(figurename + ' Estimate structural and functional connectivity', fontsize=14, fontweight='bold')
 
 
     # Examples for structual connected and unconnected neurons and structural network
