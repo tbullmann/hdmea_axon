@@ -12,7 +12,7 @@ import figure_all_neurons
 import figure_more_structure_vs_function
 
 if __name__ == "__main__":
-    figpath = 'temp/figures'
+    figpath = 'temp/figures/FrontNeurosci'
 
     figure_all_neurons.make_figure('Supplementary Figure 1', figpath=figpath)
 
