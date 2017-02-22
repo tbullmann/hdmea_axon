@@ -28,8 +28,11 @@ def make_figure(figurename, figpath=None):
         return_current_delay, dendrite = segment_dendrite_verbose(t, V, neighbors)
 
     # Making figure
-    fig = plt.figure(figurename, figsize=(18,9))
-    fig.suptitle(figurename + ' Segmentation of the dendrite based on positive peak at neighboring electrodes', fontsize=14, fontweight='bold')
+    fig = plt.figure(figurename, figsize=(13, 10))
+    if not figpath:
+        fig.suptitle(figurename + ' Segmentation of the dendrite based on positive peak at neighboring electrodes',
+                     fontsize=14, fontweight='bold')
+    plt.subplots_adjust(left=0.1, right=0.95, top=0.90, bottom=0.05)
 
     # Position of the AIS
     x_AIS = x[index_AIS]
@@ -49,7 +52,7 @@ def make_figure(figurename, figpath=None):
     ax1.set_xlim((-1, 1))
     ax1.set_xlabel(r'$\Delta$t [ms]')
     without_spines_and_ticks(ax1)
-    label_subplot(ax1, 'A', xoffset=-0.04, yoffset=-0.015)
+    plt.title('a', loc='left', fontsize=18)
 
     # subplot std_delay map
     ax2 = plt.subplot(232)
@@ -59,13 +62,13 @@ def make_figure(figurename, figpath=None):
     h2.set_ticks(np.arange(0, 4.5, step=0.5))
     cross_hair(ax2, x_AIS, y_AIS)
     mea_axes(ax2)
-    label_subplot(ax2, 'B', xoffset=-0.015, yoffset=-0.01)
+    plt.title('b', loc='left', fontsize=18)
 
     # subplot std_delay histogram
     ax3 = plt.subplot(233)
     ax3.hist(std_delay, bins=np.arange(0, max(delay), step=DELAY_EPSILON), facecolor='gray', edgecolor='gray',
              label='nothing')
-    ax3.hist(std_delay, bins=np.arange(0, thr, step=DELAY_EPSILON), facecolor='k', edgecolor='k', label='axons and dendrites')
+    ax3.hist(std_delay, bins=np.arange(0, thr, step=DELAY_EPSILON), facecolor='k', edgecolor='k', label='axon/dendrite')
     ax3.scatter(expected_std_delay, 25, marker='v', s=100, edgecolor='black', facecolor='gray', zorder=10)
     ax3.text(expected_std_delay, 30, r'$\frac{8}{\sqrt{12}}$ ms', horizontalalignment='center',
              verticalalignment='bottom', zorder=10)
@@ -76,8 +79,8 @@ def make_figure(figurename, figpath=None):
     ax3.set_ylabel(r'count')
     ax3.set_xlabel(r'$s_{\tau}$ [ms]')
     without_spines_and_ticks(ax3)
-    adjust_position(ax3, xshrink=0.01)
-    label_subplot(ax3, 'C', xoffset=-0.04, yoffset=-0.01)
+    adjust_position(ax3, xshrink=0.02)
+    plt.title('c', loc='left', fontsize=18)
 
     # -------------- second row
 
@@ -87,7 +90,7 @@ def make_figure(figurename, figpath=None):
     cross_hair(ax4, x_AIS, y_AIS)
     ax4.text(300, 300, r'$\tau \in \delta_h$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     mea_axes(ax4)
-    label_subplot(ax4, 'D', xoffset=-0.005, yoffset=-0.01)
+    plt.title('d', loc='left', fontsize=18)
 
     # plot map of thresholded std_delay
     ax5 = plt.subplot(235)
@@ -95,7 +98,7 @@ def make_figure(figurename, figpath=None):
     ax5.text(300, 300, r'$s_{\tau} < s_{min}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     cross_hair(ax5, x_AIS, y_AIS)
     mea_axes(ax5)
-    label_subplot(ax5, 'E', xoffset=-0.005, yoffset=-0.01)
+    plt.title('e', loc='left', fontsize=18)
 
     # plot map of dendrite
     ax6 = plt.subplot(236)
@@ -103,7 +106,7 @@ def make_figure(figurename, figpath=None):
     ax6.text(300, 300, 'dendrite', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     cross_hair(ax6, x_AIS, y_AIS)
     mea_axes(ax6)
-    label_subplot(ax6, 'F', xoffset=-0.005, yoffset=-0.01)
+    plt.title('f', loc='left', fontsize=18)
 
     show_or_savefig(figpath, figurename)
 

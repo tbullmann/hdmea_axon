@@ -36,8 +36,12 @@ def make_figure(figurename, figpath=None,
     neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
 
     # Making figure
-    fig = plt.figure(figurename, figsize=(14, 14))
-    fig.suptitle(figurename + ' Estimate structural and functional connectivity', fontsize=14, fontweight='bold')
+    fig = plt.figure(figurename, figsize=(13, 14))
+    if not figpath:
+        fig.suptitle(figurename + ' Estimate structural and functional connectivity', fontsize=14, fontweight='bold')
+    plt.subplots_adjust(left=0.10, right=0.95, top=0.90, bottom=0.05)
+
+
 
 
     # Examples for structual connected and unconnected neurons and structural network
@@ -54,6 +58,7 @@ def make_figure(figurename, figpath=None,
     ax1.set_title ('neuron pair %d $\longrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron))
     plot_two_colorbars(ax1)
     adjust_position(ax1, yshrink=0.01)
+    plt.title('a', loc='left', fontsize=18)
 
     ax2 = plt.subplot(423)
     plot_neuron_pair(ax2, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron2, presynaptic_neuron, delay2)
@@ -61,6 +66,7 @@ def make_figure(figurename, figpath=None,
     ax2.set_title('neuron pair %d $\dashrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron2))
     plot_two_colorbars(ax2)
     adjust_position(ax2, yshrink=0.01)
+    plt.title('b', loc='left', fontsize=18)
 
     # Whole network
     ax3 = plt.subplot(222)
@@ -71,9 +77,8 @@ def make_figure(figurename, figpath=None,
     highlight_connection(ax3, (presynaptic_neuron, postsynaptic_neuron2), neuron_pos, connected=False)
     highlight_connection(ax3, (presynaptic_neuron, postsynaptic_neuron), neuron_pos)
     ax3.text(200,250,r'$\mathsf{\rho=%3d\mu\ m^2}$' % thr_overlap_area, fontsize=14)
-
     mea_axes(ax3)
-    ax3.set_title ('structural connectivity graph')
+    plt.title('c     structural connectivity graph', loc='left', fontsize=18)
 
 
     # Examples for functional connected and unconnected neurons and functional network
@@ -92,31 +97,27 @@ def make_figure(figurename, figpath=None,
     highlight_connection(ax4, (presynaptic_neuron, postsynaptic_neuron), neuron_pos)
     ax4.text(200,250,r'$\mathsf{\zeta=%d}$' % thr_z_score, fontsize=14)
     mea_axes(ax4)
+    plt.title('f     functional connectivity graph', loc='left', fontsize=18)
+
 
     ax5 = plt.subplot(425)
     plot_z_score (ax5, presynaptic_neuron, postsynaptic_neuron, thr_z_score, peak_timelag, timeseries, timeseries_surrogates)
     ax5.set_title ('neuron pair %d $\longrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron))
     without_spines_and_ticks(ax5)
+    plt.title('d', loc='left', fontsize=18)
 
     ax6 = plt.subplot(427)
     plot_z_score (ax6, presynaptic_neuron, postsynaptic_neuron2, thr_z_score, peak_timelag, timeseries, timeseries_surrogates)
     ax6.set_title ('neuron pair %d $\longrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron2))
     without_spines_and_ticks(ax6)
+    plt.title('e', loc='left', fontsize=18)
 
     # plot_func_example_and_network(ax4, ax5, ax6, presynaptic_neuron, postsynaptic_neuron, 'reverse', thr, neuron_pos, std_score_dict,
     #                               timelags, timeseries, timeseries_surrogates)
     adjust_position(ax5, yshrink=0.01, xshrink=0.04)
     adjust_position(ax6, yshrink=0.01, xshrink=0.04)
-    ax4.set_title('functional connectivity graph')
     ax5.set_ylim((-thr_z_score, thr_z_score*3))
     ax6.set_ylim((-thr_z_score, thr_z_score*3))
-
-    fig.text(0.11, 0.9, 'A', size=30, weight='bold')
-    fig.text(0.11, 0.69, 'B', size=30, weight='bold')
-    fig.text(0.11, 0.48, 'D', size=30, weight='bold')
-    fig.text(0.11, 0.27, 'E', size=30, weight='bold')
-    fig.text(0.52, 0.9, 'C', size=30, weight='bold')
-    fig.text(0.52, 0.46, 'F', size=30, weight='bold')
 
     show_or_savefig(figpath, figurename)
 

@@ -30,9 +30,11 @@ def make_figure(figurename, figpath=None):
     logging.info (restrict_to_compartment(mean_delay, axon))
 
     # Making figure
-    fig = plt.figure(figurename, figsize=(18,14))
-    fig.suptitle(figurename + ' Segmentation of the axon based on negative peak at neighboring electrodes',
+    fig = plt.figure(figurename, figsize=(13, 13))
+    if not figpath:
+        fig.suptitle(figurename + ' Segmentation of the axon based on negative peak at neighboring electrodes',
                  fontsize=14, fontweight='bold')
+    plt.subplots_adjust(left=0.10, right=0.95, top=0.90, bottom=0.05)
 
     # Define examples
     background_color = 'green'
@@ -52,14 +54,15 @@ def make_figure(figurename, figpath=None):
     ax1.plot(t, V_axons.T,'-', color='black', label='axons' )
     ax1.plot(t, V_AIS, 'r-', label='AIS')
     ax1.scatter(delay[index_AIS], -550, marker='^', s=100, edgecolor='None', facecolor='red')
-    # plt.annotate('', (delay[index_AIS]+2, 150), (delay[index_AIS], 150), arrowprops={'arrowstyle': '->', 'color': 'red', 'shrinkA':  0, 'shrinkB': 0})
+    plt.annotate('', (delay[index_AIS]+2, 150), (delay[index_AIS], 150), arrowprops={'arrowstyle': '->', 'color': 'red', 'shrinkA':  0, 'shrinkB': 0})
     annotate_x_bar(delay[index_AIS]+(0,2), 150, text=r'$\tau > \tau_{AIS}$', arrowstyle='->')
     legend_without_multiple_labels(ax1, loc=4, frameon=False)
     ax1.set_xlim((-4,4))
     ax1.set_ylabel(r'V [$\mu$V]')
     ax1.set_xlabel(r'$\Delta$t [ms]')
     without_spines_and_ticks(ax1)
-    label_subplot(ax1, 'A', xoffset=-0.04, yoffset=-0.015)
+    # label_subplot(ax1, 'A', xoffset=-0.04, yoffset=-0.015)
+    plt.title('a', loc='left', fontsize=18)
 
     # subplot delay map
     ax2 = plt.subplot(332)
@@ -69,7 +72,8 @@ def make_figure(figurename, figpath=None):
     h2.set_ticks(np.linspace(-4, 4, num=9))
     add_AIS_and_example_neighborhoods(ax2, x, y, index_AIS, indices_background, indices_foreground)
     mea_axes(ax2)
-    label_subplot(ax2, 'B', xoffset=-0.015, yoffset=-0.015)
+    # label_subplot(ax2, 'B', xoffset=-0.015, yoffset=-0.015)
+    plt.title('b', loc='left', fontsize=18)
 
     # subplot histogram of delays
     ax3 = plt.subplot(333)
@@ -82,8 +86,9 @@ def make_figure(figurename, figpath=None):
     ax3.set_ylabel(r'count')
     ax3.set_xlabel(r'$\tau$ [ms]')
     without_spines_and_ticks(ax3)
-    adjust_position(ax3, xshrink=0.01)
-    label_subplot(ax3, 'C', xoffset=-0.04, yoffset=-0.015)
+    adjust_position(ax3, xshrink=0.02)
+    # label_subplot(ax3, 'C', xoffset=-0.04, yoffset=-0.015)
+    plt.title('c', loc='left', fontsize=18)
 
     # ------------- second row
 
@@ -93,7 +98,8 @@ def make_figure(figurename, figpath=None):
     ax4.text(-3.5, -7.5, r'$s_{\tau}$ = %0.3f ms' % std_delay[index_background_example], color=background_color)
     ax4.set_yticks([-10,-5,0,5])
     legend_without_multiple_labels(ax4, loc=4, frameon=False)
-    label_subplot(ax4, 'D', xoffset=-0.04, yoffset=-0.015)
+    # label_subplot(ax4, 'D', xoffset=-0.04, yoffset=-0.015)
+    plt.title('d', loc='left', fontsize=18)
 
     # Subplot neighborhood with correlated negative peaks
     ax5 = fig.add_subplot(6, 3, 10)
@@ -101,7 +107,8 @@ def make_figure(figurename, figpath=None):
     ax5.text(-3.5, -22, r'$s_{\tau}$ = %0.3f ms' % std_delay[index_foreground_example], color=foreground_color)
     ax5.set_yticks([-30,-20,-10,0,10])
     legend_without_multiple_labels(ax5, loc=4, frameon=False)
-    label_subplot(ax5, 'E', xoffset=-0.04, yoffset=-0.015)
+    # label_subplot(ax5, 'E', xoffset=-0.04, yoffset=-0.015)
+    plt.title('e', loc='left', fontsize=18)
 
     # subplot std_delay map
     ax6 = plt.subplot(335)
@@ -111,7 +118,8 @@ def make_figure(figurename, figpath=None):
     h2.set_ticks(np.arange(0, 4.5, step=0.5))
     add_AIS_and_example_neighborhoods(ax6, x, y, index_AIS, indices_background, indices_foreground)
     mea_axes(ax6)
-    label_subplot(ax6, 'F', xoffset=-0.015, yoffset=-0.01)
+    # label_subplot(ax6, 'F', xoffset=-0.015, yoffset=-0.01)
+    plt.title('f', loc='left', fontsize=18)
 
     # subplot std_delay histogram
     ax7 = plt.subplot(336)
@@ -128,8 +136,9 @@ def make_figure(figurename, figpath=None):
     ax7.set_ylabel(r'count')
     ax7.set_xlabel(r'$s_{\tau}$ [ms]')
     without_spines_and_ticks(ax7)
-    adjust_position(ax7, xshrink=0.01)
-    label_subplot(ax7, 'G', xoffset=-0.04, yoffset=-0.01)
+    adjust_position(ax7, xshrink=0.02)
+    # label_subplot(ax7, 'G', xoffset=-0.04, yoffset=-0.01)
+    plt.title('g', loc='left', fontsize=18)
 
     # ------------- third row
 
@@ -139,7 +148,8 @@ def make_figure(figurename, figpath=None):
     add_AIS_and_example_neighborhoods(ax8, x, y, index_AIS, indices_background, indices_foreground)
     ax8.text(300, 300, r'$\tau > \tau_{AIS}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     mea_axes(ax8)
-    label_subplot(ax8, 'H', xoffset=-0.005, yoffset=-0.01)
+    adjust_position(ax8, yshrink=0.02)
+    plt.title('h', loc='left', fontsize=18)
 
     # plot map of thresholded std_delay
     ax9 = plt.subplot(338)
@@ -147,7 +157,8 @@ def make_figure(figurename, figpath=None):
     ax9.text(300, 300, r'$s_{\tau} < s_{min}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     add_AIS_and_example_neighborhoods(ax9, x, y, index_AIS, indices_background, indices_foreground)
     mea_axes(ax9)
-    label_subplot(ax9, 'I', xoffset=-0.005, yoffset=-0.01)
+    adjust_position(ax9, yshrink=0.02)
+    plt.title('i', loc='left', fontsize=18)
 
     # plot map of axon
     ax10 = plt.subplot(339)
@@ -155,7 +166,8 @@ def make_figure(figurename, figpath=None):
     ax10.text(300, 300, 'axon', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     add_AIS_and_example_neighborhoods(ax10, x, y, index_AIS, indices_background, indices_foreground)
     mea_axes(ax10)
-    label_subplot(ax10, 'J', xoffset=-0.005, yoffset=-0.01)
+    adjust_position(ax10, yshrink=0.02)
+    plt.title('j', loc='left', fontsize=18)
 
     show_or_savefig(figpath, figurename)
 

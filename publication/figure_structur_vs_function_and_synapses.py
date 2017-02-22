@@ -33,18 +33,20 @@ def make_figure(figurename, figpath=None):
 
     # Making figure
     fig = plt.figure(figurename, figsize=(13, 13))
-    fig.suptitle(figurename + ' Compare structural and functional connectivity', fontsize=14, fontweight='bold')
+    if not figpath:
+        fig.suptitle(figurename + ' Compare structural and functional connectivity', fontsize=14, fontweight='bold')
+    plt.subplots_adjust(left=0.10, right=0.92, top=0.90, bottom=0.05)
 
     # plot network measures
     ax1 = plt.subplot(4,2,1)
     plot_vs_weigth(ax1, structural_strengths)
     ax1.set_xlabel(r'$\mathsf{\rho\ [\mu m^2]}$', fontsize=14)
-    # ax1.set_title('Structural network')
+    plt.title('a', loc='left', fontsize=18)
 
     ax2 = plt.subplot(4,2,3)
     plot_vs_weigth(ax2, functional_strengths)
     ax2.set_xlabel(r'$\mathsf{\zeta}$', fontsize=14)
-    # ax2.set_title('Functional network')
+    plt.title('b', loc='left', fontsize=18)
 
     ax3 = plt.subplot(2,2,2)
     adjust_position(ax3, xshift=0.04, yshift=-0.01)
@@ -52,12 +54,16 @@ def make_figure(figurename, figpath=None):
     axScatter1 = plot_correlation(ax3, structural_strengths, functional_strengths, xscale='log', yscale='log')
     axScatter1.set_xlabel (r'$\mathsf{|A \cup D|\ [\mu m^2}$]', fontsize=14)
     axScatter1.set_ylabel (r'$\mathsf{z_{max}}$', fontsize=14)
+    plt.title('c', loc='left', fontsize=18)
 
     # synapses
 
     ax4 = plt.subplot(223)
     delayed_pairs, simultaneous_pairs, synapse_delays = plot_synapse_delays(ax4, structural_delays, functional_delays,
                                                                             functional_strengths, ylim=(-2, 7))
+    plt.title('d', loc='left', fontsize=18)
+
+
     ax5 = plt.subplot(224)
     trigger, _, _, _ = load_compartments(FIGURE_ARBORS_FILE)
     pos = load_positions(mea='hidens')
@@ -69,20 +75,13 @@ def make_figure(figurename, figpath=None):
     # Legend by proxy
     ax5.hlines(0, 0, 0, linestyle='-', color='red', label='<1ms')
     ax5.hlines(0, 0, 0, linestyle='-', color='green', label='>1ms')
-    ax5.text(200, 150,'Synaptic delay graph', fontsize=14)
-    ax5.text(200, 300, r'$\mathsf{\rho=300\mu m^2}$', fontsize=14)
-    ax5.text(200, 400, r'$\mathsf{\zeta=1}$', fontsize=14)
+    ax5.text(200, 250, r'$\mathsf{\rho=300\mu m^2}$', fontsize=14)
+    ax5.text(200, 350, r'$\mathsf{\zeta=1}$', fontsize=14)
     plt.legend(frameon=False)
     mea_axes(ax5)
+    adjust_position(ax5, yshift=-0.01)
+    plt.title('e     synaptic delay graph', loc='left', fontsize=18)
 
-    # Label subplots
-
-
-    label_subplot(ax1,'A')
-    label_subplot(ax2,'B')
-    label_subplot(ax3,'C',xoffset=-0.05)
-    label_subplot(ax4, 'D', xoffset=-0.04, yoffset=-0.02)
-    label_subplot(ax5, 'E', xoffset=-0.02, yoffset=-0.02)
 
     show_or_savefig(figpath, figurename)
 

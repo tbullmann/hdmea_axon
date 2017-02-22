@@ -66,9 +66,12 @@ def make_figure(figurename, figpath=None, neuron=1544):  # TODO add ground truth
         y_Bullmann[period] = ys
 
     # Plotting
-    fig = plt.figure(figurename, figsize=(15, 11))
-    fig.suptitle(figurename + ' Haussdorf distance from ground truth for neuron %d' % neuron,
+    fig = plt.figure(figurename, figsize=(13, 9))
+    if not figpath:
+        fig.suptitle(figurename + ' Haussdorf distance from ground truth for neuron %d' % neuron,
                  fontsize=14, fontweight='bold')
+    plt.subplots_adjust(left=0.10, right=0.95, top=0.90, bottom=0.05)
+
     bbox = [200,850,1200,1720]
     V2size = lambda x : np.abs(x) * 2
 
@@ -76,38 +79,43 @@ def make_figure(figurename, figpath=None, neuron=1544):  # TODO add ground truth
     ax1 = plt.subplot(331)
     plot_image_axon_delay_voltage(ax1, path+'axon', axon_Bakkum[5], delay_Bakkum, Vmin_Bakkum, x, y, transform=V2size)
     cross_hair(ax1, x_AIS, y_AIS, color='red')
-    mea_axes(ax1, bbox=bbox)
+    mea_axes(ax1, bbox=bbox, barposition='inside')
     ax1.set_title('Method I')
     plt.text(0.1, 0.9, r'$\mathsf{V_n>5\sigma_{V}}$', ha='left', va='center', transform=ax1.transAxes)
+    plt.title('a', loc='left', fontsize=18)
 
     # Map axons for Bullmann's method, grid spacing ~ 20um
     ax2 = plt.subplot(332)
     ax2h = plot_image_axon_delay_voltage(ax2, path+'axon', axon_Bullmann[1], delay_Bullmann[1], Vmin_Bullmann[1], x_Bullmann[1], y_Bullmann[1], transform=V2size)
     cross_hair(ax2, x_AIS, y_AIS, color='red')
-    mea_axes(ax2, bbox=bbox)
+    mea_axes(ax2, bbox=bbox, barposition='inside')
     ax2.set_title('Method II')
     plt.text(0.1, 0.9, r'$\mathsf{r\approx20\mu m}$', ha='left', va='center', transform=ax2.transAxes)
+    plt.title('b', loc='left', fontsize=18)
 
     # Ground truth
     ax3 = plt.subplot(333)
     ImageIterator(path).plot()
     cross_hair(ax2, x_AIS, y_AIS, color='red')
-    mea_axes(ax3, bbox=bbox)
+    mea_axes(ax3, bbox=bbox, barposition='inside')
     ax3.set_title('Groundtruth')
+    plt.title('c', loc='left', fontsize=18)
 
     # Map axons for Bakkum's method, low threshold
     ax4 = plt.subplot(334)
     plot_image_axon_delay_voltage(ax4, path+'axon', axon_Bakkum[3], delay_Bakkum, Vmin_Bakkum, x, y, transform=V2size)
     cross_hair(ax4, x_AIS, y_AIS, color='red')
-    mea_axes(ax4, bbox=bbox)
+    mea_axes(ax4, bbox=bbox, barposition='inside')
     plt.text(0.1, 0.9, r'$\mathsf{V_n>3\sigma_{V}}$', ha='left', va='center', transform=ax4.transAxes)
+    plt.title('d', loc='left', fontsize=18)
 
     # Map axons for Bullmann's method, grid spacing ~ 40um
     ax5 = plt.subplot(335)
     plot_image_axon_delay_voltage(ax5, path+'axon', axon_Bullmann[2], delay_Bullmann[2], Vmin_Bullmann[2], x_Bullmann[2], y_Bullmann[2], transform=V2size)
     cross_hair(ax5, x_AIS, y_AIS, color='red')
-    mea_axes(ax5, bbox=bbox)
+    mea_axes(ax5, bbox=bbox, barposition='inside')
     plt.text(0.1, 0.9, r'$\mathsf{r\approx40\mu m}$', ha='left', va='center', transform=ax5.transAxes)
+    plt.title('e', loc='left', fontsize=18)
 
     # Colorbar and Size legend for A, B, D, E
     ax6 = plt.subplot(336)
@@ -144,6 +152,7 @@ def make_figure(figurename, figpath=None, neuron=1544):  # TODO add ground truth
     plt.xlim((6,1))
     adjust_position(ax7, xshrink=0.01, yshrink=0.01)
     without_spines_and_ticks(ax7)
+    plt.title('f', loc='left', fontsize=18)
 
     # Bullmann's method: Haussdorf distance vs. spacing of electrodes in the hexagonal grid
     ax8 = plt.subplot(338)
@@ -159,14 +168,7 @@ def make_figure(figurename, figpath=None, neuron=1544):  # TODO add ground truth
     plt.xlim((0,80))
     adjust_position(ax8, xshrink=0.01, yshrink=0.01)
     without_spines_and_ticks(ax8)
-
-    label_subplot(ax1, 'A', xoffset=-0.04, yoffset=-0.015)
-    label_subplot(ax2, 'B', xoffset=-0.04, yoffset=-0.015)
-    label_subplot(ax3, 'C', xoffset=-0.04, yoffset=-0.015)
-    label_subplot(ax4, 'D', xoffset=-0.04, yoffset=-0.015)
-    label_subplot(ax5, 'E', xoffset=-0.04, yoffset=-0.015)
-    label_subplot(ax7, 'F', xoffset=-0.05, yoffset=-0.015)
-    label_subplot(ax8, 'G', xoffset=-0.05, yoffset=-0.015)
+    plt.title('g', loc='left', fontsize=18)
 
     show_or_savefig(figpath, figurename)
 

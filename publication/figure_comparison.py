@@ -41,8 +41,10 @@ def make_figure(figurename, figpath=None):
     print (Model2.summary(subject=filename, method='Bullmann'))
 
     # Plotting Frames A~E
-    fig = plt.figure(figurename, figsize=(16, 10))
-    fig.suptitle(figurename + ' Comparison of segmentation methods', fontsize=14, fontweight='bold')
+    fig = plt.figure(figurename, figsize=(13, 10))
+    if not figpath:
+        fig.suptitle(figurename + ' Comparison of segmentation methods', fontsize=14, fontweight='bold')
+    plt.subplots_adjust(left=0.1, right=0.95, top=0.90, bottom=0.05)
 
     ax1 = plt.subplot(231)
     Model1.plot(ax1, xlabel=r'$\log_{10}(V_{n}/\sigma_{V})$', fontsize=14)
@@ -55,6 +57,8 @@ def make_figure(figurename, figpath=None):
                  xytext=(Model1.threshold, 200),
                  arrowprops=dict(facecolor='black', width=1),
                  size=14)
+    plt.title('a', loc='left', fontsize=18)
+
 
     ax2 = plt.subplot(232)
     Model2.plot(ax2, xlabel=r'$s_{\tau}$ [ms]', fontsize=14)
@@ -67,6 +71,8 @@ def make_figure(figurename, figpath=None):
                  xytext=(Model2.threshold, 200),
                  arrowprops=dict(facecolor='black', width=1),
                  size=14)
+    plt.title('b', loc='left', fontsize=18)
+
 
     ax3 = plt.subplot(233)
     Model1.plot_ROC(ax3, color='blue', marker='x', label = 'I')
@@ -76,34 +82,38 @@ def make_figure(figurename, figpath=None):
     ax3.set_xlim((0,1))
     ax3.set_ylim((0,1))
     ax3.legend(loc=4, scatterpoints=1, frameon=False)
+    plt.title('c', loc='left', fontsize=18)
+
 
     ax4 = plt.subplot(234)
     Model1.plot_Map(ax4, x, y)
     ax4.text(300, 300, r'I: $V_{n} > %d\sigma_{V}; \tau > \tau_{AIS}$' % np.power(10, Model1.threshold),
             bbox=dict(facecolor='white', pad=5, edgecolor='none'), size=14)
     mea_axes(ax4)
+    plt.title('d', loc='left', fontsize=18)
+
 
     ax5 = plt.subplot(235)
     Model2.plot_Map(ax5, x, y)
     ax5.text(300, 300, r'II: $s_{\tau} < s_{min}; \tau > \tau_{AIS}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'), size=14)
     mea_axes(ax5)
+    plt.title('e', loc='left', fontsize=18)
+
 
     # Plotting Evaluation
     ax6 =plt.subplot(2,9,16)
     plot_pairwise_comparison(ax6, evaluation, 'AUC', ylim=(0, 0.5), legend=False)
+    adjust_position(ax6, yshrink = 0.05)
+    plt.title('f', loc='left', fontsize=18)
     ax6b =plt.subplot(2,9,17)
     plot_pairwise_comparison(ax6b, evaluation, 'TPR', ylim=(0, 1), legend=False)
-    adjust_position(ax6b, xshift = 0.01)
+    adjust_position(ax6b, xshift = 0.01, yshrink = 0.05)
+    plt.title('g', loc='left', fontsize=18)
     ax6c =plt.subplot(2,9,18)
     plot_pairwise_comparison(ax6c, evaluation, 'FPR', ylim=(0, 0.01), legend=False)
-    adjust_position(ax6c, xshift = 0.02)
+    adjust_position(ax6c, xshift = 0.02, yshrink = 0.05)
+    plt.title('h', loc='left', fontsize=18)
 
-    label_subplot(ax1, 'A', xoffset=-0.05, yoffset=-0.01)
-    label_subplot(ax2, 'B', xoffset=-0.05, yoffset=-0.01)
-    label_subplot(ax3, 'C', xoffset=-0.04, yoffset=-0.01)
-    label_subplot(ax4, 'D', xoffset=-0.03, yoffset=-0.01)
-    label_subplot(ax5, 'E', xoffset=-0.03, yoffset=-0.01)
-    label_subplot(ax6, 'F', xoffset=-0.04, yoffset=-0.01)
 
     show_or_savefig(figpath, figurename)
 
