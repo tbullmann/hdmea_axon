@@ -289,16 +289,18 @@ class ImageIterator:
             raw_image = plt.imread(fullfilename)
             return raw_image, tile
 
-    def plot(self, transform=np.sqrt, cmap='gray_r'):
+    def plot(self, transform=np.sqrt, cmap='gray_r', alpha=1):
         """
         :param transform: image transformation; default sqrt, could be None as well
         :param cmap: colormap; default: inverted gray scale
+        :param alpha: transparancy; default: 1 (not transparent)
         :return: ?
         """
         for raw_image, tile in self:
             image = transform(raw_image) if transform else raw_image
             plt.imshow(image,
                        cmap=cmap,
+                       alpha=alpha,
                        extent=[tile.xstart, tile.xend, tile.yend, tile.ystart])
             # NOTE: yend and ystart are reverted due to hidens coordinate system TODO: Maybe fix in tilespec.txt file
 
