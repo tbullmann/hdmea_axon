@@ -16,7 +16,7 @@ from publication.comparison import segment_axon_Bakkum, ImageIterator, distanceB
 logging.basicConfig(level=logging.DEBUG)
 
 
-def make_figure(figurename, figpath=None, neuron=1544):  # TODO add ground truth for neuron 1536
+def make_figure(figurename, figpath=None, neuron=1536):  # TODO add ground truth for neuron 1536
 
     path ='data/neuron%d' % neuron
 
@@ -72,7 +72,9 @@ def make_figure(figurename, figpath=None, neuron=1544):  # TODO add ground truth
                  fontsize=14, fontweight='bold')
     plt.subplots_adjust(left=0.10, right=0.95, top=0.90, bottom=0.05)
 
-    bbox = [200,850,1200,1720]
+    bbox = None
+    if neuron==1544:
+        bbox = [200,850,1200,1720]
     V2size = lambda x : np.abs(x) * 2
 
     # Map axons for Bakkum's method, high threshold
@@ -180,8 +182,8 @@ def compare_with_groundtruth(x, y, xg, yg):
     return distance
 
 
-def plot_image_axon_delay_voltage(ax, path, axon, delay, V, x, y, transform=np.abs):
-    ImageIterator(path).plot()
+def plot_image_axon_delay_voltage(ax, path, axon, delay, V, x, y, transform=np.abs, alpha=1):
+    ImageIterator(path).plot(alpha=alpha)
     radius = transform(V) if transform else V
     s = ax.scatter(x[axon], y[axon], s=radius[axon], c=delay[axon],
                    marker='o', edgecolor='none',
@@ -198,5 +200,48 @@ def neighbors_from_electrode_positions(x, y, neighborhood_radius = 20):
     return neighbors
 
 
+def test(neuron=1536, method=2):
+
+    path ='data/neuron%d' % neuron
+
+    # Get traces
+    V, t, x, y, trigger, neuron = load_traces(path+'.h5')
+    if trigger<0:  # may added to load_traces with trigger>-1 as condition
+        trigger = find_AIS(V)
+    t *= 1000  # convert to ms
+
+    print ('Time %1.2f .. %1.2f ms ' % (min(t),max(t)))
+
+    # AIS coordinates
+    index_AIS = find_AIS(V)
+    x_AIS = x[index_AIS]
+    y_AIS = y[index_AIS]
+
+    # Negative peak
+    Vmin = np.min(V, axis=1)
+
+    # Segmentation
+    if method==1:
+        delay, _, _, _, axon = segment_axon_Bakkum(V, t, pnr_threshold=5)
+    else:
+        neighbors = neighbors_from_electrode_positions(x, y)
+        delay, _, std_delay, _, thr, _, _, _, axon = segment_axon_verbose(t, V, neighbors)
+
+    print ('Axonal delay %1.2f .. %1.2f ms ' % ( min(delay[axon]),max(delay[axon])) )
+
+    ax = plt.subplot(111)
+    V2size = lambda x : np.abs(x) * 2
+    axh = plot_image_axon_delay_voltage(ax, path + 'axon', axon, delay, Vmin, x, y, transform=V2size, alpha=0.5)
+    cross_hair(ax, x_AIS, y_AIS, color='red')
+    mea_axes(ax)
+
+    # Compare with ground truth
+    xg, yg = ImageIterator(path + 'axon').truth()
+    H = compare_with_groundtruth(x, y, xg, yg)
+    plt.title('Neuron %d, Method %d: H=%1.3f um' % (neuron, method, H) )
+
+    plt.show()
+
 if __name__ == "__main__":
-    make_figure(os.path.basename(__file__))
+    # make_figure(os.path.basename(__file__))
+    test()
