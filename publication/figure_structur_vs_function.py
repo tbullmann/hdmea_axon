@@ -155,7 +155,7 @@ def plot_correlation(ax, xdict, ydict, best_keys=None, xlim = None, ylim = None,
     plt.vlines(0, 0, 0, colors='black', linestyles=':', label='all')
     plt.vlines(0, 0, 0, colors='black', linestyles='--', label='both')
     if best_keys: plt.vlines(0, 0, 0, colors='red', linestyles='-', label='best')
-    plt.vlines(0, 0, 0, colors='black', linestyles='-', label='equal')
+    # plt.vlines(0, 0, 0, colors='black', linestyles='-', label='equal')
     plt.legend(frameon=False, fontsize=12)
     # define limits
     if not xlim: xlim = (min(x_corr), max(x_corr))
@@ -164,8 +164,8 @@ def plot_correlation(ax, xdict, ydict, best_keys=None, xlim = None, ylim = None,
     if dofit:
         axScatter.plot(np.unique(x_corr), np.poly1d(np.polyfit(x_corr, y_corr, 1))(np.unique(x_corr)), 'k--', label='all')
         axScatter.plot(np.unique(x_best), np.poly1d(np.polyfit(x_best, y_best, 1))(np.unique(x_best)), 'r-', label='best')
-    # add x=y
-    axScatter.plot(xlim,ylim,'k-')
+    # # add x=y
+    # axScatter.plot(xlim,ylim,'k-')
     # set limits
     axScatter.set_xlim(xlim)
     axScatter.set_ylim(ylim)

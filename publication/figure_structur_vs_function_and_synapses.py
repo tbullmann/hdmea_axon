@@ -52,7 +52,7 @@ def make_figure(figurename, figpath=None):
     adjust_position(ax3, xshift=0.04, yshift=-0.01)
     # plot distribution of strength
     axScatter1 = plot_correlation(ax3, structural_strengths, functional_strengths, xscale='log', yscale='log')
-    axScatter1.set_xlabel (r'$\mathsf{|A \cup D|\ [\mu m^2}$]', fontsize=14)
+    axScatter1.set_xlabel (r'$\mathsf{|A \cap D|\ [\mu m^2}$]', fontsize=14)
     axScatter1.set_ylabel (r'$\mathsf{z_{max}}$', fontsize=14)
     plt.title('c', loc='left', fontsize=18)
 

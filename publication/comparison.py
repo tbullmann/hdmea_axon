@@ -197,7 +197,8 @@ class ModelDiscriminator(ModelFunction):
     def plot_ROC(self,ax, color='blue', marker='x', label = 'ROC', AUC=True):
         ax.fill_between(self.FPR, self.FPR, self.TPR, edgecolor='none', facecolor=color, alpha=0.2)
         ax.plot(self.FPR, self.TPR, color=color, label=label)
-        ax.scatter(self.FPR_at_threshold, self.TPR_at_threshold, color=color, marker=marker, label='%s threshold' % label)
+        h = ax.scatter(self.FPR_at_threshold, self.TPR_at_threshold, 50, color=color, marker=marker, label='%s threshold' % label)
+        h.set_clip_on(False)
         ax.set_xlabel ('FPR')
         ax.set_ylabel ('TPR')
 

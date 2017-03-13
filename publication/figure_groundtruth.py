@@ -16,7 +16,7 @@ from publication.comparison import segment_axon_Bakkum, ImageIterator, distanceB
 logging.basicConfig(level=logging.DEBUG)
 
 
-def make_figure(figurename, figpath=None, neuron=1536):  # TODO add ground truth for neuron 1536
+def make_figure(figurename, figpath=None, neuron=1544):  # TODO add ground truth for neuron 1536
 
     path ='data/neuron%d' % neuron
 
@@ -92,7 +92,7 @@ def make_figure(figurename, figpath=None, neuron=1536):  # TODO add ground truth
     cross_hair(ax2, x_AIS, y_AIS, color='red')
     mea_axes(ax2, bbox=bbox, barposition='inside')
     ax2.set_title('Method II')
-    plt.text(0.1, 0.9, r'$\mathsf{r\approx20\mu m}$', ha='left', va='center', transform=ax2.transAxes)
+    plt.text(0.1, 0.9, r'$\mathsf{r\approx18\mu m}$', ha='left', va='center', transform=ax2.transAxes)
     plt.title('b', loc='left', fontsize=18)
 
     # Ground truth
@@ -116,7 +116,7 @@ def make_figure(figurename, figpath=None, neuron=1536):  # TODO add ground truth
     plot_image_axon_delay_voltage(ax5, path+'axon', axon_Bullmann[2], delay_Bullmann[2], Vmin_Bullmann[2], x_Bullmann[2], y_Bullmann[2], transform=V2size)
     cross_hair(ax5, x_AIS, y_AIS, color='red')
     mea_axes(ax5, bbox=bbox, barposition='inside')
-    plt.text(0.1, 0.9, r'$\mathsf{r\approx40\mu m}$', ha='left', va='center', transform=ax5.transAxes)
+    plt.text(0.1, 0.9, r'$\mathsf{r\approx36\mu m}$', ha='left', va='center', transform=ax5.transAxes)
     plt.title('e', loc='left', fontsize=18)
 
     # Colorbar and Size legend for A, B, D, E
@@ -161,7 +161,7 @@ def make_figure(figurename, figpath=None, neuron=1536):  # TODO add ground truth
     xx = list()
     yy = list()
     for period in axon_Bullmann.keys():
-        xx.append(period * 20)
+        xx.append(period * 18)
         yy.append(compare_with_groundtruth(x_Bullmann[period][axon_Bullmann[period]], y_Bullmann[period][axon_Bullmann[period]], xg, yg))
     plt.plot(xx, yy, 'ko--')
     plt.xlabel(r'$\mathsf{r\ [\mu m]}$')
@@ -243,5 +243,5 @@ def test(neuron=1536, method=2):
     plt.show()
 
 if __name__ == "__main__":
-    # make_figure(os.path.basename(__file__))
-    test()
+    make_figure(os.path.basename(__file__))
+    # test()
