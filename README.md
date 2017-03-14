@@ -2,7 +2,7 @@
 
 This repositiory contains the source code as well as the linkt to the example data to replicate all figures. 
 The Hana (high density microelectrode array recording analysis) pipeline is open source, see [licence](LICENCE.md).
-The example data consists of spike triggered averages and events that were extracted from the rawrecordings.  
+The example data consists of spike triggered averages and events that were extracted from the raw recordings.  
 
 If you use this library in your research, please cite:
 
@@ -36,7 +36,7 @@ cd publication
 mkdir temp 
 mkdir figures
 ```
-Download the data and unzip them:
+Download the data (322.52 MB) and unzip them:
 ```bash
 wget "https://www.dropbox.com/s/ahet0hrios57q4a/data.zip"
 unzip data.zip
@@ -44,16 +44,16 @@ unzip data.zip
 
 ### Replicate the figures
 
-Assuming you are in ```/publication``` you append your ```PYTHONPATH```, activate the environment ```hdmea``` and run the script from command line:
+Assuming you are in ```/publication```, you append your ```PYTHONPATH```, activate the environment ```hdmea``` and run the script from command line:
 ```bash
 export PYTHONPATH=../:$PYTHONPATH     # otherwise cannot see /hana
 source activate hdmea 
 python all_figures.py 
 ```
-The script should finish after 5~10 minutes. If temporary files exist, the figures itself will take only about 2 minutes.
+The script should finish after 5~10 minutes. If the temporary files already exist, the figures itself will take only about 2 minutes.
 A total of 6 main and 5 supplementary figures can be found as ```*.eps``` and ```*.png``` files in ```/figures```.
 
-In case you are using PyCharm you have to specifiy the [use of the project interpreter](hdmea_env_in_pycharm.jpg) from the ```hdmea``` environment.
+In case you are using PyCharm you have to specify the [use of the project interpreter](hdmea_env_in_pycharm.jpg) from the ```hdmea``` environment.
 
 ## Folders
 Folders structure and important files:
