@@ -6,3 +6,4 @@ publication/temp
 publication/figures
 *.pyc
 test/
+.idea
