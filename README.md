@@ -10,43 +10,48 @@ If you use this library in your research, please cite:
 > Bullmann T, et al. Network analysis of high-density microelectrode recordings (????) ????
 
 
-## Installation
+## How to use
 
-### Installing hana 
+### Source code
 
-Clone hdmea source folder 'hdmea'.
+Clone 'hdmea' from github:
 
 ```bash
 git clone http://github.com/tbullmann/hdmea
-cd hdmea
-git submodule init
-git submodule update --recursive
 ```
 
-### Installing requirements
-Conda
+### Folders and data
 
-### Folder and getting data
-
-Simply type ```bash install.sh``` or make folder or symlinks as you wish.
+Change to the folder:
+```bash
+cd hdmea
+```
+Now simply type ```bash install.sh``` or make folder or symlinks as you wish:
 ```bash
 cd publication
 mkdir temp
 mkdir figures
 ```
-Download the data
+Download the data:
 ```bash
 wget "https://www.dropbox.com/s/ahet0hrios57q4a/data.zip"
 unzip data.zip
 ```
 
+### Install requirements
 
-
-### Replicating the figures
-
-Running the script from command line assuming you are in ```/publications```
+Using conda to create an enviroment and install requirements:
 ```bash
-export PYTHONPATH=../:$PYTHONPATH
+conda create --name hdmea python
+source activate hdmea 
+conda install --file hana/requirements.txt
+```
+
+### Replicate the figures
+
+Running the script from command line assuming you are in ```/publications```:
+```bash
+export PYTHONPATH=../:$PYTHONPATH  # otherwise cannot see /hana
 source activate hdmea 
 pyhton all_figures.py 
 ```
