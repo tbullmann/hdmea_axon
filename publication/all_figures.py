@@ -10,7 +10,7 @@ import figure_all_neurons
 import figure_more_structure_vs_function
 
 if __name__ == "__main__":
-    figpath = 'manuscript/Network_SciRep/figures'
+    figpath = 'figures'
 
     figure_all_neurons.make_figure('Supplementary Figure 1', figpath=figpath)
 
