@@ -1,9 +1,8 @@
 # Network analysis of high-density microelectrode recordings
 
-Source code as well as example data to replicate the figures. 
-The Hana (high density microelectrode array recording analysis) analysis pipeline is open source.
+This repositiory contains the source code as well as the linkt to the example data to replicate all figures. 
+The Hana (high density microelectrode array recording analysis) pipeline is open source, see [licence](LICENCE.md).
 The example data consists of spike triggered averages and events that were extracted from the rawrecordings.  
-
 
 If you use this library in your research, please cite:
 
@@ -14,44 +13,65 @@ If you use this library in your research, please cite:
 
 ### Source code
 
-Clone 'hdmea' from github:
+Clone 'hdmea' from github and and change to the folder:
 
 ```bash
 git clone http://github.com/tbullmann/hdmea
-```
-
-### Folders and data
-
-Change to the folder:
-```bash
 cd hdmea
 ```
-Now simply type ```bash install.sh``` or make folder or symlinks as you wish:
-```bash
-cd publication
-mkdir temp
-mkdir figures
-```
-Download the data:
-```bash
-wget "https://www.dropbox.com/s/ahet0hrios57q4a/data.zip"
-unzip data.zip
-```
-
 ### Install requirements
 
-Using conda to create an enviroment and install requirements:
+Using conda to create an environment ```hdmea``` and install the requirements:
 ```bash
 conda create --name hdmea python
 source activate hdmea 
 conda install --file hana/requirements.txt
 ```
 
+### Folders and data
+
+Now simply type ```bash install.sh``` or make these folder/symlinks as you wish:
+```bash
+cd publication
+mkdir temp 
+mkdir figures
+```
+Download the data and unzip them:
+```bash
+wget "https://www.dropbox.com/s/ahet0hrios57q4a/data.zip"
+unzip data.zip
+```
+
 ### Replicate the figures
 
-Running the script from command line assuming you are in ```/publications```:
+Assuming you are in ```/publication``` you append your ```PYTHONPATH```, activate the environment ```hdmea``` and run the script from command line:
 ```bash
-export PYTHONPATH=../:$PYTHONPATH  # otherwise cannot see /hana
+export PYTHONPATH=../:$PYTHONPATH     # otherwise cannot see /hana
 source activate hdmea 
-pyhton all_figures.py 
+python all_figures.py 
+```
+
+## Folders
+Folders structure and important files:
+```
+.
+├── hana
+│   ├── requirements.txt
+│   ├── LICENCE.md
+│   ├── README.md
+│   └── ...
+├── matlab
+│   └── ... (Export function for Matlab)
+├── misc           
+│   └── ... (Old figures)
+├── publication
+│   ├── data  
+│   ├── temp   
+│   ├── figures 
+│   ├── all_figures.py
+│   └── ...
+├── install.sh
+├── LICENCE.md
+├── README.md
+└── ...
 ```
