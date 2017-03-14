@@ -44,8 +44,9 @@ unzip data.zip
 
 ### Replicating the figures
 
-Running the script from command line
+Running the script from command line assuming you are in ```/publications```
 ```bash
+export PYTHONPATH=../:$PYTHONPATH
 source activate hdmea 
 pyhton all_figures.py 
 ```
