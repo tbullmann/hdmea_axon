@@ -1,7 +1,8 @@
 workspace.xml
 .DS_Store
-hana/data/*.*
-publication/data/*.*
-publication/temp/*.*
+hana/data/
+publication/data/
+publication/temp/
+publication/figures/
 *.pyc
 test/
