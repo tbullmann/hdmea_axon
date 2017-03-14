@@ -7,7 +7,7 @@ The example data consists of spike triggered averages and events that were extra
 
 If you use this library in your research, please cite:
 
-> Bullmann T, et al. (????) ????
+> Bullmann T, et al. Network analysis of high-density microelectrode recordings (????) ????
 
 
 ## Installation
@@ -24,25 +24,28 @@ git submodule update --recursive
 ```
 
 ### Installing requirements
+Conda
 
-(...)
+### Folder and getting data
 
-## Replicating the figures
-
+Simply type ```bash install.sh``` or make folder or symlinks as you wish.
 ```bash
 cd publication
-```
-Make folders (or symlink) for figures and temporary file
-```bash
 mkdir temp
 mkdir figures
 ```
-Download the data from dropbox
+Download the data
 ```bash
-wget "https://www.dropbox.com/s/.../data.zip"
+wget "https://www.dropbox.com/s/ahet0hrios57q4a/data.zip"
 unzip data.zip
 ```
-Running the script
+
+
+
+### Replicating the figures
+
+Running the script from command line
 ```bash
+source activate hdmea 
 pyhton all_figures.py 
 ```
