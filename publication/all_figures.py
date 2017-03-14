@@ -1,5 +1,3 @@
-import figure_outline
-import figure_spatial_spread
 import figure_axon
 import figure_groundtruth
 import figure_comparison
@@ -22,5 +20,3 @@ if __name__ == "__main__":
     figure_structur_vs_function_and_synapses.make_figure('Figure6', figpath=figpath)
 
     figure_more_structure_vs_function.make_figure('Supplementary Figure 2', figpath=figpath)
-    figure_outline.make_figure('Supplementary Figure 4', figpath=figpath)
-    figure_spatial_spread.make_figure('Supplementary Figure 3', figpath=figpath)
