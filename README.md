@@ -50,6 +50,8 @@ export PYTHONPATH=../:$PYTHONPATH     # otherwise cannot see /hana
 source activate hdmea 
 python all_figures.py 
 ```
+The script should finish after 5~10 minutes. If temporary files exist, the figures itself will take only about 2 minutes.
+A total of 6 main and 5 supplementary figures can be found as ```*.eps``` and ```*.png``` files in ```/figures```.
 
 ## Folders
 Folders structure and important files:
