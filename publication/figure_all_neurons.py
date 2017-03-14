@@ -24,7 +24,7 @@ def make_figure(figurename, figpath=None, neurons=FIGURE_NEURONS):
 
     # all_triggers, all_AIS, all_axonal_delays, all_dendritic_return_currents = extract_all_compartments(neurons)
     if not os.path.isfile(FIGURE_ARBORS_FILE):
-        extract_and_save_compartments(FIGURE_NEURON_FILE_FORMAT, FIGURE_ARBORS_FILE)
+        extract_and_save_compartments(FIGURE_NEURON_FILE_FORMAT, FIGURE_ARBORS_FILE, ignore=[1544])
     all_triggers, all_AIS, all_axonal_delays, all_dendritic_return_currents = load_compartments(FIGURE_ARBORS_FILE)
 
     index_plot = 0
