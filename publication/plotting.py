@@ -50,15 +50,18 @@ def plot_parameter_dependency(ax, Z, x, y, w=None, levels=None, fmt='%d', legend
         plt.legend(loc=legend_loc, handles=[black_patch, red_patch])
 
 
-def plot_loglog_fit(ax, y, title = 'size distribution', datalabel = 'data', xlabel = 'rank', ylabel = 'size', rank_threshold=0):
+def plot_loglog_fit(ax, y, datamarker = '.k', datalabel='data', xlabel ='rank', ylabel ='size', fit=True, rank_threshold=0):
     """
     Log log plot of size distributions with power law fitted.
     :param ax: axis handle
     :param y: data
     :param title: subplot title
+    :param datamarker: data marker
     :param datalabel: data label
     :param xlabel: x axis label
     :param ylabel: y axis label
+    :param fit: add fit to the data (default: True)
+    :param rank_threshold: discard the largest values from fitting (rank<rank_threshold)
     """
 
     # sort y data in descending order, define corresponding rank starting from 1 for larges y
@@ -78,16 +81,16 @@ def plot_loglog_fit(ax, y, title = 'size distribution', datalabel = 'data', xlab
     fitted_y = f(fitted_x, *popt)
 
     # Plot data and legend
-    ax.plot(x, y, '.k', label=datalabel)
-    ax.plot(fitted_x, fitted_y, 'r-', label="fit $y=%.3f x ^{%.3f}$" % (popt[0], popt[1]))
-    plt.legend(loc='upper right')
+    ax.plot(x, y, datamarker, label=datalabel)
+    if fit:
+        ax.plot(fitted_x, fitted_y, 'k-', label="fit $y=%.3f x ^{%.3f}$" % (popt[0], popt[1]))
+    plt.legend(loc='lower left', frameon=False, numpoints=4)
 
     # Scale and label axes, add title
     ax.set_xscale('log')
     ax.set_yscale('log')
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-    ax.set_title(title)
 
 
 def without_spines_and_ticks(ax):

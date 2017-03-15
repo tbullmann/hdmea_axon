@@ -6,6 +6,7 @@ import figure_structural_and_functional
 import figure_structur_vs_function_and_synapses
 import figure_all_neurons
 import figure_more_structure_vs_function
+import figure_polychronous_groups
 
 if __name__ == "__main__":
     figpath = 'figures'
@@ -18,5 +19,6 @@ if __name__ == "__main__":
     figure_dendrite.make_figure('Figure4', figpath=figpath)
     figure_structural_and_functional.make_figure('Figure5', figpath=figpath)
     figure_structur_vs_function_and_synapses.make_figure('Figure6', figpath=figpath)
+    figure_polychronous_groups.make_figure('Figure7', figpath=figpath)
 
     figure_more_structure_vs_function.make_figure('Supplementary Figure 2', figpath=figpath)
