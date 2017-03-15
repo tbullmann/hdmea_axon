@@ -256,12 +256,12 @@ def analyse_networks(dictionary, nbins=None):
         G.clear()
         G.add_edges_from(edges)
         if G:
+            n[index] = nx.number_of_nodes(G)
+            k[index] = nx.number_of_edges(G)
+            D[index] = float(k[index]) / n[index]
             giant = max(nx.connected_component_subgraphs(G.to_undirected()), key=len)
-            n[index] = nx.number_of_nodes(giant)
-            k[index] = nx.number_of_edges(giant)
             C[index] = nx.average_clustering(giant)
             L[index] = nx.average_shortest_path_length(giant)
-            D[index] = float(k[index]) / n[index]
     return values, n, k, C, L, D
 
 
