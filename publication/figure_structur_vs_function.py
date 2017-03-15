@@ -5,6 +5,7 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import NullFormatter
+from scipy.stats import pearsonr
 
 from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks
 from hana.recording import load_timeseries, average_electrode_area
@@ -12,7 +13,7 @@ from hana.segmentation import load_neurites
 from hana.structure import all_overlaps
 from publication.plotting import show_or_savefig, FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, TEMPORARY_PICKELED_NETWORKS, \
     plot_parameter_dependency, format_parameter_plot, compare_networks, analyse_networks, label_subplot, adjust_position, \
-    correlate_two_dicts, kernel_density, axes_to_3_axes
+    correlate_two_dicts_verbose, kernel_density, axes_to_3_axes
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -130,7 +131,7 @@ def plot_correlation(ax, xdict, ydict, best_keys=None, xlim = None, ylim = None,
     # getting the data
     x_all = xdict.values()
     y_all = ydict.values()
-    x_corr, y_corr = correlate_two_dicts(xdict, ydict)
+    x_corr, y_corr, keys = correlate_two_dicts_verbose(xdict, ydict)
     if best_keys: x_best, y_best = correlate_two_dicts(xdict, ydict, best_keys)
     # new axes
     rect_histx, rect_histy, rect_scatter = axes_to_3_axes(ax)
@@ -154,6 +155,7 @@ def plot_correlation(ax, xdict, ydict, best_keys=None, xlim = None, ylim = None,
     plt.sca(ax)
     plt.vlines(0, 0, 0, colors='black', linestyles=':', label='all')
     plt.vlines(0, 0, 0, colors='black', linestyles='--', label='both')
+    plt.vlines(0, 0, 0, colors='black', linestyles='-', label='fit')
     if best_keys: plt.vlines(0, 0, 0, colors='red', linestyles='-', label='best')
     # plt.vlines(0, 0, 0, colors='black', linestyles='-', label='equal')
     plt.legend(frameon=False, fontsize=12)
@@ -162,8 +164,11 @@ def plot_correlation(ax, xdict, ydict, best_keys=None, xlim = None, ylim = None,
     if not ylim: ylim = (min(y_corr), max(y_corr))
     # add fits
     if dofit:
-        axScatter.plot(np.unique(x_corr), np.poly1d(np.polyfit(x_corr, y_corr, 1))(np.unique(x_corr)), 'k--', label='all')
-        axScatter.plot(np.unique(x_best), np.poly1d(np.polyfit(x_best, y_best, 1))(np.unique(x_best)), 'r-', label='best')
+        axScatter.plot(np.unique(x_corr),
+                       np.exp(np.poly1d(np.polyfit(np.log(x_corr), np.log(y_corr), 1))(np.unique(np.log(x_corr)))),
+                       'k-', label='all')
+        # axScatter.plot(np.unique(x_best), np.poly1d(np.polyfit(x_best, y_best, 1))(np.unique(x_best)), 'r-', label='best')
+    print ( 'Pearsons test: r=%f, p=%f' % pearsonr(np.log(x_corr), np.log(y_corr)) + ', n=%d' % len(x_corr) )
     # # add x=y
     # axScatter.plot(xlim,ylim,'k-')
     # set limits

@@ -6,7 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import NullFormatter
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-
+from scipy.stats import ttest_ind as ttest
+from scipy.stats import median_test
 
 from hana.misc import unique_neurons
 from hana.recording import load_positions
@@ -79,12 +80,17 @@ def plot_synapse_delays(ax, structural_delay, functional_delay, functional_stren
     # Find putative chemical synapse with synaptic delay > 1ms, and other with delays <= 1ms
     delayed_indices = np.where(tau_synapse>1)
     delayed_pairs = np.array(pairs)[delayed_indices]
+    n_delayed = len(delayed_pairs)
     simultaneous_indices = np.where(tau_synapse<=1)
     simultaneous_pairs = np.array(pairs)[simultaneous_indices]
+    n_simultanous = len(simultaneous_pairs)
+    n_total = n_delayed + n_simultanous
 
     # scatter plot
-    axScatter.scatter(z_max, tau_synapse, color='red', label='<1ms')
-    axScatter.scatter(z_max[delayed_indices],tau_synapse[delayed_indices], color='green', label='>1ms')
+    axScatter.scatter(z_max, tau_synapse, color='red',
+                      label='>1ms (%d%%)' % (100.0*n_delayed/n_total))
+    axScatter.scatter(z_max[delayed_indices],tau_synapse[delayed_indices], color='green',
+                      label='>1ms (%d%%)' % (100.0*n_simultanous/n_total))
     axScatter.set_xscale(xscaling)
     axScatter.legend(frameon=False, scatterpoints=1)
     axScatter.set_xlabel(r'$\mathsf{z_{max}}$', fontsize=14)
@@ -104,6 +110,15 @@ def plot_synapse_delays(ax, structural_delay, functional_delay, functional_stren
         kernel_density(axHistx, z_max[delayed_indices], scaling=yscaling, style='g-', orientation='vertical')
         kernel_density(axHistx, z_max[simultaneous_indices], scaling=yscaling, style='r-', orientation='vertical')
         axHistx.set_xscale(xscaling)
+
+        print ('Mean z_max for delayed connections = %1.3f' % np.median(z_max[delayed_indices]))
+        print ('Mean z_max for instantaneous connections = %1.3f' % np.median(z_max[simultaneous_indices]))
+
+        t, p = ttest(np.log(z_max[simultaneous_indices]), np.log(z_max[delayed_indices]))
+        print ('t-test on log-transformed values: t=%1.3f, p=%f, n=%d vs. %d' % (t, p, n_simultanous, n_delayed))
+
+        xhi2, p, med, tbl = median_test (z_max[simultaneous_indices], z_max[delayed_indices])
+        print ('Mood\'s median test: xhi2=%1f, p=%f, med=%1f, n=%d vs. %d' % (xhi2, p, med, n_simultanous, n_delayed))
 
     # define limits
     max_strength_synapse = max(z_max)

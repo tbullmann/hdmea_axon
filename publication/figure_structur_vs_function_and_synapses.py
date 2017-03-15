@@ -41,17 +41,21 @@ def make_figure(figurename, figpath=None):
     ax1 = plt.subplot(4,2,1)
     plot_vs_weigth(ax1, structural_strengths)
     ax1.set_xlabel(r'$\mathsf{\rho\ [\mu m^2]}$', fontsize=14)
+    xlim = ax1.get_xlim()
+    ax1.text(xlim[0], 230, '                       structural connectivity', fontsize=14, horizontalalignment='left', verticalalignment='top')
     plt.title('a', loc='left', fontsize=18)
 
     ax2 = plt.subplot(4,2,3)
     plot_vs_weigth(ax2, functional_strengths)
     ax2.set_xlabel(r'$\mathsf{\zeta}$', fontsize=14)
+    xlim = ax2.get_xlim()
+    ax2.text(xlim[0], 550, '                       functional connectivity', fontsize=14, horizontalalignment='left', verticalalignment='top')
     plt.title('b', loc='left', fontsize=18)
 
     ax3 = plt.subplot(2,2,2)
     adjust_position(ax3, xshift=0.04, yshift=-0.01)
     # plot distribution of strength
-    axScatter1 = plot_correlation(ax3, structural_strengths, functional_strengths, xscale='log', yscale='log')
+    axScatter1 = plot_correlation(ax3, structural_strengths, functional_strengths, xscale='log', yscale='log', dofit=True)
     axScatter1.set_xlabel (r'$\mathsf{|A \cap D|\ [\mu m^2}$]', fontsize=14)
     axScatter1.set_ylabel (r'$\mathsf{z_{max}}$', fontsize=14)
     plt.title('c', loc='left', fontsize=18)
