@@ -159,9 +159,9 @@ def make_figure(figurename, surrogate='timeseries', thr=1, figpath=None):
     neuron_pos = neuron_position_from_trigger_electrode (pos, trigger)
     all_delay = pickle.load(open('temp/all_delays.p', 'rb'))
     plot_pcg_on_network(ax4, polychronous_group, all_delay, neuron_pos)
-    plt.title('e', loc='left', fontsize=18)
-    ax4.text(300, 150, 'polychronous group', color='r', fontsize=14)
-    ax4.text(300, 300, 'network of putative chemical synapses', color='gray', fontsize=14)
+    plt.title('d', loc='left', fontsize=18)
+    ax4.text(300, 150, '$\leftrightarrows$ activated by polychronous group', color='r', fontsize=14)
+    ax4.text(300, 300, '$\leftrightarrows$ putative chemical synapses', color='gray', fontsize=14)
 
 
     # # plot polychronous groups with in different arrow colors
