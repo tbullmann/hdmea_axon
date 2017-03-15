@@ -51,7 +51,7 @@ source activate hdmea
 python all_figures.py 
 ```
 The script should finish after 5~10 minutes. If the temporary files already exist, the figures itself will take only about 2 minutes.
-A total of 6 main and 5 supplementary figures can be found as ```*.eps``` and ```*.png``` files in ```/figures```.
+A total of 7 main and 5 supplementary figures can be found as ```*.eps``` and ```*.png``` files in ```/figures```.
 
 In case you are using PyCharm you have to specify the [use of the project interpreter](hdmea_env_in_pycharm.jpg) from the ```hdmea``` environment.
 
