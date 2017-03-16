@@ -172,6 +172,12 @@ def make_figure(figurename, figpath=None, neuron=1544):  # TODO add ground truth
     without_spines_and_ticks(ax8)
     plt.title('g', loc='left', fontsize=18)
 
+    ax9 = plt.subplot(339)
+    img = plt.imread('larger_neighborhoods.png')
+    plt.imshow(img)
+    plt.axis('off')
+    plt.title('h', loc='left', fontsize=18)
+
     show_or_savefig(figpath, figurename)
 
 
