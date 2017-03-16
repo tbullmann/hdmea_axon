@@ -75,13 +75,13 @@ def make_figure(figurename, surrogate='timeseries', thr=1, figpath=None):
     if not os.path.isfile('temp/connected_events_surrogate_1.p'):
         putative_delays = pickle.load(open('temp/all_delays.p', 'rb'))
         timeseries = pickle.load(open('temp/partial_timeseries.p', 'rb'))
-        surrogate_delays = shuffle_network(putative_delays, method='shuffle values')
+        surrogate_delays = shuffle_network(putative_delays, method='shuffle in-nodes')
         connected_surrogate_events = filter(timeseries, surrogate_delays, additional_synaptic_delay=0, synaptic_jitter=0.0005)
         pickle.dump(connected_surrogate_events, open('temp/connected_events_surrogate_1.p', 'wb'))
     if not os.path.isfile('temp/connected_events_surrogate_2.p'):
         putative_delays = pickle.load(open('temp/all_delays.p', 'rb'))
         timeseries = pickle.load(open('temp/partial_timeseries.p', 'rb'))
-        surrogate_delays = shuffle_network(putative_delays, method='shuffle in-nodes')
+        surrogate_delays = shuffle_network(putative_delays, method='shuffle values')
         connected_surrogate_events = filter(timeseries, surrogate_delays, additional_synaptic_delay=0,
                                         synaptic_jitter=0.0005)
         pickle.dump(connected_surrogate_events, open('temp/connected_events_surrogate_2.p', 'wb'))
@@ -146,10 +146,10 @@ def make_figure(figurename, surrogate='timeseries', thr=1, figpath=None):
     without_spines_and_ticks(ax3)
     adjust_position(ax3, xshrink=0.01)
     xlim = ax3.get_xlim()
-    ax3.text(xlim[0], 60, r'  $\leftrightarrows$ polychronous group', color='r', fontsize=14,
-                horizontalalignment='left', verticalalignment='top')
-    ax3.text(xlim[0], 56, r'  $\bullet$  spikes ', fontsize=14,
+    ax3.text(xlim[0], 60, r'  $\bullet$  spikes ', fontsize=14,
              horizontalalignment='left', verticalalignment='top')
+    ax3.text(xlim[0], 55, r'  $\leftrightarrows$ polychronous group', color='r', fontsize=14,
+                horizontalalignment='left', verticalalignment='top')
     plt.title('c', loc='left', fontsize=18)
 
     # plot example of a single polychronous group onto network
@@ -160,8 +160,8 @@ def make_figure(figurename, surrogate='timeseries', thr=1, figpath=None):
     all_delay = pickle.load(open('temp/all_delays.p', 'rb'))
     plot_pcg_on_network(ax4, polychronous_group, all_delay, neuron_pos)
     plt.title('d', loc='left', fontsize=18)
-    ax4.text(300, 150, '$\leftrightarrows$ activated by polychronous group', color='r', fontsize=14)
-    ax4.text(300, 300, '$\leftrightarrows$ putative chemical synapses', color='gray', fontsize=14)
+    ax4.text(300, 150, '$\leftrightarrows$ putative chemical synapses', color='gray', fontsize=14)
+    ax4.text(300, 300, '$\leftrightarrows$ activated by polychronous group', color='r', fontsize=14)
 
 
     # # plot polychronous groups with in different arrow colors
@@ -213,6 +213,20 @@ def plot_surrogates(neuron_pos, original_network, network_with_shuffle_in_nodes,
     without_spines_and_ticks(ax4)
     adjust_position(ax4, yshrink=0.02, xshrink=0.03, xshift=-0.02, yshift=0.01)
 
+    arrow_outside(ax1, xy=(1.7, 0.5), color='r')
+    arrow_outside(ax1, xy=(1.3, -0.3), color='g')
+
+
+def arrow_outside(ax1, xy=(2., 0.5), color='r'):
+    ax1.annotate('',
+                 xy=xy, xycoords='axes fraction',
+                 xytext=(0.5, 0.4), textcoords='axes fraction',
+                 size=20,
+                 arrowprops=dict(color=color,
+                                 arrowstyle="->",
+                                 linewidth=2,
+                                 connectionstyle="arc3,rad=-0.3"))
+
 
 def plot_small_network(ax, network, neuron_pos):
     plot_neuron_points(ax, unique_neurons(network), neuron_pos)
@@ -237,4 +251,5 @@ def test_plot_surrogates():
 if __name__ == "__main__":
     # testing_algorithm()
     # test_plot_surrogates()
+    # plt.show()
     make_figure(os.path.basename(__file__))
