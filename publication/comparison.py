@@ -250,16 +250,17 @@ class ModelDiscriminatorBullmann(ModelDiscriminator):
     """
     Discriminator as described in Bullmann et al, submitted
     """
-    def __init__(self, nbins=200, min_x=0, max_x=4, max_n=11016):
+    def __init__(self, nbins=200, min_x=0, max_x=1, max_n=11016):
         ModelDiscriminator.__init__(self,
-            formula_string='amp_N * beta.pdf(x / %f, a_N, b_N) + amp_P * expon.pdf(x / %f, 0, scale_P)' % (max_x, max_x),
+            formula_string='amp_N * beta.pdf(x, a_N, b_N) + amp_P * expon.pdf(x, 0, scale_P)',
             bounds_dict=dict(amp_N=[0, max_n], a_N=[0, 10], b_N=[0, 10],
                              amp_P=[0, max_n], scale_P=[0, 0.2]),
             min_x = min_x, max_x = max_x, nbins = nbins)
 
     def fit(self, t, V, neighbors):
         _, _, values, _, std_threshold, _, _, _, axon = segment_axon_verbose(t, V, neighbors)
-        ModelDiscriminator.fit(self, values)
+        self.T = max(t) - min(t)
+        ModelDiscriminator.fit(self, values/(self.T/2))
         self.threshold = std_threshold
         self.axon = axon
 

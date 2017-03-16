@@ -61,14 +61,14 @@ def make_figure(figurename, figpath=None):
 
 
     ax2 = plt.subplot(232)
-    Model2.plot(ax2, xlabel=r'$s_{\tau}$ [ms]', fontsize=14)
+    Model2.plot(ax2, xlabel=r'$\frac{s_{\tau}}{T/2}$', fontsize=20)
     adjust_position(ax2, xshrink=0.01)
-    ax2.text(0.3,450, 'Method II', size=14)
+    ax2.text(0.1,450, 'Method II', size=14)
     ax2.set_ylim((0,500))
     without_spines_and_ticks(ax2)
     ax2.annotate('(adaptive) threshold \n$s_{min}=%1.3f$ms' % Model2.threshold,
-                 xy=(Model2.threshold, 0),
-                 xytext=(Model2.threshold, 200),
+                 xy=(Model2.threshold/(Model2.T/2), 0),
+                 xytext=(Model2.threshold/(Model2.T/2), 200),
                  arrowprops=dict(facecolor='black', width=1),
                  size=14)
     plt.title('b', loc='left', fontsize=18)
