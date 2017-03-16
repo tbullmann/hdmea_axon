@@ -39,14 +39,11 @@ def testing_algorithm():
         print (sum(valid))
 
 
-def make_figure(figurename, surrogate='timeseries', thr=1, figpath=None):
+def make_figure(figurename, thr=1, figpath=None):
     """
-
-    :param figurename:
-    :param surrogate:
-    :param thr: threshold for functional connectivity
-    :param figpath:
-    :return:
+    :param figurename:how to name the figure
+    :param thr: threshold for functional connectivity (default = 1)
+    :param figpath: where to save the figure
     """
 
     if not os.path.isfile('temp/all_delays.p'):
@@ -109,12 +106,15 @@ def make_figure(figurename, surrogate='timeseries', thr=1, figpath=None):
     pcgs2, pcgs2_size = extract_pcgs('temp/connected_events_surrogate_2.p')
     pcgs3, pcgs3_size = extract_pcgs('temp/connected_events_surrogate_3.p')
 
-
     # Making figure
     fig = plt.figure(figurename, figsize=(12, 10))
     if not figpath:
         fig.suptitle(figurename + ' Polychronous groups', fontsize=14, fontweight='bold')
     plt.subplots_adjust(left=0.10, right=0.92, top=0.90, bottom=0.05)
+
+    # # Plot polychronous groups with in different arrow colors
+    # ax = plt.subplot(221)
+    # plot_pcgs(ax, list_of_polychronous_groups[35:55])
 
     # # plot example of a single polychronous group
     # ax1 = plt.subplot(221)
@@ -124,7 +124,7 @@ def make_figure(figurename, surrogate='timeseries', thr=1, figpath=None):
     # adjust_position(ax1, xshrink=0.01)
     # plt.title('a', loc='left', fontsize=18)
 
-    test_plot_surrogates()
+    panel_explaining_surrogate_networks()
 
     # plot size distribution
     ax2 = plt.subplot(222)
@@ -163,11 +163,6 @@ def make_figure(figurename, surrogate='timeseries', thr=1, figpath=None):
     ax4.text(300, 150, '$\leftrightarrows$ putative chemical synapses', color='gray', fontsize=14)
     ax4.text(300, 300, '$\leftrightarrows$ activated by polychronous group', color='r', fontsize=14)
 
-
-    # # plot polychronous groups with in different arrow colors
-    # ax = plt.subplot(111)
-    # plot_pcgs(ax, list_of_polychronous_groups[35:55])
-
     show_or_savefig(figpath, figurename)
 
 
@@ -183,7 +178,7 @@ def extract_pcgs(filename):
     return list_of_polychronous_groups, polychronous_group_size
 
 
-def plot_surrogates(neuron_pos, original_network, network_with_shuffle_in_nodes, network_with_shuffle_values):
+def plot_small_networks(neuron_pos, original_network, network_with_shuffle_in_nodes, network_with_shuffle_values):
 
     original_values, shuffled_values, _ = correlate_two_dicts_verbose(original_network, network_with_shuffle_values)
 
@@ -218,14 +213,9 @@ def plot_surrogates(neuron_pos, original_network, network_with_shuffle_in_nodes,
 
 
 def arrow_outside(ax1, xy=(2., 0.5), color='r'):
-    ax1.annotate('',
-                 xy=xy, xycoords='axes fraction',
-                 xytext=(0.5, 0.4), textcoords='axes fraction',
-                 size=20,
-                 arrowprops=dict(color=color,
-                                 arrowstyle="->",
-                                 linewidth=2,
-                                 connectionstyle="arc3,rad=-0.3"))
+    ax1.annotate('', xy=xy, xycoords='axes fraction', xytext=(0.5, 0.4),
+                 textcoords='axes fraction', size=20,
+                 arrowprops=dict(color=color, arrowstyle="->", linewidth=2, connectionstyle="arc3,rad=-0.3"))
 
 
 def plot_small_network(ax, network, neuron_pos):
@@ -234,18 +224,19 @@ def plot_small_network(ax, network, neuron_pos):
     mea_axes(ax, style='None')
 
 
-def test_plot_surrogates():
+def panel_explaining_surrogate_networks():
 
     # neuron_pos
     trigger, _, axon_delay, dendrite_peak = load_compartments(FIGURE_ARBORS_FILE)
     pos = load_positions()
     neuron_pos = neuron_position_from_trigger_electrode (pos, trigger)
 
+    # get example networks
     original_network = pickle.load(open('temp/all_delays.p', 'rb'))
     network_with_shuffle_in_nodes = shuffle_network(original_network, method='shuffle in-nodes')
     network_with_shuffle_values = shuffle_network(original_network, method='shuffle values')
 
-    plot_surrogates(neuron_pos, original_network, network_with_shuffle_in_nodes, network_with_shuffle_values)
+    plot_small_networks(neuron_pos, original_network, network_with_shuffle_in_nodes, network_with_shuffle_values)
 
 
 if __name__ == "__main__":
