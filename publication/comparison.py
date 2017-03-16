@@ -261,7 +261,7 @@ class ModelDiscriminatorBullmann(ModelDiscriminator):
         _, _, values, _, std_threshold, _, _, _, axon = segment_axon_verbose(t, V, neighbors)
         self.T = max(t) - min(t)
         ModelDiscriminator.fit(self, values/(self.T/2))
-        self.threshold = std_threshold
+        self.threshold = std_threshold/(self.T/2)
         self.axon = axon
 
     def predict(self):
