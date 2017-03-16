@@ -146,7 +146,7 @@ def make_figure(figurename, figpath=None):
     ax8 = plt.subplot(337)
     ax8.scatter(x, y, c=positive_delay, s=10, marker='o', edgecolor='None', cmap='gray_r')
     add_AIS_and_example_neighborhoods(ax8, x, y, index_AIS, indices_background, indices_foreground)
-    ax8.text(300, 300, r'$\tau > \tau_{AIS}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
+    ax8.text(300, 300, r'$\tau > \tau_{AIS}$', fontsize=18, bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     mea_axes(ax8)
     adjust_position(ax8, yshrink=0.02)
     plt.title('h', loc='left', fontsize=18)
@@ -154,7 +154,7 @@ def make_figure(figurename, figpath=None):
     # plot map of thresholded std_delay
     ax9 = plt.subplot(338)
     ax9.scatter(x, y, c=valid_delay, s=10, marker='o', edgecolor='None', cmap='gray_r')
-    ax9.text(300, 300, r'$s_{\tau} < s_{min}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
+    ax9.text(300, 300, r'$s_{\tau} < s_{min}$', fontsize=18, bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     add_AIS_and_example_neighborhoods(ax9, x, y, index_AIS, indices_background, indices_foreground)
     mea_axes(ax9)
     adjust_position(ax9, yshrink=0.02)
@@ -163,7 +163,7 @@ def make_figure(figurename, figpath=None):
     # plot map of axon
     ax10 = plt.subplot(339)
     ax10.scatter(x, y, c=axon, s=10, marker='o', edgecolor='None', cmap='gray_r')
-    ax10.text(300, 300, 'axon', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
+    ax10.text(300, 300, 'axon', fontsize=18, bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     add_AIS_and_example_neighborhoods(ax10, x, y, index_AIS, indices_background, indices_foreground)
     mea_axes(ax10)
     adjust_position(ax10, yshrink=0.02)

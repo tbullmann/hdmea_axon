@@ -79,8 +79,8 @@ def make_figure(figurename, figpath=None):
     # Legend by proxy
     ax5.hlines(0, 0, 0, linestyle='-', color='red', label='<1ms')
     ax5.hlines(0, 0, 0, linestyle='-', color='green', label='>1ms')
-    ax5.text(200, 250, r'$\mathsf{\rho=300\mu m^2}$', fontsize=14)
-    ax5.text(200, 350, r'$\mathsf{\zeta=1}$', fontsize=14)
+    ax5.text(200, 250, r'$\mathsf{\rho=300\mu m^2}$', fontsize=18)
+    ax5.text(200, 350, r'$\mathsf{\zeta=1}$', fontsize=18)
     plt.legend(frameon=False)
     mea_axes(ax5)
     adjust_position(ax5, yshift=-0.01)

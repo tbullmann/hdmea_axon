@@ -88,14 +88,14 @@ def make_figure(figurename, figpath=None):
     ax4 = plt.subplot(234)
     ax4.scatter(x, y, c=return_current_delay, s=10, marker='o', edgecolor='None', cmap='gray_r')
     cross_hair(ax4, x_AIS, y_AIS)
-    ax4.text(300, 300, r'$\tau \in \delta_h$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
+    ax4.text(300, 300, r'$\tau \in \delta_h$', fontsize=18, bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     mea_axes(ax4)
     plt.title('d', loc='left', fontsize=18)
 
     # plot map of thresholded std_delay
     ax5 = plt.subplot(235)
     ax5.scatter(x, y, c=valid_delay, s=10, marker='o', edgecolor='None', cmap='gray_r')
-    ax5.text(300, 300, r'$s_{\tau} < s_{min}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
+    ax5.text(300, 300, r'$s_{\tau} < s_{min}$', fontsize=18, bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     cross_hair(ax5, x_AIS, y_AIS)
     mea_axes(ax5)
     plt.title('e', loc='left', fontsize=18)
@@ -103,7 +103,7 @@ def make_figure(figurename, figpath=None):
     # plot map of dendrite
     ax6 = plt.subplot(236)
     ax6.scatter(x, y, c=dendrite, s=10, marker='o', edgecolor='None', cmap='gray_r')
-    ax6.text(300, 300, 'dendrite', bbox=dict(facecolor='white', pad=5, edgecolor='none'))
+    ax6.text(300, 300, 'dendrite', fontsize=14, bbox=dict(facecolor='white', pad=5, edgecolor='none'))
     cross_hair(ax6, x_AIS, y_AIS)
     mea_axes(ax6)
     plt.title('f', loc='left', fontsize=18)

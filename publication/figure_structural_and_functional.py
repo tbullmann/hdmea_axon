@@ -76,7 +76,7 @@ def make_figure(figurename, figpath=None,
     plot_network (ax3, all_delay, neuron_pos)
     highlight_connection(ax3, (presynaptic_neuron, postsynaptic_neuron2), neuron_pos, connected=False)
     highlight_connection(ax3, (presynaptic_neuron, postsynaptic_neuron), neuron_pos)
-    ax3.text(200,250,r'$\mathsf{\rho=%3d\mu\ m^2}$' % thr_overlap_area, fontsize=14)
+    ax3.text(200,250,r'$\mathsf{\rho=%3d\ \mu m^2}$' % thr_overlap_area, fontsize=18)
     mea_axes(ax3)
     plt.title('c     structural connectivity graph', loc='left', fontsize=18)
 
@@ -95,7 +95,7 @@ def make_figure(figurename, figpath=None,
     plot_neuron_id(ax4, neuron_dict, neuron_pos)
     highlight_connection(ax4, (presynaptic_neuron, postsynaptic_neuron2), neuron_pos, connected=False)
     highlight_connection(ax4, (presynaptic_neuron, postsynaptic_neuron), neuron_pos)
-    ax4.text(200,250,r'$\mathsf{\zeta=%d}$' % thr_z_score, fontsize=14)
+    ax4.text(200,250,r'$\mathsf{\zeta=%d}$' % thr_z_score, fontsize=18)
     mea_axes(ax4)
     plt.title('f     functional connectivity graph', loc='left', fontsize=18)
 
