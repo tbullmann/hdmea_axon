@@ -67,8 +67,8 @@ def make_figure(figurename, figpath=None):
     ax2.set_ylim((0,500))
     without_spines_and_ticks(ax2)
     ax2.annotate('(adaptive) threshold \n$s_{min}=%1.3f$ms' % Model2.threshold,
-                 xy=(Model2.threshold/(Model2.T/2), 0),
-                 xytext=(Model2.threshold/(Model2.T/2), 200),
+                 xy=(Model2.threshold, 0),
+                 xytext=(Model2.threshold, 200),
                  arrowprops=dict(facecolor='black', width=1),
                  size=14)
     plt.title('b', loc='left', fontsize=18)
