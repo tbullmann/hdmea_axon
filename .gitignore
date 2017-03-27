@@ -2,6 +2,7 @@ workspace.xml
 .DS_Store
 hana/data/
 publication/data
+publication/data2
 publication/temp
 publication/figures
 *.pyc
