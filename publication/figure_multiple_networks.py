@@ -1,36 +1,64 @@
-from hana.recording import load_positions
-from hana.plotting import mea_axes
-from hana.segmentation import extract_and_save_compartments, load_compartments, load_neurites
-from publication.plotting import show_or_savefig, cross_hair, adjust_position, FIGURE_NEURONS
-
-import os
-import re
-import numpy as np
-from matplotlib import pyplot as plt
 import logging
+import os
+import pickle
+
+from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks
+from hana.recording import load_timeseries
+from hana.segmentation import extract_and_save_compartments
+from hana.segmentation import load_neurites
+from hana.structure import all_overlaps
+from publication.plotting import FIGURE_CULTURES
+
 logging.basicConfig(level=logging.DEBUG)
+
 
 # Extract multiple networks
 
-def test_neurite_extraction():
+def extract_multiple_networks(cultures=FIGURE_CULTURES):
 
-    path_to_directories = 'data2'
-    dir_regex = 'hidens(\d+)'
+    print FIGURE_CULTURES
 
-    for sub_dir in os.listdir(path_to_directories):
-        if re.compile(dir_regex).match(sub_dir):
-            neuron_file_template = os.path.join(path_to_directories,sub_dir,'neuron%d.h5')
-            neurites_filename = os.path.join('temp', sub_dir+'_all_neurites.h5')
-            print neuron_file_template
-            print neurites_filename
-            # neuron_file_template = 'data2/hidens1666/neuron%d.h5'
-            # neurites_filename = 'temp/hidens1666_all_neurites.h5'
+    for culture in cultures:
+            sub_dir = 'hidens%d' % culture
+
+            # Maybe create output directory; hdf5 filename for all neurites
+            results_directory = os.path.join('temp', sub_dir)
+            if not os.path.exists(results_directory):
+                os.makedirs(results_directory)
+
+            # hdf5 filename template for spike triggered average data for each neuron
+            data_directory = os.path.join('data2', sub_dir)
+            neuron_file_template = os.path.join(data_directory, 'neuron%d.h5')
+
+            # Maybe extract neurites
+            neurites_filename = os.path.join(results_directory, 'all_neurites.h5')
             if not os.path.isfile(neurites_filename):
                 extract_and_save_compartments(neuron_file_template, neurites_filename)
 
-    trigger, AIS, delay, positive_peak = load_compartments(neurites_filename)
-    print('NEW: neuron indices as keys')
-    print(trigger.keys())
+            # Maybe extract structural and functional network
+            two_networks_pickel_name = os.path.join(results_directory, 'two_networks.p')
+            if not os.path.isfile(two_networks_pickel_name):
+                # structural networks
+                axon_delay, dendrite_peak = load_neurites(neurites_filename)
+                structural_strength, _, structural_delay = all_overlaps(axon_delay, dendrite_peak, thr_peak=0, thr_ratio=0,
+                                                                        thr_overlap=1)
+                # functional networks: only use forward direction
+                neurons_with_axons = axon_delay.keys()
+                logging.info('Neurons with axon: {}'.format(neurons_with_axons))
+                events_filename = os.path.join(data_directory, 'events.h5')
+                timeseries = load_timeseries(events_filename, neurons=neurons_with_axons)
+                logging.info('Surrogate time series')
+                timeseries_surrogates = timeseries_to_surrogates(timeseries, n=20, factor=2)
+                logging.info('Compute standard score for histograms')
+                timelags, std_score_dict, timeseries_hist_dict = all_timelag_standardscore(timeseries, timeseries_surrogates)
+                functional_strength, functional_delay, _, _ = all_peaks(timelags, std_score_dict, thr=1, direction='forward')
+                # pickle structural and functional network
+                pickle.dump((structural_strength, structural_delay, functional_strength, functional_delay),
+                            open(two_networks_pickel_name, 'wb'))
+                logging.info('Saved structural and functional network')
+
+            # Maybe extract PCG
+
 
 
 def test_bug_in_half_pak_width():
@@ -101,7 +129,7 @@ def test_bug_in_find_valley():
 
 
 if __name__ == "__main__":
-    # test_neurite_extraction()
+    extract_multiple_networks()
     # test_bug_in_half_pak_width()
-    test_bug_in_find_valley()
+    # test_bug_in_find_valley()
 
