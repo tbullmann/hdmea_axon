@@ -12,7 +12,8 @@ from hana.function import timeseries_to_surrogates, all_peaks
 from hana.plotting import plot_neuron_points, plot_network, mea_axes
 from hana.misc import unique_neurons
 
-from publication.plotting import FIGURE_ARBORS_FILE, plot_loglog_fit, FIGURE_EVENTS_FILE, adjust_position, show_or_savefig, correlate_two_dicts_verbose, without_spines_and_ticks
+from publication.plotting import FIGURE_ARBORS_FILE, plot_loglog_fit, FIGURE_EVENTS_FILE, adjust_position, \
+    show_or_savefig, correlate_two_dicts_verbose, without_spines_and_ticks
 
 logging.basicConfig(level=logging.DEBUG)
 
