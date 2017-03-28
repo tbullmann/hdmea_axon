@@ -109,7 +109,8 @@ def extract_multiple_networks(cultures=FIGURE_CULTURES):
             partial_surrogate_timeseries_pickle_name = os.path.join(results_directory,'partial_surrogate_timeseries.p')
             if not os.path.isfile(partial_surrogate_timeseries_pickle_name):
                 timeseries = pickle.load(open(partial_timeseries_pickle_name, 'rb'))
-                timeseries = {neuron: timeseries[pair] for neuron in timeseries if len(timeseries[neuron]) > 0}
+                # remove (partial) time series without spikes
+                timeseries = {neuron: timeseries[neuron] for neuron in timeseries if len(timeseries[neuron]) > 0}
                 surrogate_timeseries = timeseries_to_surrogates(timeseries, n=1, factor=2)
                 # keeping only the first of several surrogate times series for each neuron
                 surrogate_timeseries = {neuron: timeseries[0] for neuron, timeseries in
