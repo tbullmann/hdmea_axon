@@ -15,21 +15,23 @@ logging.basicConfig(level=logging.DEBUG)
 # Extract multiple networks
 
 def test_neurite_extraction():
-    # from os import path, listdir
-    # import re
-    #
-    # path_to_directories = 'data2'
-    # dir_regex = 'hidens(\d+)'
-    # for sub_dir in listdir(path_to_directories):
-    #     if re.compile(dir_regex).match(sub_dir):
-    #         print path.join(path_to_directories,sub_dir,'neuron%d.h5')
+    from os import path, listdir
+    import re
 
-    neuron_file_template = 'data2/hidens1666/neuron%d.h5'
-    neurites_filename = 'temp/hidens1666_all_neurites.h5'
+    path_to_directories = 'data2'
+    dir_regex = 'hidens(\d+)'
+    for sub_dir in listdir(path_to_directories):
+        if re.compile(dir_regex).match(sub_dir):
+            neuron_file_template =  path.join(path_to_directories,sub_dir,'neuron%d.h5')
+            neurites_filename = path.join('temp', sub_dir+'_all_neurites.h5')
+            print neuron_file_template
+            print neurites_filename
+            # neuron_file_template = 'data2/hidens1666/neuron%d.h5'
+            # neurites_filename = 'temp/hidens1666_all_neurites.h5'
+            if not os.path.isfile(neurites_filename):
+                extract_and_save_compartments(neuron_file_template, neurites_filename)
 
-    extract_and_save_compartments(neuron_file_template, neurites_filename)
-
-    trigger, AIS, delay, positive_peak = load_neurites(neurites_filename)
+    trigger, AIS, delay, positive_peak = load_compartments(neurites_filename)
     print('NEW: neuron indices as keys')
     print(trigger.keys())
 
@@ -69,5 +71,5 @@ def test_bug_in_half_pak_width():
 
 if __name__ == "__main__":
     test_neurite_extraction()
-    test_bug_in_half_pak_width()
+    # test_bug_in_half_pak_width()
 
