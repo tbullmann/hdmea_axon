@@ -1,14 +1,24 @@
 import logging
 import os
 import pickle
+import yaml
+from matplotlib import pyplot as plt
 
-from hana.recording import load_timeseries, partial_timeseries
-from hana.segmentation import extract_and_save_compartments, load_neurites
+from hana.misc import unique_neurons
+from hana.recording import load_timeseries, partial_timeseries, load_positions, average_electrode_area
+from hana.segmentation import extract_and_save_compartments, load_compartments, load_neurites, neuron_position_from_trigger_electrode
 from hana.structure import all_overlaps
 from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks
-from hana.polychronous import filter, combine, group, plot_pcg_on_network, plot_pcg, shuffle_network, plot_pcgs
-from publication.plotting import FIGURE_CULTURES, correlate_two_dicts_verbose
+from hana.polychronous import filter, shuffle_network
+from hana.plotting import plot_neuron_points, mea_axes, plot_neuron_id, plot_network
+
+from publication.plotting import FIGURE_CULTURES, correlate_two_dicts_verbose, show_or_savefig, plot_loglog_fit, \
+    without_spines_and_ticks, adjust_position
 from publication.figure_polychronous_groups import extract_pcgs
+
+from figure_structur_vs_function import plot_correlation
+from figure_synapse import plot_synapse_delays
+
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -19,7 +29,8 @@ def extract_multiple_networks(cultures=FIGURE_CULTURES):
     print FIGURE_CULTURES
 
     for culture in cultures:
-            sub_dir = 'hidens%d' % culture
+
+            sub_dir = 'culture%d' % culture
 
             # Maybe create output directory; hdf5 filename for all neurites
             results_directory = os.path.join('temp', sub_dir)
@@ -29,6 +40,10 @@ def extract_multiple_networks(cultures=FIGURE_CULTURES):
             # hdf5 filename template for spike triggered average data for each neuron
             data_directory = os.path.join('data2', sub_dir)
             neuron_file_template = os.path.join(data_directory, 'neuron%d.h5')
+
+            # Reading hidens and recording date
+            metadata = yaml.load(open(os.path.join('data2', sub_dir, 'metadata.yaml'), 'r'))
+            print metadata
 
             # Maybe extract neurites
             neurites_filename = os.path.join(results_directory, 'all_neurites.h5')
@@ -134,75 +149,111 @@ def extract_multiple_networks(cultures=FIGURE_CULTURES):
                 pickle.dump((pcgs_size, pcgs1_size, pcgs2_size, pcgs3_size), open(PCG_sizes_pickle_name, 'wb'))
 
 
-def test_bug_in_half_pak_width():
-    """
-    INFO:root:Load file data2/hidens1666_thr6/neuron32.h5 with variables [u'V', u'n', u'neuron', u't', u'trigger', u'x', u'y']
-    /Users/tbullmann/anaconda/envs/hdmea/lib/python2.7/site-packages/scipy/interpolate/_fitpack_impl.py:731: RuntimeWarning: The number of zeros exceeds mest
-      warnings.warn(RuntimeWarning("The number of zeros exceeds mest"))
-    Traceback (most recent call last):
-      File "/Users/tbullmann/PycharmProjects/hdmea/publication/figure_multiple_networks.py", line 30, in <module>
-        test_neurite_extraction()
-      File "/Users/tbullmann/PycharmProjects/hdmea/publication/figure_multiple_networks.py", line 21, in test_neurite_extraction
-        extract_and_save_compartments(neuron_file_template, neurites_filename)
-      File "/Users/tbullmann/PycharmProjects/hdmea/hana/segmentation.py", line 107, in extract_and_save_compartments
-        all_triggers, all_AIS, all_axonal_delays, all_dendritic_return_currents =  extract_all_compartments(neurons, template)
-      File "/Users/tbullmann/PycharmProjects/hdmea/hana/segmentation.py", line 42, in extract_all_compartments
-        number_dendrite_electrodes = extract_compartments(t, V, neighbors)
-      File "/Users/tbullmann/PycharmProjects/hdmea/hana/segmentation.py", line 71, in extract_compartments
-        dendrite_return_current = segment_dendrite(t, V, neighbors)
-      File "/Users/tbullmann/PycharmProjects/hdmea/hana/segmentation.py", line 186, in segment_dendrite
-        return_current_delay, dendrite = segment_dendrite_verbose(t, V, neighbors)
-      File "/Users/tbullmann/PycharmProjects/hdmea/hana/segmentation.py", line 169, in segment_dendrite_verbose
-        min_delay, max_delay = half_peak_domain(t, V_AIS)
-      File "/Users/tbullmann/PycharmProjects/hdmea/hana/recording.py", line 42, in half_peak_domain
-        domain = list(roots[range(index_roots-1,index_roots+1)])
-    IndexError: index 10 is out of bounds for axis 1 with size 10
-    """
-    from hana.segmentation import load_traces, extract_compartments, electrode_neighborhoods
-    neighbors = electrode_neighborhoods(mea='hidens')
-    V, t, x, y, trigger, _ = load_traces('data2/hidens1666/neuron32.h5')
-    t *= 1000  # convert to ms
+def make_figure(figurename, figpath=None,
+                thr_overlap_area=3000.,  # um2/electrode
+                thr_z_score=10):
 
-    axon, dendrite, axonal_delay, dendrite_return_current, index_AIS, number_axon_electrodes, \
-    number_dendrite_electrodes = extract_compartments(t, V, neighbors)
+    for culture in FIGURE_CULTURES:
+
+        sub_dir = 'culture%d' % culture
+        results_directory = os.path.join('temp', sub_dir)
+        data_directory = os.path.join('data2', sub_dir)
+
+        # Reading hidens and recording date
+        metadata = yaml.load(open(os.path.join('data2', sub_dir, 'metadata.yaml'), 'r'))
+
+        # Load neuron positions
+        neurites_filename = os.path.join(results_directory, 'all_neurites.h5')
+        trigger, _, axon_delay, dendrite_peak = load_compartments(neurites_filename)
+        pos = load_positions(mea='hidens')
+        # electrode_area = average_electrode_area(pos)
+        neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
+
+        # Load tructural and functional network
+        two_networks_pickle_name = os.path.join(results_directory, 'two_networks.p')
+        structural_strength, structural_delay, functional_strength, functional_delay \
+            = pickle.load(open(two_networks_pickle_name, 'rb'))
+        neuron_dict = unique_neurons(structural_delay)
+
+        # Calculate synaptic delays
 
 
-def test_bug_in_find_valley():
-    """
-    INFO:root:Load file data2/hidens2018/neuron1.h5 with variables [u'V', u'n', u'neuron', u't', u'trigger', u'x', u'y']
-    Traceback (most recent call last):
-      File "/Users/tbullmann/PycharmProjects/hdmea/publication/figure_multiple_networks.py", line 73, in <module>
+        # Load PCG size distribution
+        PCG_sizes_pickle_name = os.path.join(results_directory, 'pcg_sizes.p')
+        pcgs_size, pcgs1_size, pcgs2_size, pcgs3_size = pickle.load(open(PCG_sizes_pickle_name, 'rb'))
 
-      File "/Users/tbullmann/PycharmProjects/hdmea/publication/figure_multiple_networks.py", line 32, in test_neurite_extraction
-        print('NEW: neuron indices as keys')
-      File "/Users/tbullmann/PycharmProjects/hdmea/hana/segmentation.py", line 107, in extract_and_save_compartments
-        all_triggers, all_AIS, all_axonal_delays, all_dendritic_return_currents =  extract_all_compartments(neurons, template)
-      File "/Users/tbullmann/PycharmProjects/hdmea/hana/segmentation.py", line 42, in extract_all_compartments
-        number_dendrite_electrodes = extract_compartments(t, V, neighbors)
-      File "/Users/tbullmann/PycharmProjects/hdmea/hana/segmentation.py", line 69, in extract_compartments
-        axonal_delay = segment_axon(t, V, neighbors)
-      File "/Users/tbullmann/PycharmProjects/hdmea/hana/segmentation.py", line 219, in segment_axon
-        _, mean_delay, _, _, _, _, _, _, axon = segment_axon_verbose(t, V, neighbors)
-      File "/Users/tbullmann/PycharmProjects/hdmea/hana/segmentation.py", line 204, in segment_axon_verbose
-        thr = find_valley(std_delay, expected_std_delay)
-      File "/Users/tbullmann/PycharmProjects/hdmea/hana/recording.py", line 82, in find_valley
-        hist, bin_edges = np.histogram(std_delay, bins=np.arange(0, expected_std_delay, step=DELAY_EPSILON))
-      File "/Users/tbullmann/anaconda/envs/hdmea/lib/python2.7/site-packages/numpy/lib/function_base.py", line 628, in histogram
-        sa.searchsorted(bins[-1], 'right')]
-    IndexError: index -1 is out of bounds for axis 0 with size 0
-    :return:
-    """
-    from hana.segmentation import load_traces, extract_compartments, electrode_neighborhoods
-    neighbors = electrode_neighborhoods(mea='hidens')
-    V, t, x, y, trigger, _ = load_traces('data2/hidens2018/neuron1.h5')
-    t *= 1000  # convert to ms
+        # Making figure
+        fig = plt.figure(figurename + '-hidens%d' % metadata['hidens'] + ' on %d' % metadata['recording'], figsize=(21, 14))
+        if not figpath:
+            fig.suptitle(figurename + '  Summary for hidens%d' % metadata['hidens'] + ' on %d' % metadata['recording'], fontsize=14, fontweight='bold')
+        plt.subplots_adjust(left=0.10, right=0.95, top=0.90, bottom=0.05)
 
-    axon, dendrite, axonal_delay, dendrite_return_current, index_AIS, number_axon_electrodes, \
-    number_dendrite_electrodes = extract_compartments(t, V, neighbors)
+        # Plot structural connectiviy
+        ax1 = plt.subplot(231)
+        plot_network(ax1, structural_delay, neuron_pos)
+        plot_neuron_points(ax1, neuron_dict, neuron_pos)
+        plot_neuron_id(ax1, neuron_dict, neuron_pos)
+        # ax1.text(200, 250, r'$\mathsf{\rho=%3d\ \mu m^2}$' % thr_overlap_area, fontsize=18)
+        mea_axes(ax1)
+        plt.title('a     structural connectivity graph', loc='left', fontsize=18)
+
+        # Plot functional connectiviy
+        ax2 = plt.subplot(232)
+        plot_network(ax2, functional_delay, neuron_pos)
+        plot_neuron_points(ax2, neuron_dict, neuron_pos)
+        plot_neuron_id(ax2, neuron_dict, neuron_pos)
+        # ax2.text(200, 250, r'$\mathsf{\zeta=%d}$' % thr_z_score, fontsize=18)
+        mea_axes(ax2)
+        plt.title('b     functional connectivity graph', loc='left', fontsize=18)
+
+        # Plot correlation between strength
+        ax3 = plt.subplot(234)
+        axScatter1 = plot_correlation(ax3, structural_strength, functional_strength, xscale='log', yscale='log',
+                                      dofit=True)
+        axScatter1.set_xlabel(r'$\mathsf{|A \cap D|\ [\mu m^2}$]', fontsize=14)
+        axScatter1.set_ylabel(r'$\mathsf{z_{max}}$', fontsize=14)
+        plt.title('c     correlation of overlap and z-score', loc='left', fontsize=18)
+
+        # Plot synapse delays
+        ax4 = plt.subplot(235)
+        delayed_pairs, simultaneous_pairs, synapse_delays = plot_synapse_delays(ax4, structural_delay,
+                                                                                functional_delay,
+                                                                                functional_strength, ylim=(-2, 7))
+        plt.title('c     synaptic delays', loc='left', fontsize=18)
+
+        # Plot Synaptic delay graph
+        ax5 = plt.subplot(233)
+        plot_network(ax5, simultaneous_pairs, neuron_pos, color='red')
+        plot_network(ax5, delayed_pairs, neuron_pos, color='green')
+        plot_neuron_points(ax5, unique_neurons(structural_delay), neuron_pos)
+        plot_neuron_id(ax2, trigger, neuron_pos)
+        # Legend by proxy
+        ax5.hlines(0, 0, 0, linestyle='-', color='red', label='<1ms')
+        ax5.hlines(0, 0, 0, linestyle='-', color='green', label='>1ms')
+        ax5.text(200, 250, r'$\mathsf{\rho=300\mu m^2}$', fontsize=18)
+        ax5.text(200, 350, r'$\mathsf{\zeta=1}$', fontsize=18)
+        plt.legend(frameon=False)
+        mea_axes(ax5)
+        adjust_position(ax5, yshift=-0.01)
+        plt.title('c     synaptic delay graph', loc='left', fontsize=18)
+
+        # Plot PCG size distribution
+        ax6 = plt.subplot(236)
+        plot_loglog_fit(ax6, pcgs_size, fit=False)
+        plot_loglog_fit(ax6, pcgs1_size, datamarker='r-', datalabel='surrogate network 1', fit=False)
+        plot_loglog_fit(ax6, pcgs2_size, datamarker='g-', datalabel='surrogate network 2', fit=False)
+        plot_loglog_fit(ax6, pcgs3_size, datamarker='b-', datalabel='surrogate timeseries', fit=False)
+        ax6.set_ylabel('size [number of spikes / polychronous group]')
+        without_spines_and_ticks(ax6)
+        ax6.set_ylim((1, 1000))
+        ax6.set_xlim((1, 13000))
+        plt.title('d     size distribution of spike patterns', loc='left', fontsize=18)
+
+        show_or_savefig(figpath, figurename)
 
 
 if __name__ == "__main__":
     extract_multiple_networks()
-    # test_bug_in_half_pak_width()
-    # test_bug_in_find_valley()
+    make_figure(os.path.basename(__file__))
+
 
