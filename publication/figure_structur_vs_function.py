@@ -1,11 +1,11 @@
 from __future__ import division
+
 import logging
 import os
 import pickle
-import numpy as np
+
 import matplotlib.pyplot as plt
-from matplotlib.ticker import NullFormatter
-from scipy.stats import pearsonr
+import numpy as np
 
 from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks
 from hana.recording import load_timeseries, average_electrode_area
@@ -13,7 +13,7 @@ from hana.segmentation import load_neurites
 from hana.structure import all_overlaps
 from publication.plotting import show_or_savefig, FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, TEMPORARY_PICKELED_NETWORKS, \
     plot_parameter_dependency, format_parameter_plot, compare_networks, analyse_networks, label_subplot, adjust_position, \
-    correlate_two_dicts_verbose, kernel_density, axes_to_3_axes
+    plot_correlation
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -81,7 +81,7 @@ def make_figure(figurename, figpath=None):
     axScatter1.set_ylabel (r'$\mathsf{z_{max}}$', fontsize=14)
 
     ax5 = plt.subplot(224)
-    axScatter2 = plot_correlation(ax5, structural_delays, functional_delays, xlim=(0,5), ylim=(0,5))
+    axScatter2 = plot_correlation(ax5, structural_delays, functional_delays, xlim=(0, 5), ylim=(0, 5))
     axScatter2.set_xlabel (r'$\mathsf{\tau _{axon}\ [ms]}$', fontsize=14)
     axScatter2.set_ylabel (r'$\mathsf{\tau _{spike}\ [ms]}$', fontsize=14)
 
@@ -124,70 +124,6 @@ def plot_vs_weigth(ax1, dictionary):
     ax1.set_xscale('log')
     ax1.set_xlim((0,max(w)))
     adjust_position(ax2, yshrink=0.01)
-
-
-def plot_correlation(ax, xdict, ydict, best_keys=None, xlim = None, ylim = None, dofit=False, xscale='linear', yscale='linear', scaling = 'count'):
-    """Plot correlation as scatter plot and marginals"""
-    # getting the data
-    x_all = xdict.values()
-    y_all = ydict.values()
-    x_corr, y_corr, keys = correlate_two_dicts_verbose(xdict, ydict)
-    if best_keys: x_best, y_best = correlate_two_dicts(xdict, ydict, best_keys)
-    # new axes
-    rect_histx, rect_histy, rect_scatter = axes_to_3_axes(ax)
-    axScatter = plt.axes(rect_scatter)
-    axHistx = plt.axes(rect_histx)
-    axHisty = plt.axes(rect_histy)
-    # the scatter plot:
-    axScatter.scatter(x_corr, y_corr, color='black')
-    if best_keys: axScatter.scatter(x_best, y_best, color='red')
-    # plt.sca(axScatter)
-    # plt.legend(frameon=False, loc=2)
-    # the marginals
-    kernel_density(axHistx, x_all, scaling=scaling, style='k:')
-    kernel_density(axHisty, y_all, scaling=scaling, style='k:', orientation='horizontal')
-    kernel_density(axHistx, x_corr, scaling=scaling, style='k--')
-    kernel_density(axHisty, y_corr, scaling=scaling, style='k--', orientation='horizontal')
-    if best_keys:
-        kernel_density(axHistx, x_best, scaling=scaling, style='r-')
-        kernel_density(axHisty, y_best, scaling=scaling, style='r-', orientation='horizontal')
-    # joint legend by proxies
-    plt.sca(ax)
-    plt.vlines(0, 0, 0, colors='black', linestyles=':', label='all')
-    plt.vlines(0, 0, 0, colors='black', linestyles='--', label='both')
-    plt.vlines(0, 0, 0, colors='black', linestyles='-', label='fit')
-    if best_keys: plt.vlines(0, 0, 0, colors='red', linestyles='-', label='best')
-    # plt.vlines(0, 0, 0, colors='black', linestyles='-', label='equal')
-    plt.legend(frameon=False, fontsize=12)
-    # define limits
-    if not xlim: xlim = (min(x_corr), max(x_corr))
-    if not ylim: ylim = (min(y_corr), max(y_corr))
-    # add fits
-    if dofit:
-        axScatter.plot(np.unique(x_corr),
-                       np.exp(np.poly1d(np.polyfit(np.log(x_corr), np.log(y_corr), 1))(np.unique(np.log(x_corr)))),
-                       'k-', label='all')
-        # axScatter.plot(np.unique(x_best), np.poly1d(np.polyfit(x_best, y_best, 1))(np.unique(x_best)), 'r-', label='best')
-    print ( 'Pearsons test: r=%f, p=%f' % pearsonr(np.log(x_corr), np.log(y_corr)) + ', n=%d' % len(x_corr) )
-    # # add x=y
-    # axScatter.plot(xlim,ylim,'k-')
-    # set limits
-    axScatter.set_xlim(xlim)
-    axScatter.set_ylim(ylim)
-    axHistx.set_xlim(axScatter.get_xlim())
-    axHisty.set_ylim(axScatter.get_ylim())
-    # set scales
-    axScatter.set_xscale(xscale)
-    axScatter.set_yscale(yscale)
-    axHistx.set_xscale(xscale)
-    axHisty.set_yscale(yscale)
-    # no labels
-    nullfmt = NullFormatter()  # no labels
-    axHistx.xaxis.set_major_formatter(nullfmt)
-    axHistx.yaxis.set_major_formatter(nullfmt)
-    axHisty.xaxis.set_major_formatter(nullfmt)
-    axHisty.yaxis.set_major_formatter(nullfmt)
-    return axScatter
 
 
 if __name__ == "__main__":
