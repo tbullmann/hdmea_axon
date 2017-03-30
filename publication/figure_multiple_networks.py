@@ -14,7 +14,8 @@ from hana.polychronous import filter, shuffle_network
 from hana.plotting import plot_neuron_points, mea_axes, plot_neuron_id, plot_network
 
 from publication.plotting import FIGURE_CULTURES, correlate_two_dicts_verbose, show_or_savefig, \
-    plot_loglog_fit, without_spines_and_ticks, adjust_position, plot_correlation, plot_synapse_delays
+    plot_loglog_fit, without_spines_and_ticks, adjust_position, plot_correlation, plot_synapse_delays, \
+    DataFrame_from_Dicts
 
 from publication.figure_polychronous_groups import extract_pcgs
 
@@ -172,6 +173,10 @@ def make_figure(figurename, figpath=None):
         structural_strength, structural_delay, functional_strength, functional_delay \
             = pickle.load(open(two_networks_pickle_name, 'rb'))
         neuron_dict = unique_neurons(structural_delay)
+        # Getting and subsetting the data
+        data = DataFrame_from_Dicts(functional_delay, functional_strength, structural_delay, structural_strength)
+        delayed = data[data.delayed]
+        simultaneous = data[data.simultaneous]
 
         logging.info('Load PCG size distribution')
         PCG_sizes_pickle_name = os.path.join(results_directory, 'pcg_sizes.p')
@@ -185,7 +190,7 @@ def make_figure(figurename, figpath=None):
 
         logging.info('Plot structural connectiviy')
         ax1 = plt.subplot(231)
-        plot_network(ax1, structural_delay, neuron_pos)
+        plot_network(ax1, structural_delay, neuron_pos, color='gray')
         plot_neuron_points(ax1, neuron_dict, neuron_pos)
         plot_neuron_id(ax1, neuron_dict, neuron_pos)
         # ax1.text(200, 250, r'$\mathsf{\rho=%3d\ \mu m^2}$' % thr_overlap_area, fontsize=18)
@@ -194,7 +199,7 @@ def make_figure(figurename, figpath=None):
 
         logging.info('Plot functional connectiviy')
         ax2 = plt.subplot(232)
-        plot_network(ax2, functional_delay, neuron_pos)
+        plot_network(ax2, functional_delay, neuron_pos, color='gray')
         plot_neuron_points(ax2, neuron_dict, neuron_pos)
         plot_neuron_id(ax2, neuron_dict, neuron_pos)
         # ax2.text(200, 250, r'$\mathsf{\zeta=%d}$' % thr_z_score, fontsize=18)
@@ -203,38 +208,27 @@ def make_figure(figurename, figpath=None):
 
         logging.info('Plot synapse delays')
         ax4 = plt.subplot(235)
-        delayed_pairs, simultaneous_pairs, synapse_delays = plot_synapse_delays(ax4, structural_delay,
-                                                                                functional_delay,
-                                                                                functional_strength, ylim=(-2, 7),
-                                                                                report=report)
-        plt.title('c     synaptic delays', loc='left', fontsize=18)
+        plot_synapse_delays(ax4, data, ylim=(-2, 7), report=report)
+        plt.title('e     synaptic delays', loc='left', fontsize=18)
 
         logging.info('Plot correlation between strength')
         ax3 = plt.subplot(234)
-        simultaneous_pairs_ = ((pre, post) for (pre, post) in simultaneous_pairs)
-        delayed_pairs_ = ((pre, post) for (pre, post) in delayed_pairs)
-        axScatter1 = plot_correlation(ax3, structural_strength, functional_strength,
-                                      synapse_delays.keys(),
-                                      simultaneous_pairs_,
-                                      delayed_pairs_,
-                                      xscale='log', yscale='log',
-                                      report=report)
+        axScatter1 = plot_correlation(ax3, data, x='structural_strength', y='functional_strength',
+                                      xscale='log', yscale='log', report=report)
         axScatter1.set_xlabel(r'$\mathsf{|A \cap D|\ [\mu m^2}$]', fontsize=14)
         axScatter1.set_ylabel(r'$\mathsf{z_{max}}$', fontsize=14)
-        plt.title('c     correlation of overlap and z-score', loc='left', fontsize=18)
+        plt.title('d     correlation of overlap and z-score', loc='left', fontsize=18)
 
         logging.info('Plot Synaptic delay graph')
         ax5 = plt.subplot(233)
-        plot_network(ax5, simultaneous_pairs, neuron_pos, color='red')
-        plot_network(ax5, delayed_pairs, neuron_pos, color='green')
+        plot_network(ax5, zip(simultaneous.pre, simultaneous.post), neuron_pos, color='red')
+        plot_network(ax5, zip(delayed.pre, delayed.post), neuron_pos, color='green')
         plot_neuron_points(ax5, unique_neurons(structural_delay), neuron_pos)
-        plot_neuron_id(ax2, trigger, neuron_pos)
+        plot_neuron_id(ax5, neuron_dict, neuron_pos)
         # Legend by proxy
         ax5.hlines(0, 0, 0, linestyle='-', color='red', label='<1ms')
         ax5.hlines(0, 0, 0, linestyle='-', color='green', label='>1ms')
-        ax5.text(200, 250, r'$\mathsf{\rho=300\mu m^2}$', fontsize=18)
-        ax5.text(200, 350, r'$\mathsf{\zeta=1}$', fontsize=18)
-        plt.legend(frameon=False)
+        plt.legend(frameon=True, fontsize=12)
         mea_axes(ax5)
         adjust_position(ax5, yshift=-0.01)
         plt.title('c     synaptic delay graph', loc='left', fontsize=18)
@@ -249,7 +243,7 @@ def make_figure(figurename, figpath=None):
         without_spines_and_ticks(ax6)
         ax6.set_ylim((1, 1000))
         ax6.set_xlim((1, 13000))
-        plt.title('d     size distribution of spike patterns', loc='left', fontsize=18)
+        plt.title('f     size distribution of spike patterns', loc='left', fontsize=18)
 
         report.close()
         show_or_savefig(figpath, figurename)

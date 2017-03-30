@@ -1,9 +1,11 @@
+from __future__ import division
 import logging
 import os
 import sys
 
 import networkx as nx
 import numpy as np
+import pandas as pd
 import yaml
 from matplotlib import pyplot as plt
 from matplotlib.ticker import NullFormatter
@@ -353,13 +355,13 @@ def show_or_savefig(path, figure_name):
         plt.show()
 
 
-def plot_correlation(ax, xdict, ydict, all_pairs=None, instantaneous_pairs=None, delayed_pairs=None, xlim=None, ylim=None,
+def plot_correlation(ax, data, x='', y='', xlim=None, ylim=None,
                      xscale='linear', yscale='linear', density_scaling='count', report=sys.stdout):
     """
     Plot correlation as scatter plot and marginals for instantaneous and delayed (neuron) pairs and report results.
     :param ax: axis handle
-    :param xdict, ydict: dictionaries with values indexed by kyes
-    :param all_pairs, instantaneous_pairs, delayed_pairs: list of keys (= tuples pre- and post-synaptic neuron)
+    :param data: pandas.DataFrame with columns pre, post, functional_delay, functional_strength, structural_delay,
+    structural_strength, synaptic_delay, delayed, simultaneous
     :param xlim, ylim: scaling of x-and y-axis (default None, derive from data)
     :param xscale, yscale: scaling of x-and y-axis (default 'linear')
     :param density_scaling: scaling for marginal plots see kernel_density (default 'count')
@@ -367,16 +369,15 @@ def plot_correlation(ax, xdict, ydict, all_pairs=None, instantaneous_pairs=None,
     :return: axScatter: handle of Scatter plot
     """
 
-    # getting the data
-    x_all, y_all = correlate_two_dicts(xdict, ydict, all_pairs)
-    x_instantaneous, y_instantaneous = correlate_two_dicts(xdict, ydict, instantaneous_pairs)
-    x_delayed, y_delayed = correlate_two_dicts(xdict, ydict, delayed_pairs)
+    # Subsetting and counting the data
+    delayed = data[data.delayed]
+    simultaneous = data[data.simultaneous]
+    n_simultaneous = len(simultaneous)
+    n_delayed = len(delayed)
 
     # getting limits
-    if xlim == None:
-        xlim = (min(x_all), max(x_all))
-    if ylim == None:
-        ylim = (min(y_all), max(y_all))
+    if xlim is None: xlim = (min(data[x]), max(data[x]))
+    if ylim is None: ylim = (min(data[y]), max(data[y]))
 
     # new axes
     rect_histx, rect_histy, rect_scatter = axes_to_3_axes(ax)
@@ -384,40 +385,42 @@ def plot_correlation(ax, xdict, ydict, all_pairs=None, instantaneous_pairs=None,
     axHistx = plt.axes(rect_histx)
     axHisty = plt.axes(rect_histy)
 
-    # the scatter plot:
-    if instantaneous_pairs is None or delayed_pairs is None:
-        axScatter.scatter(x_all, y_all, color='black', label='all')
-    if instantaneous_pairs is not None:
-        axScatter.scatter(x_instantaneous, y_instantaneous, color='red', label='<1 ms')
-    if delayed_pairs is not None:
-        axScatter.scatter(x_delayed, y_delayed, color='green', label='>1 ms')
+    # scatter plot
+    if n_simultaneous ==0 or n_delayed == 0:
+        axScatter.scatter(data[x], data[y], color='black', label='all')
+    if n_simultaneous > 0:
+        axScatter.scatter(simultaneous[x], simultaneous[y], color='red', label='<1 ms')
+    if n_delayed > 0:
+        axScatter.scatter(delayed[x], delayed[y], color='green', label='>1 ms')
 
-    # the marginals
-    kernel_density(axHistx, x_all, xscale=xscale, yscale=density_scaling, style='k-')
-    kernel_density(axHisty, y_all, xscale=yscale, yscale=density_scaling, style='k-', orientation='horizontal')
-    kernel_density(axHistx, x_instantaneous, xscale=xscale, yscale=density_scaling, style='r-')
-    kernel_density(axHisty, y_instantaneous, xscale=yscale, yscale=density_scaling, style='r-', orientation='horizontal')
-    kernel_density(axHistx, x_delayed, xscale=xscale, yscale=density_scaling, style='g-')
-    kernel_density(axHisty, y_delayed, xscale=yscale, yscale=density_scaling, style='g-', orientation='horizontal')
+    # Plot marginal distributions
+    kernel_density(axHistx, data[x], xscale=xscale, yscale=density_scaling, style='k-')
+    kernel_density(axHistx, simultaneous[x], xscale=xscale, yscale=density_scaling, style='r-')
+    kernel_density(axHistx, delayed[x], xscale=xscale, yscale=density_scaling, style='g-')
+    kernel_density(axHisty, data[y], xscale=yscale, yscale=density_scaling, style='k-', orientation='horizontal')
+    kernel_density(axHisty, simultaneous[y], xscale=yscale, yscale=density_scaling, style='r-', orientation='horizontal')
+    kernel_density(axHisty, delayed[y], xscale=yscale, yscale=density_scaling, style='g-', orientation='horizontal')
 
-    # joint legend by proxies
+    # Joint legend by proxies
     plt.sca(ax)
-    if instantaneous_pairs is not None: plt.vlines(0, 0, 0, colors='red', linestyles='-', label='<1 ms')
-    if delayed_pairs is not None: plt.vlines(0, 0, 0, colors='green', linestyles='-', label='>1 ms')
+    if n_simultaneous > 0: plt.vlines(0, 0, 0, colors='red', linestyles='-', label='<1 ms')
+    if n_delayed > 0: plt.vlines(0, 0, 0, colors='green', linestyles='-', label='>1 ms')
     plt.vlines(0, 0, 0, colors='black', linestyles='-', label='all')
     plt.vlines(0, 0, 0, colors='black', linestyles='--', label='x=y')
     plt.legend(frameon=False, fontsize=12)
 
     # Plot fit and report
     section = {}
-    section['all'] = add_linear_fit(axScatter, x_all, y_all, xscale, yscale,
-                                    color='black', label='fit (all)')
-    if instantaneous_pairs is not None:
-        section['simulatanous'] = add_linear_fit(axScatter, x_instantaneous, y_instantaneous, xscale, yscale,
-                                        color='red', label='fit (<1 ms)')
-    if delayed_pairs is not None:
-        section['delayed'] = add_linear_fit(axScatter, x_delayed, y_delayed, xscale, yscale,
-                                        color='green', label='fit (>1 ms)')
+    section['all'] = add_linear_fit(axScatter, data[x], data[y],
+                                    xscale, yscale, color='black', label='fit (all)')
+    if n_simultaneous > 1:
+        section['simulatanous'] = add_linear_fit(axScatter, simultaneous[x],
+                                                 simultaneous[y], xscale, yscale,
+                                                 color='red', label='fit (<1 ms)')
+    if n_delayed > 1:
+        section['delayed'] = add_linear_fit(axScatter, delayed[x],
+                                            delayed[y], xscale, yscale,
+                                            color='green', label='fit (>1 ms)')
     yaml.dump({'overlap _vs_z_max': section}, report)
 
     # add x=y
@@ -437,7 +440,7 @@ def plot_correlation(ax, xdict, ydict, all_pairs=None, instantaneous_pairs=None,
     axScatter.set_xscale(xscale)
     axScatter.set_yscale(xscale)
     axHistx.set_xscale(xscale)
-    axHisty.set_yscale(xscale)
+    axHisty.set_yscale(yscale)
     # no labels
     nullfmt = NullFormatter()  # no labels
     axHistx.xaxis.set_major_formatter(nullfmt)
@@ -464,9 +467,21 @@ def add_linear_fit(axScatter, x, y, xscale, yscale, color='black', label='all'):
     return section
 
 
-def plot_synapse_delays(ax, structural_delay, functional_delay, functional_strength, xlim=None, ylim=None,
+def plot_synapse_delays(ax, data, xlim=None, ylim=None,
                         xscale='log', density_scaling ='count', naxes=3, report=sys.stdout):
-    """Plot corretion and marginals"""
+    """
+    Plot corretion and marginals
+    :param ax: axes handle
+    :param data: pandas.DataFrame with columns pre, post, functional_delay, functional_strength, structural_delay,
+    structural_strength, synaptic_delay, delayed, simultaneous
+    :param xlim,  ylim: limits for x and y axis of the scatter plot
+    :param xscale: scaling for x axis of the scatter plot (default: 'log')
+    :param density_scaling: scaling for density axis of the marginal plots (default: 'count')
+    :param naxes: if 3 do plot the marginals (default: 3)
+    :param report: file handle (default: sys.stdout just prints)
+    """
+    # TODO Correct behviour for 2 and 3 naxes!
+
     # New axes
     if naxes==2:
         axScatter=ax
@@ -480,34 +495,25 @@ def plot_synapse_delays(ax, structural_delay, functional_delay, functional_stren
         axHistx = plt.axes(rect_histx)
         axHisty = plt.axes(rect_histy)
 
-    # getting the data
-    delay_axon, timing_spike, pairs = correlate_two_dicts_verbose(structural_delay, functional_delay)
-    # delay_synapse = timing_spike - delay_axon
-    # __, strength_synapse, __ = __correlate_two_dicts(structural_delay, functional_strength)
-    synapse_delay = dict(zip(pairs, timing_spike - delay_axon))   # create a new dictionary of synaptic delays
-    tau_synapse, z_max, pairs = correlate_two_dicts_verbose(synapse_delay, functional_strength)
-
-    # Find putative chemical synapse with synaptic delay > 1ms, and other with delays <= 1ms
-    delayed_indices = np.where(tau_synapse>1)
-    delayed_pairs = np.array(pairs)[delayed_indices]
-    n_delayed = len(delayed_pairs)
-    simultaneous_indices = np.where(tau_synapse<=1)
-    simultaneous_pairs = np.array(pairs)[simultaneous_indices]
-    n_simultanous = len(simultaneous_pairs)
-    n_total = n_delayed + n_simultanous
+    # Subsetting the data
+    n_total = len(data)
+    delayed = data[data.delayed]
+    n_delayed = len(delayed)
+    simultaneous = data[data.simultaneous]
+    n_simultanous = len(simultaneous)
 
     # scatter plot
-    axScatter.scatter(z_max, tau_synapse, color='red',
-                      label='>1ms (%d%%)' % (100.0*n_delayed/n_total))
-    axScatter.scatter(z_max[delayed_indices],tau_synapse[delayed_indices], color='green',
-                      label='<1ms (%d%%)' % (100.0*n_simultanous/n_total))
+    axScatter.scatter(simultaneous.functional_strength, simultaneous.synaptic_delay, color='red',
+                      label='<1 ms (%d%%)' % (100.0*n_simultanous/n_total))
+    axScatter.scatter(delayed.functional_strength, delayed.synaptic_delay, color='green',
+                      label='>1 ms (%d%%)' % (100.0*n_delayed/n_total))
     axScatter.set_xscale(xscale)
     axScatter.legend(frameon=False, scatterpoints=1)
     axScatter.set_xlabel(r'$\mathsf{z_{max}}$', fontsize=14)
     axScatter.set_ylabel(r'$\mathsf{\tau_{synapse}=\tau_{spike}-\tau_{axon}\ [ms]}$', fontsize=14)
 
     # density plot
-    kernel_density(axHisty, tau_synapse, yscale=density_scaling, style='k-', orientation='horizontal')
+    kernel_density(axHisty, data.synaptic_delay, yscale=density_scaling, style='k-', orientation='horizontal')
     if naxes==3:
         # joint legend by proxies
         plt.sca(ax)
@@ -516,33 +522,36 @@ def plot_synapse_delays(ax, structural_delay, functional_delay, functional_stren
         plt.vlines(0, 0, 0, colors='black', linestyles='-', label='all')
         plt.legend(frameon=False, fontsize=12)
 
-        # kernel_density(axHistx, strength_synapse, scaling=yscaling, style='k-', orientation='vertical')
-        kernel_density(axHistx, z_max[delayed_indices], xscale=xscale, yscale=density_scaling, style='g-', orientation='vertical')
-        kernel_density(axHistx, z_max[simultaneous_indices], yscale=density_scaling, style='r-', orientation='vertical')
+        kernel_density(axHistx, data.functional_strength, xscale=xscale, yscale=density_scaling, style='k-',
+                       orientation='vertical')
+        kernel_density(axHistx, simultaneous.functional_strength, xscale=xscale, yscale=density_scaling, style='r-',
+                       orientation='vertical')
+        kernel_density(axHistx, delayed.functional_strength, xscale=xscale, yscale=density_scaling, style='g-',
+                       orientation='vertical')
         axHistx.set_xscale(xscale)
 
     section={}
-    section['delayed'] = {'median': float(np.median(z_max[delayed_indices])),
-                          'mean': float(np.mean(z_max[delayed_indices])),
+    section['delayed'] = {'median': float(np.median(delayed.functional_strength)),
+                          'mean': float(np.mean(delayed.functional_strength)),
                           'n': int(n_delayed),
                           'p': float(n_delayed/n_total)}
 
-    section['simultaneous'] = {'median': float(np.median(z_max[simultaneous_indices])),
-                               'mean': float(np.mean(z_max[simultaneous_indices])),
+    section['simultaneous'] = {'median': float(np.median(simultaneous.functional_strength)),
+                               'mean': float(np.mean(simultaneous.functional_strength)),
                                'n': int(n_simultanous),
                                'p': float(n_simultanous/n_total)}
-    t, p = ttest_ind(np.log(z_max[simultaneous_indices]), np.log(z_max[delayed_indices]))
+    t, p = ttest_ind(np.log(simultaneous.functional_strength), np.log(delayed.functional_strength))
     section['Students_t_test'] = {'p': float(p), 't': float(t)}
-    xhi2, p, med, tbl = median_test (z_max[simultaneous_indices], z_max[delayed_indices])
+    xhi2, p, med, tbl = median_test (simultaneous.functional_strength, delayed.functional_strength)
     section['Moods_median_test'] = {'xhi2': float(xhi2),
                                     'p': float(p),
                                     'median_difference': float(med) }
     yaml.dump({'synapses': section}, report)
 
     # define limits
-    max_strength_synapse = max(z_max)
-    if not xlim: xlim = (1, max_strength_synapse*2)
-    if not ylim: ylim = (min(tau_synapse), max(tau_synapse))
+    max_functional_strength = max(data.functional_strength)
+    if xlim is None: xlim = (min(data.functional_strength), max_functional_strength*2)  # leave some room on the left
+    if ylim is None: ylim = (min(data.synapse_delay), max(data.synapse_delay))
 
     # set limits
     axScatter.set_xlim(xlim)
@@ -551,9 +560,9 @@ def plot_synapse_delays(ax, structural_delay, functional_delay, functional_stren
     axHisty.set_ylim(axScatter.get_ylim())
 
     # add hlines to Scatter
-    axScatter.hlines(0, 0, max_strength_synapse*2, linestyles='--')
-    axScatter.hlines(-1, 0, max_strength_synapse*2, linestyles=':')
-    axScatter.hlines(+1, 0, max_strength_synapse*2, linestyles=':')
+    axScatter.hlines(0, 0, max_functional_strength*2, linestyles='--')
+    axScatter.hlines(-1, 0, max_functional_strength*2, linestyles=':')
+    axScatter.hlines(+1, 0, max_functional_strength*2, linestyles=':')
 
     # no labels
     nullfmt = NullFormatter()  # no labels
@@ -562,4 +571,20 @@ def plot_synapse_delays(ax, structural_delay, functional_delay, functional_stren
     axHisty.xaxis.set_major_formatter(nullfmt)
     axHisty.yaxis.set_major_formatter(nullfmt)
 
-    return delayed_pairs, simultaneous_pairs, synapse_delay
+
+def DataFrame_from_Dicts(functional_delay, functional_strength, structural_delay, structural_strength):
+    data = pd.merge(pd.merge(pd.DataFrame(((pre, post, value) for (pre, post), value in functional_delay.items()),
+                                          columns=['pre', 'post', 'functional_delay']),
+                             pd.DataFrame(((pre, post, value) for (pre, post), value in functional_strength.items()),
+                                          columns=['pre', 'post', 'functional_strength']),
+                             on=['pre', 'post']),
+                    pd.merge(pd.DataFrame(((pre, post, value) for (pre, post), value in structural_delay.items()),
+                                          columns=['pre', 'post', 'structural_delay']),
+                             pd.DataFrame(((pre, post, value) for (pre, post), value in structural_strength.items()),
+                                          columns=['pre', 'post', 'structural_strength']),
+                             on=['pre', 'post']),
+                    on=['pre', 'post'])
+    data['synaptic_delay'] = data.functional_delay - data.structural_delay
+    data['delayed'] = data.synaptic_delay > 1  # ms
+    data['simultaneous'] = data.synaptic_delay < 1  # ms
+    return data
