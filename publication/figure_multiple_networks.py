@@ -14,11 +14,9 @@ from hana.polychronous import filter, shuffle_network
 from hana.plotting import plot_neuron_points, mea_axes, plot_neuron_id, plot_network
 
 from publication.plotting import FIGURE_CULTURES, correlate_two_dicts_verbose, show_or_savefig, \
-    plot_loglog_fit, without_spines_and_ticks, adjust_position
+    plot_loglog_fit, without_spines_and_ticks, adjust_position, plot_correlation, plot_synapse_delays
 
 from publication.figure_polychronous_groups import extract_pcgs
-from figure_structur_vs_function import plot_correlation
-from figure_synapse import plot_synapse_delays
 
 logging.basicConfig(level=logging.DEBUG)
 
