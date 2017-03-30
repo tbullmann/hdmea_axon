@@ -51,7 +51,8 @@ def make_figure(figurename, figpath=None):
         pcgs_size, pcgs1_size, pcgs2_size, pcgs3_size = pickle.load(open(PCG_sizes_pickle_name, 'rb'))
 
         logging.info('Making figure')
-        fig = plt.figure(figurename + '-Culture%d-hidens%d@%d' % (culture, metadata['hidens'], metadata['recording']), figsize=(21, 14))
+        longfigurename = figurename + '-%d' % culture
+        fig = plt.figure(longfigurename, figsize=(21, 14))
         if not figpath:
             fig.suptitle(figurename + '-%d  Culture %d: HDMEA hidens%d recorded at %d' % (culture, culture, metadata['hidens'], metadata['recording']), fontsize=14, fontweight='bold')
         plt.subplots_adjust(left=0.10, right=0.95, top=0.90, bottom=0.05)
@@ -114,7 +115,7 @@ def make_figure(figurename, figpath=None):
         plt.title('f     size distribution of spike patterns', loc='left', fontsize=18)
 
         report.close()
-        show_or_savefig(figpath, figurename)
+        show_or_savefig(figpath, longfigurename)
 
 
 if __name__ == "__main__":
