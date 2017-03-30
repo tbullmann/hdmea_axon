@@ -5,17 +5,18 @@ import yaml
 from matplotlib import pyplot as plt
 
 from hana.misc import unique_neurons
-from hana.recording import load_timeseries, partial_timeseries, load_positions, average_electrode_area
-from hana.segmentation import extract_and_save_compartments, load_compartments, load_neurites, neuron_position_from_trigger_electrode
+from hana.recording import load_timeseries, partial_timeseries, load_positions
+from hana.segmentation import extract_and_save_compartments, load_compartments, load_neurites, \
+    neuron_position_from_trigger_electrode
 from hana.structure import all_overlaps
 from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks
 from hana.polychronous import filter, shuffle_network
 from hana.plotting import plot_neuron_points, mea_axes, plot_neuron_id, plot_network
 
-from publication.plotting import FIGURE_CULTURES, correlate_two_dicts_verbose, show_or_savefig, plot_loglog_fit, \
-    without_spines_and_ticks, adjust_position
-from publication.figure_polychronous_groups import extract_pcgs
+from publication.plotting import FIGURE_CULTURES, correlate_two_dicts_verbose, show_or_savefig, \
+    plot_loglog_fit, without_spines_and_ticks, adjust_position
 
+from publication.figure_polychronous_groups import extract_pcgs
 from figure_structur_vs_function import plot_correlation
 from figure_synapse import plot_synapse_delays
 
@@ -24,11 +25,9 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Extract multiple networks
 
-def extract_multiple_networks(cultures=FIGURE_CULTURES):
+def extract_multiple_networks():
 
-    print FIGURE_CULTURES
-
-    for culture in cultures:
+    for culture in FIGURE_CULTURES:
 
             sub_dir = 'culture%d' % culture
 
@@ -43,7 +42,7 @@ def extract_multiple_networks(cultures=FIGURE_CULTURES):
 
             # Reading hidens and recording date
             metadata = yaml.load(open(os.path.join('data2', sub_dir, 'metadata.yaml'), 'r'))
-            print metadata
+            logging.info ('Culture%d on hidens%d recorded on %d' % (culture, metadata['hidens'], metadata['recording']))
 
             # Maybe extract neurites
             neurites_filename = os.path.join(results_directory, 'all_neurites.h5')
@@ -149,46 +148,44 @@ def extract_multiple_networks(cultures=FIGURE_CULTURES):
                 pickle.dump((pcgs_size, pcgs1_size, pcgs2_size, pcgs3_size), open(PCG_sizes_pickle_name, 'wb'))
 
 
-def make_figure(figurename, figpath=None,
-                thr_overlap_area=3000.,  # um2/electrode
-                thr_z_score=10):
+def make_figure(figurename, figpath=None):
 
     for culture in FIGURE_CULTURES:
 
         sub_dir = 'culture%d' % culture
         results_directory = os.path.join('temp', sub_dir)
+        report = open(os.path.join(results_directory, 'report.yaml'), "w")
         data_directory = os.path.join('data2', sub_dir)
 
-        # Reading hidens and recording date
+        # Read metadata and add to results
         metadata = yaml.load(open(os.path.join('data2', sub_dir, 'metadata.yaml'), 'r'))
+        metadata['culture'] = culture
+        yaml.dump (metadata, report)
 
-        # Load neuron positions
+        logging.info('Load neuron positions')
         neurites_filename = os.path.join(results_directory, 'all_neurites.h5')
         trigger, _, axon_delay, dendrite_peak = load_compartments(neurites_filename)
         pos = load_positions(mea='hidens')
         # electrode_area = average_electrode_area(pos)
         neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
 
-        # Load tructural and functional network
+        logging.info('Load tructural and functional network')
         two_networks_pickle_name = os.path.join(results_directory, 'two_networks.p')
         structural_strength, structural_delay, functional_strength, functional_delay \
             = pickle.load(open(two_networks_pickle_name, 'rb'))
         neuron_dict = unique_neurons(structural_delay)
 
-        # Calculate synaptic delays
-
-
-        # Load PCG size distribution
+        logging.info('Load PCG size distribution')
         PCG_sizes_pickle_name = os.path.join(results_directory, 'pcg_sizes.p')
         pcgs_size, pcgs1_size, pcgs2_size, pcgs3_size = pickle.load(open(PCG_sizes_pickle_name, 'rb'))
 
-        # Making figure
-        fig = plt.figure(figurename + '-hidens%d' % metadata['hidens'] + ' on %d' % metadata['recording'], figsize=(21, 14))
+        logging.info('Making figure')
+        fig = plt.figure(figurename + '-Culture%d-hidens%d@%d' % (culture, metadata['hidens'], metadata['recording']), figsize=(21, 14))
         if not figpath:
-            fig.suptitle(figurename + '  Summary for hidens%d' % metadata['hidens'] + ' on %d' % metadata['recording'], fontsize=14, fontweight='bold')
+            fig.suptitle(figurename + '-%d  Culture %d: HDMEA hidens%d recorded at %d' % (culture, culture, metadata['hidens'], metadata['recording']), fontsize=14, fontweight='bold')
         plt.subplots_adjust(left=0.10, right=0.95, top=0.90, bottom=0.05)
 
-        # Plot structural connectiviy
+        logging.info('Plot structural connectiviy')
         ax1 = plt.subplot(231)
         plot_network(ax1, structural_delay, neuron_pos)
         plot_neuron_points(ax1, neuron_dict, neuron_pos)
@@ -197,7 +194,7 @@ def make_figure(figurename, figpath=None,
         mea_axes(ax1)
         plt.title('a     structural connectivity graph', loc='left', fontsize=18)
 
-        # Plot functional connectiviy
+        logging.info('Plot functional connectiviy')
         ax2 = plt.subplot(232)
         plot_network(ax2, functional_delay, neuron_pos)
         plot_neuron_points(ax2, neuron_dict, neuron_pos)
@@ -206,22 +203,29 @@ def make_figure(figurename, figpath=None,
         mea_axes(ax2)
         plt.title('b     functional connectivity graph', loc='left', fontsize=18)
 
-        # Plot correlation between strength
+        logging.info('Plot synapse delays')
+        ax4 = plt.subplot(235)
+        delayed_pairs, simultaneous_pairs, synapse_delays = plot_synapse_delays(ax4, structural_delay,
+                                                                                functional_delay,
+                                                                                functional_strength, ylim=(-2, 7),
+                                                                                report=report)
+        plt.title('c     synaptic delays', loc='left', fontsize=18)
+
+        logging.info('Plot correlation between strength')
         ax3 = plt.subplot(234)
-        axScatter1 = plot_correlation(ax3, structural_strength, functional_strength, xscale='log', yscale='log',
-                                      dofit=True)
+        simultaneous_pairs_ = ((pre, post) for (pre, post) in simultaneous_pairs)
+        delayed_pairs_ = ((pre, post) for (pre, post) in delayed_pairs)
+        axScatter1 = plot_correlation(ax3, structural_strength, functional_strength,
+                                      synapse_delays.keys(),
+                                      simultaneous_pairs_,
+                                      delayed_pairs_,
+                                      xscale='log', yscale='log',
+                                      report=report)
         axScatter1.set_xlabel(r'$\mathsf{|A \cap D|\ [\mu m^2}$]', fontsize=14)
         axScatter1.set_ylabel(r'$\mathsf{z_{max}}$', fontsize=14)
         plt.title('c     correlation of overlap and z-score', loc='left', fontsize=18)
 
-        # Plot synapse delays
-        ax4 = plt.subplot(235)
-        delayed_pairs, simultaneous_pairs, synapse_delays = plot_synapse_delays(ax4, structural_delay,
-                                                                                functional_delay,
-                                                                                functional_strength, ylim=(-2, 7))
-        plt.title('c     synaptic delays', loc='left', fontsize=18)
-
-        # Plot Synaptic delay graph
+        logging.info('Plot Synaptic delay graph')
         ax5 = plt.subplot(233)
         plot_network(ax5, simultaneous_pairs, neuron_pos, color='red')
         plot_network(ax5, delayed_pairs, neuron_pos, color='green')
@@ -237,7 +241,7 @@ def make_figure(figurename, figpath=None,
         adjust_position(ax5, yshift=-0.01)
         plt.title('c     synaptic delay graph', loc='left', fontsize=18)
 
-        # Plot PCG size distribution
+        logging.info('Plot PCG size distribution')
         ax6 = plt.subplot(236)
         plot_loglog_fit(ax6, pcgs_size, fit=False)
         plot_loglog_fit(ax6, pcgs1_size, datamarker='r-', datalabel='surrogate network 1', fit=False)
@@ -249,7 +253,9 @@ def make_figure(figurename, figpath=None,
         ax6.set_xlim((1, 13000))
         plt.title('d     size distribution of spike patterns', loc='left', fontsize=18)
 
+        report.close()
         show_or_savefig(figpath, figurename)
+        print ('Do next...')
 
 
 if __name__ == "__main__":
