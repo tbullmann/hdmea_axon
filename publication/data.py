@@ -8,7 +8,7 @@ import yaml
 from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks
 from hana.polychronous import filter, shuffle_network, extract_pcgs
 from hana.recording import load_timeseries, partial_timeseries, load_traces, electrode_neighborhoods
-from hana.segmentation import extract_and_save_compartments, load_neurites
+from hana.segmentation import extract_and_save_compartments, load_neurites, load_compartments
 from hana.structure import all_overlaps
 
 from publication.plotting import correlate_two_dicts_verbose
@@ -24,17 +24,17 @@ GROUND_TRUTH_NEURON = 1544
 
 class Experiment():
 
-    def __init__(self, culture, data_base_dir='data2', temp_base_dir='temp'):
+    def __init__(self, culture, data_base_dir='data', temp_base_dir='temp'):
         self.culture = culture
         self.data_base_dir = data_base_dir
         self.temp_base_dir = temp_base_dir
         self.sub_dir = 'culture%d' % culture
         self.data_directory = os.path.join(self.data_base_dir, self.sub_dir)
         self.neuron_file_template = os.path.join(self.data_directory, 'neuron%d.h5')
-
         self.results_directory = os.path.join(self.temp_base_dir, self.sub_dir)
         if not os.path.exists(self.results_directory):
             os.makedirs(self.results_directory)
+        self.neurites_filename = os.path.join(self.results_directory, 'all_neurites.h5')
 
     def metadata(self):
         # Reading hidens and recording date
@@ -52,11 +52,17 @@ class Experiment():
 
     def neurites(self):
         # Maybe extract neurites
-        neurites_filename = os.path.join(self.results_directory, 'all_neurites.h5')
-        if not os.path.isfile(neurites_filename):
-            extract_and_save_compartments(self.neuron_file_template, neurites_filename)
-        axon_delay, dendrite_peak = load_neurites(neurites_filename)
-        return  axon_delay, dendrite_peak
+        if not os.path.isfile(self.neurites_filename):
+            extract_and_save_compartments(self.neuron_file_template, self.neurites_filename)
+        axon_delay, dendrite_peak = load_neurites(self.neurites_filename)
+        return axon_delay, dendrite_peak
+
+    def compartments(self):
+        # Maybe extract neurites
+        if not os.path.isfile(self.neurites_filename):
+            extract_and_save_compartments(self.neuron_file_template, self.neurites_filename)
+        triggers, AIS, delays, positive_peak = load_compartments(self.neurites_filename)
+        return triggers, AIS, delays, positive_peak
 
     def timeseries(self):
         events_filename = os.path.join(self.data_directory, 'events.h5')
@@ -64,6 +70,25 @@ class Experiment():
         neurons_with_axons = axon_delay.keys()
         logging.info('Neurons with axon: {}'.format(neurons_with_axons))
         return load_timeseries(events_filename, neurons=neurons_with_axons)
+
+    def timeseries_surrogates(self):
+        timesseries_surrogates_filename = os.path.join(self.results_directory, 'events_surrogates.p')
+        if not os.path.isfile(timesseries_surrogates_filename):
+            timeseries_surrogates = timeseries_to_surrogates(self.timeseries())
+            pickle.dump(timeseries_surrogates, open(timesseries_surrogates_filename, 'wb'))
+        else:
+            timeseries_surrogates = pickle.load(open(timesseries_surrogates_filename, 'rb'))
+        return timeseries_surrogates
+
+    def standardscores(self):
+        standardscores_filename = os.path.join(self.results_directory, 'standardscores.p')
+        if not os.path.isfile(standardscores_filename):
+            timelags, std_score_dict, timeseries_hist_dict = all_timelag_standardscore(self.timeseries(),
+                                                                                       self.timeseries_surrogates())
+            pickle.dump((timelags, std_score_dict, timeseries_hist_dict), open(standardscores_filename, 'wb'))
+        else:
+            timelags, std_score_dict, timeseries_hist_dict = pickle.load(open(standardscores_filename, 'rb'))
+        return timelags, std_score_dict, timeseries_hist_dict
 
     def networks(self):
         # Maybe extract structural and functional network
