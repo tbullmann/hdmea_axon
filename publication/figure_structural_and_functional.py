@@ -10,7 +10,8 @@ from hana.segmentation import neuron_position_from_trigger_electrode
 from hana.structure import find_overlap, all_overlaps
 from hana.function import timelag_standardscore, all_peaks
 
-from publication.data import Experiment, FIGURE_CULTURE, FIGURE_NEURON
+from publication.data import Experiment, FIGURE_CULTURE, FIGURE_NEURON, FIGURE_CONNECTED_NEURON, \
+    FIGURE_NOT_CONNECTED_NEURON, FIGURE_THRESHOLD_OVERLAP_AREA, FIGURE_THRESHOLD_Z_SCORE
 from publication.plotting import show_or_savefig, adjust_position, without_spines_and_ticks
 from publication.figure_functional import plot_std_score_and_peaks
 from publication.figure_structural import plot_two_colorbars
@@ -20,10 +21,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Final version
 
-FIGURE_CONNECTED_NEURON = 10
-FIGURE_NOT_CONNECTED_NEURON = 49  # or 50
-FIGURE_THRESHOLD_OVERLAP_AREA = 3000.  # um2/electrode
-FIGURE_THRESHOLD_Z_SCORE = 10
 
 def make_figure(figurename, figpath=None):
 

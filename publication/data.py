@@ -20,7 +20,10 @@ FIGURE_NEURONS = [2, 3, 4, 5, 10, 11, 13, 20, 21, 22, 23, 25, 27, 29, 31, 35, 36
 FIGURE_CULTURES = [1, 2, 3, 4, 5, 6, 7]
 GROUND_TRUTH_CULTURE = 8
 GROUND_TRUTH_NEURON = 1544
-
+FIGURE_CONNECTED_NEURON = 10
+FIGURE_NOT_CONNECTED_NEURON = 49  # or 50
+FIGURE_THRESHOLD_OVERLAP_AREA = 3000.  # um2/electrode
+FIGURE_THRESHOLD_Z_SCORE = 10
 
 class Experiment():
 
@@ -222,6 +225,12 @@ class Experiment():
 
         return data
 
+    def report(self):
+        # Read metadata and add to report
+        report_filename = os.path.join(self.results_directory, 'report.yaml')
+        report = open(report_filename, "w")
+        yaml.dump(self.metadata, report)
+        return report
 
 def extract_multiple_networks():
 
