@@ -4,15 +4,14 @@ import pickle
 
 from matplotlib import pyplot as plt
 
-from hana.polychronous import filter, combine, group, plot_pcg_on_network, plot_pcg, shuffle_network, plot_pcgs
+from hana.function import timeseries_to_surrogates, all_peaks
+from hana.misc import unique_neurons
+from hana.plotting import plot_neuron_points, plot_network, mea_axes
+from hana.polychronous import filter, plot_pcg_on_network, plot_pcg, shuffle_network, extract_pcgs
 from hana.recording import load_positions, load_timeseries, partial_timeseries
 from hana.segmentation import load_compartments, load_neurites, neuron_position_from_trigger_electrode
 from hana.structure import all_overlaps
-from hana.function import timeseries_to_surrogates, all_peaks
-from hana.plotting import plot_neuron_points, plot_network, mea_axes
-from hana.misc import unique_neurons
-
-from publication.plotting import FIGURE_ARBORS_FILE, plot_loglog_fit, FIGURE_EVENTS_FILE, adjust_position, \
+from publication.plotting import plot_loglog_fit, adjust_position, \
     show_or_savefig, correlate_two_dicts_verbose, without_spines_and_ticks
 
 logging.basicConfig(level=logging.DEBUG)
@@ -165,18 +164,6 @@ def make_figure(figurename, thr=1, figpath=None):
     ax4.text(300, 300, '$\leftrightarrows$ activated by polychronous group', color='r', fontsize=14)
 
     show_or_savefig(figpath, figurename)
-
-
-def extract_pcgs(filename):
-    logging.info('Load data...')
-    connected_events = pickle.load(open(filename, 'rb'))
-    graph_of_connected_events = combine(connected_events)
-    logging.info('Data: %d events form %d pairs'
-                 % (len(graph_of_connected_events.nodes()), len(graph_of_connected_events.edges())))
-    list_of_polychronous_groups = group(graph_of_connected_events)
-    logging.info('Data: Forming %d polycronous groups' % len(list_of_polychronous_groups))
-    polychronous_group_size = list(len(g) for g in list_of_polychronous_groups)
-    return list_of_polychronous_groups, polychronous_group_size
 
 
 def plot_small_networks(neuron_pos, original_network, network_with_shuffle_in_nodes, network_with_shuffle_values):
