@@ -6,9 +6,12 @@ from matplotlib import pyplot as plt
 from hana.misc import unique_neurons
 from hana.plotting import plot_axon, plot_dendrite, plot_neuron_points, plot_neuron_id, plot_neuron_pair, plot_network, mea_axes, highlight_connection
 from hana.recording import load_positions, average_electrode_area
-from hana.segmentation import load_compartments, load_neurites, neuron_position_from_trigger_electrode
+from hana.segmentation import neuron_position_from_trigger_electrode
 from hana.structure import find_overlap, all_overlaps
-from publication.plotting import show_or_savefig, FIGURE_ARBORS_FILE, label_subplot, adjust_position
+
+from publication.data import Experiment, FIGURE_CULTURE, FIGURE_NEURON, FIGURE_CONNECTED_NEURON,\
+    FIGURE_NOT_CONNECTED_NEURON, FIGURE_THRESHOLD_OVERLAP_AREA
+from publication.plotting import show_or_savefig, label_subplot, adjust_position
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -17,7 +20,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 def test_plot_all_axonal_fields():
     """Display axonal field for each neuron, good examples are 3605, 9952, 3093"""
-    axon_delay, dendrite_peak = load_neurites(FIGURE_ARBORS_FILE)
+    axon_delay, dendrite_peak = Experiment(FIGURE_CULTURE).neurites()
     pos = load_positions(mea='hidens')
     for neuron in axon_delay :
         ax=plt.subplot(111)
@@ -29,7 +32,7 @@ def test_plot_all_axonal_fields():
 
 def test_plot_all_dendritic_fields_vs_one_axonal_field (presynaptic_neuron):
     """Display one axon and dendritic field for each neuron, good examples are 5-->10"""
-    axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_FILE)
+    axon_delay, dendrite_peak = Experiment(FIGURE_CULTURE).neurites()
     pos = load_positions(mea='hidens')
     for postsynaptic_neuron in dendrite_peak :
         ax=plt.subplot(111)
@@ -42,7 +45,7 @@ def test_plot_all_dendritic_fields_vs_one_axonal_field (presynaptic_neuron):
 
 def test_plot_only_overlap():
     """Plot overlap between axonal and dendritic fields of a presumably pre- and post-synaptic neuron pair"""
-    trigger, _, axon_delay, dendrite_peak = load_compartments (FIGURE_ARBORS_FILE)
+    trigger, _, axon_delay, dendrite_peak = Experiment(FIGURE_CULTURE).compartments()
     pos = load_positions(mea='hidens')
     neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
     presynaptic_neuron = 5  # electrode 3605
@@ -59,21 +62,17 @@ def test_plot_only_overlap():
 # Final version
 
 def make_figure(figurename, figpath=None):
-    trigger, _, axon_delay, dendrite_peak = load_compartments(FIGURE_ARBORS_FILE)
+    trigger, _, axon_delay, dendrite_peak = Experiment(FIGURE_CULTURE).compartments()
     pos = load_positions(mea='hidens')
     electrode_area = average_electrode_area(pos)
     neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
 
-    presynaptic_neuron = 5
-    postsynaptic_neuron = 10
-    postsynaptic_neuron2 = 49  # or 50
-    thr_overlap_area = 3000.  # um2/electrode
-    thr_overlap = np.ceil(thr_overlap_area / electrode_area)  # number of electrodes
-    logging.info('Overlap of at least %d um2 corresponds to %d electrodes.' % (thr_overlap_area, thr_overlap))
+    thr_overlap = np.ceil(FIGURE_THRESHOLD_OVERLAP_AREA / electrode_area)  # number of electrodes
+    logging.info('Overlap of at least %d um2 corresponds to %d electrodes.' % (FIGURE_THRESHOLD_OVERLAP_AREA, thr_overlap))
 
-    overlap, ratio, delay = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron,
+    overlap, ratio, delay = find_overlap(axon_delay, dendrite_peak, FIGURE_NEURON, FIGURE_CONNECTED_NEURON,
                                          thr_overlap=thr_overlap)
-    overlap2, ratio2, delay2 = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron2,
+    overlap2, ratio2, delay2 = find_overlap(axon_delay, dendrite_peak, FIGURE_NEURON, FIGURE_NOT_CONNECTED_NEURON,
                                          thr_overlap=thr_overlap)
 
     # Making figure
@@ -81,19 +80,19 @@ def make_figure(figurename, figpath=None):
     fig.suptitle(figurename + ' Structural connectivity', fontsize=14, fontweight='bold')
 
     ax1 = plt.subplot(221)
-    plot_neuron_pair(ax1, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron, presynaptic_neuron, delay)
+    plot_neuron_pair(ax1, pos, axon_delay, dendrite_peak, neuron_pos, FIGURE_CONNECTED_NEURON, FIGURE_NEURON, delay)
     mea_axes(ax1)
-    ax1.set_title ('neuron pair %d $\longrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron))
-    ax1.text(200,200,r'$\rho=$%3d$\mu m^2$' % thr_overlap_area)
+    ax1.set_title ('neuron pair %d $\longrightarrow$ %d' % (FIGURE_NEURON, FIGURE_CONNECTED_NEURON))
+    ax1.text(200,200,r'$\rho=$%3d$\mu m^2$' % FIGURE_THRESHOLD_OVERLAP_AREA)
     plot_two_colorbars(ax1)
     adjust_position(ax1, yshrink=0.01)
     label_subplot(ax1, 'A', xoffset=-0.005, yoffset=-0.01)
 
     ax2 = plt.subplot(223)
-    plot_neuron_pair(ax2, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron2, presynaptic_neuron, delay2)
+    plot_neuron_pair(ax2, pos, axon_delay, dendrite_peak, neuron_pos, FIGURE_NOT_CONNECTED_NEURON, FIGURE_NEURON, delay2)
     mea_axes(ax2)
-    ax2.set_title('neuron pair %d $\dashrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron2))
-    ax2.text(200,200,r'$\rho=$%3d$\mu m^2$' % thr_overlap_area)
+    ax2.set_title('neuron pair %d $\dashrightarrow$ %d' % (FIGURE_NEURON, FIGURE_NOT_CONNECTED_NEURON))
+    ax2.text(200,200,r'$\rho=$%3d$\mu m^2$' % FIGURE_THRESHOLD_OVERLAP_AREA)
     plot_two_colorbars(ax2)
     adjust_position(ax2, yshrink=0.01)
     label_subplot(ax2, 'B', xoffset=-0.005, yoffset=-0.01)
@@ -104,9 +103,9 @@ def make_figure(figurename, figpath=None):
     plot_neuron_points(ax3, unique_neurons(all_delay), neuron_pos)
     plot_neuron_id(ax3, trigger, neuron_pos)
     plot_network (ax3, all_delay, neuron_pos)
-    highlight_connection(ax3, (presynaptic_neuron, postsynaptic_neuron), neuron_pos)
-    highlight_connection(ax3, (presynaptic_neuron, postsynaptic_neuron2), neuron_pos, connected=False)
-    ax3.text(200,150,r'$\rho=$%3d$\mu m^2$' % thr_overlap_area)
+    highlight_connection(ax3, (FIGURE_NEURON, FIGURE_CONNECTED_NEURON), neuron_pos)
+    highlight_connection(ax3, (FIGURE_NEURON, FIGURE_NOT_CONNECTED_NEURON), neuron_pos, connected=False)
+    ax3.text(200,150,r'$\rho=$%3d$\mu m^2$' % FIGURE_THRESHOLD_OVERLAP_AREA)
     mea_axes(ax3)
     ax3.set_title ('structural connectivity graph')
     label_subplot(ax3, 'C', xoffset=-0.05, yoffset=-0.05)
@@ -132,6 +131,6 @@ def plot_two_colorbars(ax1):
 
 if __name__ == "__main__":
     make_figure(os.path.basename(__file__))
-    # test_plot_all_axonal_fields()
-    # test_plot_all_dendritic_fields_vs_one_axonal_field(5)
-    # test_plot_only_overlap()
+    test_plot_all_axonal_fields()
+    test_plot_all_dendritic_fields_vs_one_axonal_field(5)
+    test_plot_only_overlap()
