@@ -15,11 +15,8 @@ from scipy.stats import gaussian_kde, pearsonr, ttest_ind, median_test
 
 logging.basicConfig(level=logging.DEBUG)
 
-
-FIGURE_EVENTS_FILE = 'data/events.h5'
-FIGURE_ARBORS_FILE = 'temp/all_neurites.h5'
-FIGURE_NEURON_FILE = 'data/neuron5.h5'
-FIGURE_NEURON_FILE_FORMAT = 'data/neuron%d.h5'
+FIGURE_CULTURE = 1
+FIGURE_NEURON = 5
 FIGURE_NEURONS = [2, 3, 4, 5, 10, 11, 13, 20, 21, 22, 23, 25, 27, 29, 31, 35, 36, 37, 41, 49, 50, 51, 59]
 FIGURE_CULTURES = [1, 2, 3, 4, 5, 6, 7]
 
