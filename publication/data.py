@@ -1,20 +1,21 @@
 import logging
 import os
 import pickle
+
+import pandas as pd
 import yaml
 
 from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks
 from hana.polychronous import filter, shuffle_network, extract_pcgs
-from hana.recording import load_timeseries, partial_timeseries, load_traces
+from hana.recording import load_timeseries, partial_timeseries, load_traces, electrode_neighborhoods
 from hana.segmentation import extract_and_save_compartments, load_neurites
 from hana.structure import all_overlaps
 
 from publication.plotting import correlate_two_dicts_verbose
-from publication.comparison import ImageIterator
-
+from publication.comparison import ImageIterator, ModelDiscriminatorBakkum, ModelDiscriminatorBullmann
 
 FIGURE_CULTURE = 1
-FIGURE_NEURON = 5
+FIGURE_NEURON = 5  # other neurons 5, 10, 11, 20, 25, 2, 31, 41
 FIGURE_NEURONS = [2, 3, 4, 5, 10, 11, 13, 20, 21, 22, 23, 25, 27, 29, 31, 35, 36, 37, 41, 49, 50, 51, 59]
 FIGURE_CULTURES = [1, 2, 3, 4, 5, 6, 7]
 GROUND_TRUTH_CULTURE = 8
@@ -160,6 +161,41 @@ class Experiment():
         else:
             pcgs_size, pcgs1_size, pcgs2_size, pcgs3_size = pickle.load(open(PCG_sizes_pickle_name, 'rb'))
         return pcgs_size, pcgs1_size, pcgs2_size, pcgs3_size
+
+    def compare_discriminators(self):
+        """
+        Evaluating both models for all neurons, load from csv if already exist.
+        :return: pandas data frame
+        """
+        evaluation_filename = os.path.join(self.results_directory, 'comparison_of_discriminators.csv')
+
+        if os.path.isfile(evaluation_filename):
+            data = pd.DataFrame.from_csv(evaluation_filename)
+
+        else:
+            Model1 = ModelDiscriminatorBakkum()
+            Model2 = ModelDiscriminatorBullmann()
+
+            # Load electrode coordinates
+            neighbors = electrode_neighborhoods(mea='hidens')
+
+            evaluations = list()
+            for neuron in FIGURE_NEURONS:
+                V, t, x, y, trigger, neuron = Experiment(FIGURE_CULTURE).load_traces(neuron)
+                t *= 1000  # convert to ms
+
+                Model1.fit(t, V, pnr_threshold=5)
+                Model1.predict()
+                Model2.fit(t, V, neighbors)
+                Model2.predict()
+
+                evaluations.append(Model1.summary(subject='%d' % neuron, method='I'))
+                evaluations.append(Model2.summary(subject='%d' % neuron, method='II'))
+
+            data = pd.DataFrame(evaluations)
+            data.to_csv(evaluation_filename)
+
+        return data
 
 
 def extract_multiple_networks():

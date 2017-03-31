@@ -1,27 +1,21 @@
 import logging
-
 import os
+
 import numpy as np
-import pandas as pd
 from matplotlib import pyplot as plt
 
 from hana.plotting import mea_axes
-from hana.recording import electrode_neighborhoods, load_traces
+from hana.recording import electrode_neighborhoods
 from publication.comparison import ModelDiscriminatorBakkum, ModelDiscriminatorBullmann
-from publication.plotting import show_or_savefig, FIGURE_NEURON_FILE_FORMAT, FIGURE_NEURONS, label_subplot, adjust_position, \
-    plot_pairwise_comparison, without_spines_and_ticks
+from publication.data import Experiment, FIGURE_CULTURE, FIGURE_NEURON
+from publication.plotting import show_or_savefig, adjust_position, plot_pairwise_comparison, without_spines_and_ticks
 
 logging.basicConfig(level=logging.DEBUG)
-DISCRIMINATOR_EVALUATION_FILENAME = 'temp/comparison_of_discriminators.csv'
 
 
 def make_figure(figurename, figpath=None):
 
-    # Load example data
-    neuron = 5  # other neurons 5, 10, 11, 20, 25, 2, 31, 41
-    filename = FIGURE_NEURON_FILE_FORMAT % neuron
-
-    V, t, x, y, trigger, neuron = load_traces(filename)
+    V, t, x, y, trigger, neuron = Experiment(FIGURE_CULTURE).load_traces(FIGURE_NEURON)
     t *= 1000  # convert to ms
 
     # Neighborhood from electrode positions
@@ -34,11 +28,7 @@ def make_figure(figurename, figpath=None):
     Model2.fit(t, V, neighbors)
     Model2.predict()
 
-    evaluation = compare_discriminators()
-
-    # Summary
-    print (Model1.summary(subject=filename, method='Bakkum'))
-    print (Model2.summary(subject=filename, method='Bullmann'))
+    evaluation = Experiment(FIGURE_CULTURE).compare_discriminators()
 
     # Plotting Frames A~E
     fig = plt.figure(figurename, figsize=(13, 10))
@@ -59,7 +49,6 @@ def make_figure(figurename, figpath=None):
                  size=14)
     plt.title('a', loc='left', fontsize=18)
 
-
     ax2 = plt.subplot(232)
     Model2.plot(ax2, xlabel=r'$\frac{s_{\tau}}{T/2}$', fontsize=20)
     adjust_position(ax2, xshrink=0.01)
@@ -73,7 +62,6 @@ def make_figure(figurename, figpath=None):
                  size=14)
     plt.title('b', loc='left', fontsize=18)
 
-
     ax3 = plt.subplot(233)
     Model1.plot_ROC(ax3, color='blue', marker='d', label = 'I')
     Model2.plot_ROC(ax3, color='black', marker='o', label = 'II')
@@ -84,7 +72,6 @@ def make_figure(figurename, figpath=None):
     ax3.legend(loc=4, scatterpoints=1, frameon=False)
     plt.title('c', loc='left', fontsize=18)
 
-
     ax4 = plt.subplot(234)
     Model1.plot_Map(ax4, x, y)
     ax4.text(300, 300, r'I: $V_{n} > %d\sigma_{V}; \tau > \tau_{AIS}$' % np.power(10, Model1.threshold),
@@ -92,13 +79,11 @@ def make_figure(figurename, figpath=None):
     mea_axes(ax4)
     plt.title('d', loc='left', fontsize=18)
 
-
     ax5 = plt.subplot(235)
     Model2.plot_Map(ax5, x, y)
     ax5.text(300, 300, r'II: $s_{\tau} < s_{min}; \tau > \tau_{AIS}$', bbox=dict(facecolor='white', pad=5, edgecolor='none'), size=14)
     mea_axes(ax5)
     plt.title('e', loc='left', fontsize=18)
-
 
     # Plotting Evaluation
     ax6 =plt.subplot(2,9,16)
@@ -114,44 +99,7 @@ def make_figure(figurename, figpath=None):
     adjust_position(ax6c, xshift = 0.02, yshrink = 0.05)
     plt.title('h', loc='left', fontsize=18)
 
-
     show_or_savefig(figpath, figurename)
-
-
-def compare_discriminators():
-    """
-    Evaluating both models for all neurons, load from csv if already exist.
-    :return: pandas data frame
-    """
-
-    if os.path.isfile(DISCRIMINATOR_EVALUATION_FILENAME):
-        data = pd.DataFrame.from_csv(DISCRIMINATOR_EVALUATION_FILENAME)
-
-    else:
-        Model1 = ModelDiscriminatorBakkum()
-        Model2 = ModelDiscriminatorBullmann()
-
-        # Load electrode coordinates
-        neighbors = electrode_neighborhoods(mea='hidens')
-
-        evaluations = list()
-        for neuron in FIGURE_NEURONS:
-            filename = FIGURE_NEURON_FILE_FORMAT % neuron
-            V, t, x, y, trigger, neuron = load_traces(filename)
-            t *= 1000  # convert to ms
-
-            Model1.fit(t, V, pnr_threshold=5)
-            Model1.predict()
-            Model2.fit(t, V, neighbors)
-            Model2.predict()
-
-            evaluations.append(Model1.summary(subject='%d' % neuron, method='I'))
-            evaluations.append(Model2.summary(subject='%d' % neuron, method='II'))
-
-        data = pd.DataFrame(evaluations)
-        data.to_csv(DISCRIMINATOR_EVALUATION_FILENAME)
-
-    return data
 
 
 if __name__ == "__main__":
