@@ -1,17 +1,18 @@
 import logging
 import os
-import pickle
 import numpy as np
 from matplotlib import pyplot as plt
 
 from hana.misc import unique_neurons
-from hana.plotting import plot_axon, plot_dendrite, plot_neuron_points, plot_neuron_id, plot_neuron_pair, plot_network, mea_axes, highlight_connection
+from hana.plotting import plot_neuron_points, plot_neuron_id, plot_neuron_pair, plot_network, mea_axes, highlight_connection
 from hana.recording import load_positions, average_electrode_area
-from hana.segmentation import load_compartments, load_neurites, neuron_position_from_trigger_electrode
+from hana.segmentation import neuron_position_from_trigger_electrode
 from hana.structure import find_overlap, all_overlaps
 from hana.function import timelag_standardscore, all_peaks
-from publication.plotting import show_or_savefig, FIGURE_ARBORS_FILE, adjust_position, without_spines_and_ticks
-from publication.figure_functional import plot_func_example_and_network, detect_function_networks, plot_std_score_and_peaks
+
+from publication.data import Experiment, FIGURE_CULTURE, FIGURE_NEURON
+from publication.plotting import show_or_savefig, adjust_position, without_spines_and_ticks
+from publication.figure_functional import plot_std_score_and_peaks
 from publication.figure_structural import plot_two_colorbars
 
 logging.basicConfig(level=logging.DEBUG)
@@ -19,18 +20,15 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Final version
 
-def make_figure(figurename, figpath=None,
-                presynaptic_neuron=5,
-                postsynaptic_neuron=10,
-                postsynaptic_neuron2 = 49,  # or 50
-                thr_overlap_area = 3000.,  # um2/electrode
-                thr_z_score = 10):
+FIGURE_CONNECTED_NEURON = 10
+FIGURE_NOT_CONNECTED_NEURON = 49  # or 50
+FIGURE_THRESHOLD_OVERLAP_AREA = 3000.  # um2/electrode
+FIGURE_THRESHOLD_Z_SCORE = 10
 
-    if not os.path.isfile('temp/standardscores.p'):
-        detect_function_networks()
+def make_figure(figurename, figpath=None):
 
     # Neuron positions
-    trigger, _, axon_delay, dendrite_peak = load_compartments(FIGURE_ARBORS_FILE)
+    trigger, _, axon_delay, dendrite_peak = Experiment(FIGURE_CULTURE).compartments()
     pos = load_positions(mea='hidens')
     electrode_area = average_electrode_area(pos)
     neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
@@ -41,29 +39,26 @@ def make_figure(figurename, figpath=None,
         fig.suptitle(figurename + ' Estimate structural and functional connectivity', fontsize=14, fontweight='bold')
     plt.subplots_adjust(left=0.10, right=0.95, top=0.90, bottom=0.05)
 
-
-
-
     # Examples for structual connected and unconnected neurons and structural network
-    thr_overlap = np.ceil(thr_overlap_area / electrode_area)  # number of electrodes
-    logging.info('Overlap of at least %d um2 corresponds to %d electrodes.' % (thr_overlap_area, thr_overlap))
-    overlap, ratio, delay = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron,
+    thr_overlap = np.ceil(FIGURE_THRESHOLD_OVERLAP_AREA / electrode_area)  # number of electrodes
+    logging.info('Overlap of at least %d um2 corresponds to %d electrodes.' % (FIGURE_THRESHOLD_OVERLAP_AREA, thr_overlap))
+    overlap, ratio, delay = find_overlap(axon_delay, dendrite_peak, FIGURE_NEURON, FIGURE_CONNECTED_NEURON,
                                          thr_overlap=thr_overlap)
-    overlap2, ratio2, delay2 = find_overlap(axon_delay, dendrite_peak, presynaptic_neuron, postsynaptic_neuron2,
-                                         thr_overlap=thr_overlap)
+    overlap2, ratio2, delay2 = find_overlap(axon_delay, dendrite_peak, FIGURE_NEURON, FIGURE_NOT_CONNECTED_NEURON,
+                                            thr_overlap=thr_overlap)
 
     ax1 = plt.subplot(421)
-    plot_neuron_pair(ax1, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron, presynaptic_neuron, delay)
+    plot_neuron_pair(ax1, pos, axon_delay, dendrite_peak, neuron_pos, FIGURE_CONNECTED_NEURON, FIGURE_NEURON, delay)
     mea_axes(ax1, style='off')
-    ax1.set_title ('neuron pair %d $\longrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron))
+    ax1.set_title ('neuron pair %d $\longrightarrow$ %d' % (FIGURE_NEURON, FIGURE_CONNECTED_NEURON))
     plot_two_colorbars(ax1)
     adjust_position(ax1, yshrink=0.01)
     plt.title('a', loc='left', fontsize=18)
 
     ax2 = plt.subplot(423)
-    plot_neuron_pair(ax2, pos, axon_delay, dendrite_peak, neuron_pos, postsynaptic_neuron2, presynaptic_neuron, delay2)
+    plot_neuron_pair(ax2, pos, axon_delay, dendrite_peak, neuron_pos, FIGURE_NOT_CONNECTED_NEURON, FIGURE_NEURON, delay2)
     mea_axes(ax2, style='off')
-    ax2.set_title('neuron pair %d $\dashrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron2))
+    ax2.set_title('neuron pair %d $\dashrightarrow$ %d' % (FIGURE_NEURON, FIGURE_NOT_CONNECTED_NEURON))
     plot_two_colorbars(ax2)
     adjust_position(ax2, yshrink=0.01)
     plt.title('b', loc='left', fontsize=18)
@@ -74,18 +69,19 @@ def make_figure(figurename, figpath=None,
     plot_neuron_points(ax3, unique_neurons(all_delay), neuron_pos)
     plot_neuron_id(ax3, trigger, neuron_pos)
     plot_network (ax3, all_delay, neuron_pos)
-    highlight_connection(ax3, (presynaptic_neuron, postsynaptic_neuron2), neuron_pos, connected=False)
-    highlight_connection(ax3, (presynaptic_neuron, postsynaptic_neuron), neuron_pos)
-    ax3.text(200,250,r'$\mathsf{\rho=%3d\ \mu m^2}$' % thr_overlap_area, fontsize=18)
+    highlight_connection(ax3, (FIGURE_NEURON, FIGURE_NOT_CONNECTED_NEURON), neuron_pos, connected=False)
+    highlight_connection(ax3, (FIGURE_NEURON, FIGURE_CONNECTED_NEURON), neuron_pos)
+    ax3.text(200, 250,r'$\mathsf{\rho=%3d\ \mu m^2}$' % FIGURE_THRESHOLD_OVERLAP_AREA, fontsize=18)
     mea_axes(ax3)
     plt.title('c     structural connectivity graph', loc='left', fontsize=18)
 
 
     # Examples for functional connected and unconnected neurons and functional network
 
-    timeseries, timeseries_surrogates = pickle.load(open( 'temp/timeseries_and_surrogates.p','rb'))
-    timelags, std_score_dict, timeseries_hist_dict = pickle.load(open( 'temp/standardscores.p','rb'))
-    peak_score, peak_timelag, _, _ = all_peaks(timelags, std_score_dict, thr=thr_z_score, direction='reverse')
+    timeseries = Experiment(FIGURE_CULTURE).timeseries()
+    timeseries_surrogates = Experiment(FIGURE_CULTURE).timeseries_surrogates()
+    timelags, std_score_dict, timeseries_hist_dict = Experiment(FIGURE_CULTURE).standardscores()
+    peak_score, peak_timelag, _, _ = all_peaks(timelags, std_score_dict, thr=FIGURE_THRESHOLD_Z_SCORE, direction='reverse')
 
     # Plotting reverse
     ax4 = plt.subplot(224)
@@ -93,22 +89,22 @@ def make_figure(figurename, figpath=None,
     neuron_dict = unique_neurons(peak_score)
     plot_neuron_points(ax4, neuron_dict, neuron_pos)
     plot_neuron_id(ax4, neuron_dict, neuron_pos)
-    highlight_connection(ax4, (presynaptic_neuron, postsynaptic_neuron2), neuron_pos, connected=False)
-    highlight_connection(ax4, (presynaptic_neuron, postsynaptic_neuron), neuron_pos)
-    ax4.text(200,250,r'$\mathsf{\zeta=%d}$' % thr_z_score, fontsize=18)
+    highlight_connection(ax4, (FIGURE_NEURON, FIGURE_NOT_CONNECTED_NEURON), neuron_pos, connected=False)
+    highlight_connection(ax4, (FIGURE_NEURON, FIGURE_CONNECTED_NEURON), neuron_pos)
+    ax4.text(200, 250,r'$\mathsf{\zeta=%d}$' % FIGURE_THRESHOLD_Z_SCORE, fontsize=18)
     mea_axes(ax4)
     plt.title('f     functional connectivity graph', loc='left', fontsize=18)
 
 
     ax5 = plt.subplot(425)
-    plot_z_score (ax5, presynaptic_neuron, postsynaptic_neuron, thr_z_score, peak_timelag, timeseries, timeseries_surrogates)
-    ax5.set_title ('neuron pair %d $\longrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron))
+    plot_z_score (ax5, FIGURE_NEURON, FIGURE_CONNECTED_NEURON, FIGURE_THRESHOLD_Z_SCORE, peak_timelag, timeseries, timeseries_surrogates)
+    ax5.set_title ('neuron pair %d $\longrightarrow$ %d' % (FIGURE_NEURON, FIGURE_CONNECTED_NEURON))
     without_spines_and_ticks(ax5)
     plt.title('d', loc='left', fontsize=18)
 
     ax6 = plt.subplot(427)
-    plot_z_score (ax6, presynaptic_neuron, postsynaptic_neuron2, thr_z_score, peak_timelag, timeseries, timeseries_surrogates)
-    ax6.set_title ('neuron pair %d $\longrightarrow$ %d' % (presynaptic_neuron, postsynaptic_neuron2))
+    plot_z_score (ax6, FIGURE_NEURON, FIGURE_NOT_CONNECTED_NEURON, FIGURE_THRESHOLD_Z_SCORE, peak_timelag, timeseries, timeseries_surrogates)
+    ax6.set_title ('neuron pair %d $\longrightarrow$ %d' % (FIGURE_NEURON, FIGURE_NOT_CONNECTED_NEURON))
     without_spines_and_ticks(ax6)
     plt.title('e', loc='left', fontsize=18)
 
@@ -116,8 +112,8 @@ def make_figure(figurename, figpath=None,
     #                               timelags, timeseries, timeseries_surrogates)
     adjust_position(ax5, yshrink=0.01, xshrink=0.04)
     adjust_position(ax6, yshrink=0.01, xshrink=0.04)
-    ax5.set_ylim((-thr_z_score, thr_z_score*3))
-    ax6.set_ylim((-thr_z_score, thr_z_score*3))
+    ax5.set_ylim((-FIGURE_THRESHOLD_Z_SCORE, FIGURE_THRESHOLD_Z_SCORE * 3))
+    ax6.set_ylim((-FIGURE_THRESHOLD_Z_SCORE, FIGURE_THRESHOLD_Z_SCORE * 3))
 
     show_or_savefig(figpath, figurename)
 
