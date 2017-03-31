@@ -4,10 +4,12 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from hana.plotting import annotate_x_bar, mea_axes
-from hana.recording import half_peak_width, half_peak_domain, electrode_neighborhoods, DELAY_EPSILON, load_traces
+from hana.recording import half_peak_width, half_peak_domain, electrode_neighborhoods, DELAY_EPSILON
 from hana.segmentation import segment_dendrite_verbose
-from publication.plotting import show_or_savefig, FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
-    legend_without_multiple_labels, label_subplot, adjust_position
+
+from publication.data import Experiment, FIGURE_CULTURE, FIGURE_NEURON
+from publication.plotting import show_or_savefig, without_spines_and_ticks, cross_hair, \
+    legend_without_multiple_labels, adjust_position
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -20,7 +22,7 @@ def make_figure(figurename, figpath=None):
     neighbors = electrode_neighborhoods(mea='hidens')
 
     # Load example data
-    V, t, x, y, trigger, neuron = load_traces(FIGURE_NEURON_FILE)
+    V, t, x, y, trigger, neuron = Experiment(FIGURE_CULTURE).load_traces(FIGURE_NEURON)
     t *= 1000  # convert to ms
 
     # Verbose dendrite segmentation function
