@@ -7,8 +7,10 @@ from hana.plotting import annotate_x_bar, mea_axes
 from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain, DELAY_EPSILON, neighborhood, \
     electrode_neighborhoods, load_traces, load_positions
 from hana.segmentation import segment_axon_verbose, restrict_to_compartment
-from publication.plotting import show_or_savefig, FIGURE_NEURON_FILE, without_spines_and_ticks, cross_hair, \
-    legend_without_multiple_labels, label_subplot, plot_traces_and_delays, adjust_position
+
+from publication.data import Experiment
+from publication.plotting import show_or_savefig, FIGURE_CULTURE, FIGURE_NEURON, without_spines_and_ticks, cross_hair, \
+    legend_without_multiple_labels, plot_traces_and_delays, adjust_position
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -19,7 +21,7 @@ def make_figure(figurename, figpath=None):
     neighbors = electrode_neighborhoods(mea='hidens')
 
     # Load example data
-    V, t, x, y, trigger, neuron = load_traces(FIGURE_NEURON_FILE)
+    V, t, x, y, trigger, neuron = Experiment(FIGURE_CULTURE).load_traces(FIGURE_NEURON)
     t *= 1000  # convert to ms
 
     # Verbose axon segmentation function
