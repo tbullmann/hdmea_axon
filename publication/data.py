@@ -9,8 +9,8 @@ from hana.recording import load_timeseries, partial_timeseries, load_traces
 from hana.segmentation import extract_and_save_compartments, load_neurites
 from hana.structure import all_overlaps
 
-from publication.plotting import FIGURE_CULTURES, correlate_two_dicts_verbose
-
+from publication.plotting import correlate_two_dicts_verbose
+from publication.comparison import ImageIterator
 
 class Experiment():
 
@@ -35,6 +35,10 @@ class Experiment():
 
     def load_traces(self, neuron):
         return load_traces(self.neuron_file_template % neuron)
+
+    def load_images(self, neuron, type=''):
+        path = os.path.join(self.data_directory, 'neuron%d' % neuron + type)
+        return ImageIterator(path)
 
     def neurites(self):
         # Maybe extract neurites
@@ -164,3 +168,7 @@ def extract_multiple_networks():
 if __name__ == "__main__":
 
     extract_multiple_networks()
+FIGURE_CULTURE = 1
+FIGURE_NEURON = 5
+FIGURE_NEURONS = [2, 3, 4, 5, 10, 11, 13, 20, 21, 22, 23, 25, 27, 29, 31, 35, 36, 37, 41, 49, 50, 51, 59]
+FIGURE_CULTURES = [1, 2, 3, 4, 5, 6, 7]

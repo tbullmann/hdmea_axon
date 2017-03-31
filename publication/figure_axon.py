@@ -4,12 +4,11 @@ from matplotlib import pyplot as plt
 import logging
 
 from hana.plotting import annotate_x_bar, mea_axes
-from hana.recording import half_peak_width, peak_peak_width, peak_peak_domain, DELAY_EPSILON, neighborhood, \
-    electrode_neighborhoods, load_traces, load_positions
+from hana.recording import DELAY_EPSILON, neighborhood, electrode_neighborhoods
 from hana.segmentation import segment_axon_verbose, restrict_to_compartment
 
-from publication.data import Experiment
-from publication.plotting import show_or_savefig, FIGURE_CULTURE, FIGURE_NEURON, without_spines_and_ticks, cross_hair, \
+from publication.data import Experiment, FIGURE_CULTURE, FIGURE_NEURON
+from publication.plotting import show_or_savefig, without_spines_and_ticks, cross_hair, \
     legend_without_multiple_labels, plot_traces_and_delays, adjust_position
 
 logging.basicConfig(level=logging.DEBUG)
