@@ -583,6 +583,3 @@ def DataFrame_from_Dicts(functional_delay, functional_strength, structural_delay
     data['simultaneous'] = data.synaptic_delay < 1  # ms
     return data
 
-
-GROUND_TRUTH_CULTURE = 8
-GROUND_TRUTH_NEURON = 1544

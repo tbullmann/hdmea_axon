@@ -12,6 +12,15 @@ from hana.structure import all_overlaps
 from publication.plotting import correlate_two_dicts_verbose
 from publication.comparison import ImageIterator
 
+
+FIGURE_CULTURE = 1
+FIGURE_NEURON = 5
+FIGURE_NEURONS = [2, 3, 4, 5, 10, 11, 13, 20, 21, 22, 23, 25, 27, 29, 31, 35, 36, 37, 41, 49, 50, 51, 59]
+FIGURE_CULTURES = [1, 2, 3, 4, 5, 6, 7]
+GROUND_TRUTH_CULTURE = 8
+GROUND_TRUTH_NEURON = 1544
+
+
 class Experiment():
 
     def __init__(self, culture, data_base_dir='data2', temp_base_dir='temp'):
@@ -168,7 +177,3 @@ def extract_multiple_networks():
 if __name__ == "__main__":
 
     extract_multiple_networks()
-FIGURE_CULTURE = 1
-FIGURE_NEURON = 5
-FIGURE_NEURONS = [2, 3, 4, 5, 10, 11, 13, 20, 21, 22, 23, 25, 27, 29, 31, 35, 36, 37, 41, 49, 50, 51, 59]
-FIGURE_CULTURES = [1, 2, 3, 4, 5, 6, 7]
