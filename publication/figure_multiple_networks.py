@@ -8,7 +8,9 @@ from hana.misc import unique_neurons
 from hana.plotting import plot_neuron_points, mea_axes, plot_neuron_id, plot_network
 from hana.recording import load_positions
 from hana.segmentation import load_compartments, neuron_position_from_trigger_electrode
-from publication.plotting import FIGURE_CULTURES, show_or_savefig, \
+
+from publication.data import Experiment, FIGURE_CULTURES
+from publication.plotting import show_or_savefig, \
     plot_loglog_fit, without_spines_and_ticks, adjust_position, plot_correlation, plot_synapse_delays, \
     DataFrame_from_Dicts
 
@@ -19,27 +21,18 @@ def make_figure(figurename, figpath=None):
 
     for culture in FIGURE_CULTURES:
 
-        sub_dir = 'culture%d' % culture
-        results_directory = os.path.join('temp', sub_dir)
-        report = open(os.path.join(results_directory, 'report.yaml'), "w")
-        data_directory = os.path.join('data2', sub_dir)
-
-        # Read metadata and add to results
-        metadata = yaml.load(open(os.path.join('data2', sub_dir, 'metadata.yaml'), 'r'))
-        metadata['culture'] = culture
-        yaml.dump (metadata, report)
+        report = Experiment(culture).report()
+        metadata = Experiment(culture).metadata()
 
         logging.info('Load neuron positions')
-        neurites_filename = os.path.join(results_directory, 'all_neurites.h5')
-        trigger, _, axon_delay, dendrite_peak = load_compartments(neurites_filename)
+        trigger, _, axon_delay, dendrite_peak = Experiment(culture).compartments()
         pos = load_positions(mea='hidens')
         # electrode_area = average_electrode_area(pos)
         neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
 
         logging.info('Load tructural and functional network')
-        two_networks_pickle_name = os.path.join(results_directory, 'two_networks.p')
         structural_strength, structural_delay, functional_strength, functional_delay \
-            = pickle.load(open(two_networks_pickle_name, 'rb'))
+            = Experiment(culture).networks()
         neuron_dict = unique_neurons(structural_delay)
         # Getting and subsetting the data
         data = DataFrame_from_Dicts(functional_delay, functional_strength, structural_delay, structural_strength)
@@ -47,8 +40,7 @@ def make_figure(figurename, figpath=None):
         simultaneous = data[data.simultaneous]
 
         logging.info('Load PCG size distribution')
-        PCG_sizes_pickle_name = os.path.join(results_directory, 'pcg_sizes.p')
-        pcgs_size, pcgs1_size, pcgs2_size, pcgs3_size = pickle.load(open(PCG_sizes_pickle_name, 'rb'))
+        pcgs_size, pcgs1_size, pcgs2_size, pcgs3_size = Experiment(culture).polychronous_group_sizes_with_surrogates()
 
         logging.info('Making figure')
         longfigurename = figurename + '-%d' % culture
