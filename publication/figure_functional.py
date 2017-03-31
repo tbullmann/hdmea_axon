@@ -1,23 +1,16 @@
-from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks, timelag_standardscore
-from hana.segmentation import load_compartments, neuron_position_from_trigger_electrode
-from hana.recording import load_timeseries, load_positions
-from hana.plotting import plot_network, plot_neuron_points, plot_neuron_id, mea_axes, \
-    plot_timeseries_hist_and_surrogates, plot_std_score_and_peaks, highlight_connection
-from hana.misc import unique_neurons
-from publication.plotting import show_or_savefig, FIGURE_EVENTS_FILE, FIGURE_ARBORS_FILE, label_subplot, adjust_position
-
-import pickle
 import os
+
 from matplotlib import pyplot as plt
 
+from hana.function import all_peaks, timelag_standardscore
+from hana.misc import unique_neurons
+from hana.plotting import plot_network, plot_neuron_points, plot_neuron_id, mea_axes, \
+    plot_timeseries_hist_and_surrogates, plot_std_score_and_peaks, highlight_connection
+from hana.recording import load_positions
+from hana.segmentation import load_compartments, neuron_position_from_trigger_electrode
 
-def detect_function_networks():
-    timeseries = load_timeseries(FIGURE_EVENTS_FILE)
-    timeseries_surrogates = timeseries_to_surrogates(timeseries)
-    timelags, std_score_dict, timeseries_hist_dict = all_timelag_standardscore(timeseries, timeseries_surrogates)
-
-    pickle.dump((timeseries, timeseries_surrogates),open('temp/timeseries_and_surrogates.p','wb'))
-    pickle.dump((timelags, std_score_dict, timeseries_hist_dict),open('temp/standardscores.p','wb'))
+from publication.data import Experiment, FIGURE_CULTURE
+from publication.plotting import show_or_savefig, label_subplot, adjust_position
 
 
 def plot_func_network_forward_vs_reverse(thr, pos, timelags, std_score_dict):
@@ -84,13 +77,12 @@ def plot_func_example_and_network(ax1, ax2, ax3, pre, post, direction, thr, pos,
 def make_figure(figurename, figpath=None, thr =20):
     """FIGURE showing Displays functional connectivity according to forward and reverse definition for two
     neuron pairs within the network"""
-    if not os.path.isfile('temp/standardscores.p'):
-        detect_function_networks()
 
-    timeseries, timeseries_surrogates = pickle.load(open( 'temp/timeseries_and_surrogates.p','rb'))
-    timelags, std_score_dict, timeseries_hist_dict = pickle.load(open( 'temp/standardscores.p','rb'))
+    timeseries = Experiment(FIGURE_CULTURE).timeseries()
+    timeseries_surrogates = Experiment(FIGURE_CULTURE).timeseries_surrogates()
+    timelags, std_score_dict, timeseries_hist_dict = Experiment(FIGURE_CULTURE).standardscores()
 
-    trigger, _, axon_delay, dendrite_peak = load_compartments(FIGURE_ARBORS_FILE)
+    trigger, _, axon_delay, dendrite_peak = Experiment(FIGURE_CULTURE).compartments()
     pos = load_positions(mea='hidens')
     neuron_pos = neuron_position_from_trigger_electrode (pos, trigger)
 
