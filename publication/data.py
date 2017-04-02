@@ -15,17 +15,21 @@ from publication.plotting import correlate_two_dicts_verbose
 from publication.comparison import ImageIterator, ModelDiscriminatorBakkum, ModelDiscriminatorBullmann
 
 FIGURE_CULTURE = 1
-FIGURE_NEURON = 5  # other neurons 5, 10, 11, 20, 25, 2, 31, 41
-FIGURE_NEURONS = [2, 3, 4, 5, 10, 11, 13, 20, 21, 22, 23, 25, 27, 29, 31, 35, 36, 37, 41, 49, 50, 51, 59]
+FIGURE_NEURON = 5  # other neurons 5, 10, 11, 20, 25, 2, 31, 41; culture 1
+FIGURE_NEURONS = [2, 3, 4, 5, 10, 11, 13, 20, 21, 22, 23, 25, 27, 29, 31, 35, 36, 37, 41, 49, 50, 51, 59]  # culture 1
 FIGURE_CULTURES = [1, 2, 3, 4, 5, 6, 7]
 GROUND_TRUTH_CULTURE = 8
 GROUND_TRUTH_NEURON = 1544
-FIGURE_CONNECTED_NEURON = 10
-FIGURE_NOT_CONNECTED_NEURON = 49  # or 50
+FIGURE_CONNECTED_NEURON = 10  # culture 1
+FIGURE_NOT_CONNECTED_NEURON = 49  # or 50; culture 1
 FIGURE_THRESHOLD_OVERLAP_AREA = 3000.  # um2/electrode
 FIGURE_THRESHOLD_Z_SCORE = 10
 
+
 class Experiment():
+    """
+    Provides access to original and extracted data for the recording of a culture.
+    """
 
     def __init__(self, culture, data_base_dir='data', temp_base_dir='temp'):
         self.culture = culture
@@ -40,34 +44,61 @@ class Experiment():
         self.neurites_filename = os.path.join(self.results_directory, 'all_neurites.h5')
 
     def metadata(self):
+        """
+        Reading the original metadata from a text/YAML file containing the description for the recording of a culture.
+        :return: dictionary from YAML file
+        """
         # Reading hidens and recording date
         metadata = yaml.load(open(os.path.join(self.data_base_dir, self.sub_dir, 'metadata.yaml'), 'r'))
         metadata['culture'] = self.culture
         logging.info ('Culture%d on hidens%d recorded on %d' % (metadata['culture'], metadata['hidens'], metadata['recording']))
         return metadata
 
-    def load_traces(self, neuron):
+    def traces(self, neuron):
+        """
+        Spike triggered averages for a neuron.
+        :param neuron: neuron index
+        :return: traces
+        """
         return load_traces(self.neuron_file_template % neuron)
 
-    def load_images(self, neuron, type=''):
+    def images(self, neuron, type=''):
+        """
+        Images with ground truth for a neuron.
+        :param neuron: neuron index
+        :param type: '': original images
+                     'axon': axon tracing
+        :return: ImageIterator
+        """
         path = os.path.join(self.data_directory, 'neuron%d' % neuron + type)
         return ImageIterator(path)
 
     def neurites(self):
-        # Maybe extract neurites
+        """See self.compartments."""
         if not os.path.isfile(self.neurites_filename):
             extract_and_save_compartments(self.neuron_file_template, self.neurites_filename)
         axon_delay, dendrite_peak = load_neurites(self.neurites_filename)
         return axon_delay, dendrite_peak
 
     def compartments(self):
-        # Maybe extract neurites
+        """
+        Extract compartments.
+        :return: Dictionaries indexed by neurons:
+            triggers: electrode used for triggering the spike-triggered averages
+            AIS: electrode near the (proximal) axon inital segment (AIS)
+            delays: axonal delays
+            positive_peak: dendritic peak positive voltage (representing the return)
+        """
         if not os.path.isfile(self.neurites_filename):
             extract_and_save_compartments(self.neuron_file_template, self.neurites_filename)
         triggers, AIS, delays, positive_peak = load_compartments(self.neurites_filename)
         return triggers, AIS, delays, positive_peak
 
     def timeseries(self):
+        """
+        Load time series for all neurons, and return only those with axons.
+        :return: time series indexed by neurons
+        """
         events_filename = os.path.join(self.data_directory, 'events.h5')
         axon_delay, dendrite_peak = self.neurites()
         neurons_with_axons = axon_delay.keys()
@@ -75,6 +106,10 @@ class Experiment():
         return load_timeseries(events_filename, neurons=neurons_with_axons)
 
     def timeseries_surrogates(self):
+        """
+        Calculate surrogates for original time series.
+        :return: dictionary indexed by neurons
+        """
         timesseries_surrogates_filename = os.path.join(self.results_directory, 'events_surrogates.p')
         if not os.path.isfile(timesseries_surrogates_filename):
             timeseries_surrogates = timeseries_to_surrogates(self.timeseries())
@@ -84,6 +119,13 @@ class Experiment():
         return timeseries_surrogates
 
     def standardscores(self):
+        """
+        Extract standard score for spike timings.
+        :return:
+        timelags: time lags used for computation of histograms
+        std_score_dict: standard scores indexed by pairs of pre and post-synaptic neurons:
+        timeseries_hist_dict: histograms (spike counts) indexed by pairs of pre and post-synaptic neurons:
+        """
         standardscores_filename = os.path.join(self.results_directory, 'standardscores.p')
         if not os.path.isfile(standardscores_filename):
             timelags, std_score_dict, timeseries_hist_dict = all_timelag_standardscore(self.timeseries(),
@@ -94,8 +136,14 @@ class Experiment():
         return timelags, std_score_dict, timeseries_hist_dict
 
     def networks(self):
-        # Maybe extract structural and functional network
-        events_filename = os.path.join(self.data_directory, 'events.h5')
+        """
+        Extract structural and functional network
+        :return: dictionaries indexed by pairs of pre and post-synaptic neurons:
+            structural_strength: overlap (area) between pre-synaptic axon and post-synaptic dendrite
+            structural_delay: delay by axons
+            functional_strength: maximal z-score
+            functional_delay: spike timing
+        """
         two_networks_pickle_name = os.path.join(self.results_directory, 'two_networks.p')
         if not os.path.isfile(two_networks_pickle_name):
             # structural networks
@@ -119,7 +167,10 @@ class Experiment():
         return structural_strength, structural_delay, functional_strength, functional_delay
 
     def putative_delays(self):
-        # Maybe extract admissible delays (spike timings for synaptic connections only)
+        """
+        Extract admissible delays (spike timings for synaptic connections only).
+        :return: delays dictionary indexed by pairs of pre and post-synaptic neurons.
+        """
         admissible_delays_pickle_name = os.path.join(self.results_directory, 'admissible_delays.p')
         if not os.path.isfile(admissible_delays_pickle_name):
             _, structural_delay, _, functional_delay = self.networks()
@@ -132,7 +183,12 @@ class Experiment():
         return putative_delays
 
     def partial_timeseries(self, interval=0.1):
-        # Maybe extract partial timeseries TODO More transparent way of using only first 10% of the data!
+        """
+        Extract partial timeseries for extraction of polychronous groups. This takes a lot of time, therefore not
+        all data is used by default.
+        :param interval: part of time series (default: 0.1, first 10% of the data are used)
+        :return: time series dictionary indexed by neurons
+        """
         partial_timeseries_pickle_name = os.path.join(self.results_directory, 'partial_timeseries.p')
         if not os.path.isfile(partial_timeseries_pickle_name):
             timeseries = self.timeseries()
@@ -147,7 +203,12 @@ class Experiment():
         return timeseries
 
     def connected_events(self, surrogate=None):
-        # Maybe extract connected events
+        """
+        Extract connected events
+        :param surrogate: None: original data
+                          1, 2, or 3: surrogates 1, 2, or 3
+        :return:
+        """
         suffix = '_surrogate_%d' % surrogate if surrogate else ''
         connected_events_pickle_name = os.path.join(self.results_directory, 'connected_events'+suffix+'.p')
         if not os.path.isfile(connected_events_pickle_name):
@@ -168,7 +229,11 @@ class Experiment():
         return connected_events
 
     def polychronous_groups(self):
-        # Extract PCGs and size distribution
+        """
+        Extract polychronous groups and their sizes for the original data.
+        :return: pcgs: polychronous groups
+                 pcgs_size: polychronous group sizes
+        """
         PCG_pickle_name = os.path.join(self.results_directory, 'pcgs_and_size.p')
         if not os.path.isfile(PCG_pickle_name):
             pcgs, pcgs_size = extract_pcgs(self.connected_events())
@@ -178,7 +243,11 @@ class Experiment():
         return pcgs, pcgs_size
 
     def polychronous_group_sizes_with_surrogates (self):
-        # Maybe extract size distribution for PCGs including surrogates
+        """
+        Extract sizes for the polychronous groups for the original data and surrogates
+        :return: pcgs_size: for orginal data
+                 pcgs1_size, pcgs2_size, pcgs3_size: for three different surrogates
+        """
         PCG_sizes_pickle_name = os.path.join(self.results_directory, 'pcg_sizes.p')
         if not os.path.isfile(PCG_sizes_pickle_name):
             pcgs, pcgs_size = self.polychronous_groups()
@@ -190,10 +259,17 @@ class Experiment():
             pcgs_size, pcgs1_size, pcgs2_size, pcgs3_size = pickle.load(open(PCG_sizes_pickle_name, 'rb'))
         return pcgs_size, pcgs1_size, pcgs2_size, pcgs3_size
 
-    def compare_discriminators(self):
+    def comparison_of_discriminators(self):
         """
         Evaluating both models for all neurons, load from csv if already exist.
-        :return: pandas data frame
+        :return: pandas data frame with the following columns:
+            AUC: area under curve
+            FPR, TPR: : false positive rate and true positive rate at the threshold
+            n_N, n_P: number of electrodes with signal and without (=background)
+            gamma: ratio n_P/(n_N + n_P)
+            method: 'I': Bakkum et al.
+                    'II': Bullmann et al.
+            subject: neuron number
         """
         evaluation_filename = os.path.join(self.results_directory, 'comparison_of_discriminators.csv')
 
@@ -209,7 +285,7 @@ class Experiment():
 
             evaluations = list()
             for neuron in FIGURE_NEURONS:
-                V, t, x, y, trigger, neuron = Experiment(FIGURE_CULTURE).load_traces(neuron)
+                V, t, x, y, trigger, neuron = Experiment(FIGURE_CULTURE).traces(neuron)
                 t *= 1000  # convert to ms
 
                 Model1.fit(t, V, pnr_threshold=5)
@@ -226,13 +302,20 @@ class Experiment():
         return data
 
     def report(self):
-        # Read metadata and add to report
+        """
+        Evaluating both models for all neurons, load from csv if already exist.
+        :return: handle for text/YAML file
+        """
         report_filename = os.path.join(self.results_directory, 'report.yaml')
         report = open(report_filename, "w")
         yaml.dump(self.metadata, report)
         return report
 
+
 def extract_multiple_networks():
+    """
+    For testing only.
+    """
 
     for culture in FIGURE_CULTURES:
         data = Experiment(culture)

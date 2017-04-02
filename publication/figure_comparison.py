@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 def make_figure(figurename, figpath=None):
 
-    V, t, x, y, trigger, neuron = Experiment(FIGURE_CULTURE).load_traces(FIGURE_NEURON)
+    V, t, x, y, trigger, neuron = Experiment(FIGURE_CULTURE).traces(FIGURE_NEURON)
     t *= 1000  # convert to ms
 
     # Neighborhood from electrode positions
@@ -28,7 +28,7 @@ def make_figure(figurename, figpath=None):
     Model2.fit(t, V, neighbors)
     Model2.predict()
 
-    evaluation = Experiment(FIGURE_CULTURE).compare_discriminators()
+    evaluation = Experiment(FIGURE_CULTURE).comparison_of_discriminators()
 
     # Plotting Frames A~E
     fig = plt.figure(figurename, figsize=(13, 10))

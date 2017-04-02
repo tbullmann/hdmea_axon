@@ -20,7 +20,7 @@ def make_figure(figurename, figpath=None):
     neighbors = electrode_neighborhoods(mea='hidens')
 
     # Load example data
-    V, t, x, y, trigger, neuron = Experiment(FIGURE_CULTURE).load_traces(FIGURE_NEURON)
+    V, t, x, y, trigger, neuron = Experiment(FIGURE_CULTURE).traces(FIGURE_NEURON)
     t *= 1000  # convert to ms
 
     # Verbose axon segmentation function
