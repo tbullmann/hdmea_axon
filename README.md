@@ -36,11 +36,8 @@ cd publication
 mkdir temp 
 mkdir figures
 ```
-Download the data (322.52 MB) and unzip them:
-```bash
-wget "https://www.dropbox.com/s/ahet0hrios57q4a/data.zip"
-unzip data.zip
-```
+Download the data: _Under revision_
+
 
 ### Replicate the figures
 

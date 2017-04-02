@@ -13,6 +13,7 @@
 7. [Polychronous groups](figure_polychronous_groups.py)
 
 ### Supplementary figures
+1. [Summary for all cultures](figure_multiple_networks.py)
 1. [Segmentation of all neurons](figure_all_neurons.py)
 2. [Parameter dependency of structural and functional connectivity](figure_more_structure_vs_function.py)
 
