@@ -2,48 +2,26 @@ from __future__ import division
 
 import logging
 import os
-import pickle
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-from hana.function import timeseries_to_surrogates, all_timelag_standardscore, all_peaks
-from hana.recording import load_timeseries, average_electrode_area
-from hana.segmentation import load_neurites
-from hana.structure import all_overlaps
-from publication.plotting import show_or_savefig, FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, TEMPORARY_PICKELED_NETWORKS, \
+from hana.recording import average_electrode_area
+
+from publication.data import Experiment, FIGURE_CULTURE
+from publication.plotting import show_or_savefig, TEMPORARY_PICKELED_NETWORKS, \
     plot_parameter_dependency, format_parameter_plot, compare_networks, analyse_networks, label_subplot, adjust_position, \
     plot_correlation, DataFrame_from_Dicts
 
 logging.basicConfig(level=logging.DEBUG)
 
-# Data preparation
-
-def maybe_get_functional_and_structural_networks(arbors_filename, events_filename, output_pickel_name):
-    if os.path.isfile(output_pickel_name): return
-
-    # structural
-    axon_delay, dendrite_peak = load_neurites (arbors_filename)
-    structural_strength, _, structural_delay = all_overlaps(axon_delay, dendrite_peak, thr_peak=0, thr_ratio=0, thr_overlap=1)
-
-    # functional: only use forward direction
-    timeseries = load_timeseries(events_filename)
-    logging.info('Surrogate data')
-    timeseries_surrogates = timeseries_to_surrogates(timeseries, n=20, factor=2)
-    logging.info('Compute standard score for histograms')
-    timelags, std_score_dict, timeseries_hist_dict = all_timelag_standardscore(timeseries, timeseries_surrogates)
-    functional_strength, functional_delay, _, _ = all_peaks(timelags, std_score_dict, thr=1, direction='forward')
-
-    pickle.dump((structural_strength, structural_delay, functional_strength, functional_delay), open(output_pickel_name, 'wb'))
-    logging.info('Saved data')
-
 
 def make_figure(figurename, figpath=None):
 
-    maybe_get_functional_and_structural_networks(FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, TEMPORARY_PICKELED_NETWORKS)
+    # maybe_get_functional_and_structural_networks(FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, TEMPORARY_PICKELED_NETWORKS)
 
     structural_strength, structural_delay, functional_strength, functional_delay \
-        = pickle.load( open(TEMPORARY_PICKELED_NETWORKS, 'rb'))
+        = Experiment(FIGURE_CULTURE).networks()
 
     # Getting and subsetting the data
     data = DataFrame_from_Dicts(functional_delay, functional_strength, structural_delay, structural_strength)

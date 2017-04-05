@@ -1,16 +1,15 @@
 import logging
 import os
-import pickle
 
 from matplotlib import pyplot as plt
 
-from hana.function import timeseries_to_surrogates, all_peaks
 from hana.misc import unique_neurons
 from hana.plotting import plot_neuron_points, plot_network, mea_axes
-from hana.polychronous import filter, plot_pcg_on_network, plot_pcg, shuffle_network, extract_pcgs
-from hana.recording import load_positions, load_timeseries, partial_timeseries
-from hana.segmentation import load_compartments, load_neurites, neuron_position_from_trigger_electrode
-from hana.structure import all_overlaps
+from hana.polychronous import plot_pcg_on_network, plot_pcg, shuffle_network
+from hana.recording import load_positions
+from hana.segmentation import neuron_position_from_trigger_electrode
+
+from publication.data import Experiment, FIGURE_CULTURE
 from publication.plotting import plot_loglog_fit, adjust_position, \
     show_or_savefig, correlate_two_dicts_verbose, without_spines_and_ticks
 
@@ -39,72 +38,15 @@ def testing_algorithm():
         print (sum(valid))
 
 
-def make_figure(figurename, thr=1, figpath=None):
+def make_figure(figurename, figpath=None):
     """
     :param figurename:how to name the figure
     :param thr: threshold for functional connectivity (default = 1)
     :param figpath: where to save the figure
     """
 
-    if not os.path.isfile('temp/all_delays.p'):
-        axon_delay, dendrite_peak = load_neurites (FIGURE_ARBORS_FILE)
-        _, _, structural_delays = all_overlaps(axon_delay, dendrite_peak)
-        timelags, std_score_dict, timeseries_hist_dict = pickle.load(open('temp/standardscores.p', 'rb'))
-        _, functional_delays, _, _ = all_peaks(timelags, std_score_dict, thr=thr, direction='forward')
-        axonal_delays, spike_timings, pairs = correlate_two_dicts_verbose(structural_delays, functional_delays)
-        putative_delays = {pair: timing for delay, timing, pair in zip(axonal_delays, spike_timings, pairs)
-                           if timing-delay > 1}  # if synapse_delay = spike_timing - axonal_delay > 1ms
-        pickle.dump(putative_delays, open('temp/all_delays.p', 'wb'))
-
-    if not os.path.isfile('temp/partial_timeseries.p'):
-        timeseries = load_timeseries(FIGURE_EVENTS_FILE)
-        timeseries = partial_timeseries(timeseries)  # using only first 10% of recording
-        pickle.dump(timeseries, open('temp/partial_timeseries.p', 'wb'))
-
-    if not os.path.isfile('temp/connected_events.p'):
-        putative_delays = pickle.load(open('temp/all_delays.p', 'rb'))
-        timeseries = pickle.load(open('temp/partial_timeseries.p', 'rb'))
-
-        connected_events = filter(timeseries, putative_delays, additional_synaptic_delay=0, synaptic_jitter=0.0005)
-        pickle.dump(connected_events, open('temp/connected_events.p', 'wb'))
-
-    # original time series on surrogate networks = surrogate 1 and 2
-    if not os.path.isfile('temp/connected_events_surrogate_1.p'):
-        putative_delays = pickle.load(open('temp/all_delays.p', 'rb'))
-        timeseries = pickle.load(open('temp/partial_timeseries.p', 'rb'))
-        surrogate_delays = shuffle_network(putative_delays, method='shuffle in-nodes')
-        connected_surrogate_events = filter(timeseries, surrogate_delays, additional_synaptic_delay=0, synaptic_jitter=0.0005)
-        pickle.dump(connected_surrogate_events, open('temp/connected_events_surrogate_1.p', 'wb'))
-    if not os.path.isfile('temp/connected_events_surrogate_2.p'):
-        putative_delays = pickle.load(open('temp/all_delays.p', 'rb'))
-        timeseries = pickle.load(open('temp/partial_timeseries.p', 'rb'))
-        surrogate_delays = shuffle_network(putative_delays, method='shuffle values')
-        connected_surrogate_events = filter(timeseries, surrogate_delays, additional_synaptic_delay=0,
-                                        synaptic_jitter=0.0005)
-        pickle.dump(connected_surrogate_events, open('temp/connected_events_surrogate_2.p', 'wb'))
-
-    # original surrogate time series on original network = surrogate 3
-    if not os.path.isfile('temp/connected_events_surrogate_3.p'):
-
-        if os.path.isfile('temp/partial_surrogate_timeseries.p'):
-            timeseries = pickle.load(open('temp/partial_timeseries.p', 'rb'))
-            surrogate_timeseries = timeseries_to_surrogates(timeseries, n=1, factor=2)
-
-            # keeping only the first of several surrogate times series for each neuron
-            surrogate_timeseries = { neuron: timeseries[0] for neuron, timeseries in surrogate_timeseries.items() }
-
-            pickle.dump(surrogate_timeseries, open('temp/partial_surrogate_timeseries.p', 'wb'))
-
-        putative_delays = pickle.load(open('temp/all_delays.p', 'rb'))
-        surrogate_timeseries = pickle.load(open('temp/partial_surrogate_timeseries.p', 'rb'))
-        connected_surrogate_events = filter(surrogate_timeseries, putative_delays, additional_synaptic_delay=0, synaptic_jitter=0.0005)
-        pickle.dump(connected_surrogate_events, open('temp/connected_events_surrogate_3.p', 'wb'))
-
-    # Get Polychronous groups from original data
-    pcgs, pcgs_size = extract_pcgs('temp/connected_events.p')
-    pcgs1, pcgs1_size = extract_pcgs('temp/connected_events_surrogate_1.p')
-    pcgs2, pcgs2_size = extract_pcgs('temp/connected_events_surrogate_2.p')
-    pcgs3, pcgs3_size = extract_pcgs('temp/connected_events_surrogate_3.p')
+    pcgs, _ = Experiment(FIGURE_CULTURE).polychronous_groups()
+    pcgs_size, pcgs1_size, pcgs2_size, pcgs3_size = Experiment(FIGURE_CULTURE).polychronous_group_sizes_with_surrogates()
 
     # Making figure
     fig = plt.figure(figurename, figsize=(12, 10))
@@ -140,7 +82,7 @@ def make_figure(figurename, thr=1, figpath=None):
 
     # plot example of a single polychronous group with arrows
     ax3 = plt.subplot(223)
-    polychronous_group = pcgs[2]   # 2, 3    ; 8 too many; 0, 9 interesting
+    polychronous_group = pcgs[1]   # 3 has allmost all neurons involved
     plot_pcg(ax3, polychronous_group)
     plt.ylim((0,60))
     without_spines_and_ticks(ax3)
@@ -148,20 +90,20 @@ def make_figure(figurename, thr=1, figpath=None):
     xlim = ax3.get_xlim()
     ax3.text(xlim[0], 60, r'  $\bullet$  spikes ', fontsize=14,
              horizontalalignment='left', verticalalignment='top')
-    ax3.text(xlim[0], 55, r'  $\leftrightarrows$ polychronous group', color='r', fontsize=14,
+    ax3.text(xlim[0], 55, r'  $\leftrightarrows$ spike pattern of polychronous group', color='r', fontsize=14,
                 horizontalalignment='left', verticalalignment='top')
     plt.title('c', loc='left', fontsize=18)
 
     # plot example of a single polychronous group onto network
     ax4 = plt.subplot(224)
-    trigger, _, axon_delay, dendrite_peak = load_compartments(FIGURE_ARBORS_FILE)
+    trigger, _, axon_delay, dendrite_peak = Experiment(FIGURE_CULTURE).compartments()
     pos = load_positions()
     neuron_pos = neuron_position_from_trigger_electrode (pos, trigger)
-    all_delay = pickle.load(open('temp/all_delays.p', 'rb'))
+    all_delay = Experiment(FIGURE_CULTURE).putative_delays()
     plot_pcg_on_network(ax4, polychronous_group, all_delay, neuron_pos)
     plt.title('d', loc='left', fontsize=18)
     ax4.text(300, 150, '$\leftrightarrows$ putative chemical synapses', color='gray', fontsize=14)
-    ax4.text(300, 300, '$\leftrightarrows$ activated by polychronous group', color='r', fontsize=14)
+    ax4.text(300, 300, '$\leftrightarrows$ activated polychronous group', color='r', fontsize=14)
 
     show_or_savefig(figpath, figurename)
 
@@ -215,12 +157,12 @@ def plot_small_network(ax, network, neuron_pos):
 def panel_explaining_surrogate_networks():
 
     # neuron_pos
-    trigger, _, axon_delay, dendrite_peak = load_compartments(FIGURE_ARBORS_FILE)
+    trigger, _, axon_delay, dendrite_peak = Experiment(FIGURE_CULTURE).compartments()
     pos = load_positions()
     neuron_pos = neuron_position_from_trigger_electrode (pos, trigger)
 
     # get example networks
-    original_network = pickle.load(open('temp/all_delays.p', 'rb'))
+    original_network = Experiment(FIGURE_CULTURE).putative_delays()
     network_with_shuffle_in_nodes = shuffle_network(original_network, method='shuffle in-nodes')
     network_with_shuffle_values = shuffle_network(original_network, method='shuffle values')
 

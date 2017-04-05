@@ -192,11 +192,7 @@ class Experiment():
         partial_timeseries_pickle_name = os.path.join(self.results_directory, 'partial_timeseries.p')
         if not os.path.isfile(partial_timeseries_pickle_name):
             timeseries = self.timeseries()
-            for neuron in timeseries:
-                print len(timeseries[neuron])
             timeseries = partial_timeseries(timeseries, interval=interval)
-            for neuron in timeseries:
-                print len(timeseries[neuron])
             pickle.dump(timeseries, open(partial_timeseries_pickle_name, 'wb'))
         else:
             timeseries = pickle.load(open(partial_timeseries_pickle_name, 'rb'))
@@ -308,7 +304,7 @@ class Experiment():
         """
         report_filename = os.path.join(self.results_directory, 'report.yaml')
         report = open(report_filename, "w")
-        yaml.dump(self.metadata, report)
+        yaml.dump(self.metadata(), report)
         return report
 
 

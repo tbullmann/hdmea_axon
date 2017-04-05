@@ -7,7 +7,7 @@ from hana.misc import unique_neurons
 from hana.plotting import plot_network, plot_neuron_points, plot_neuron_id, mea_axes, \
     plot_timeseries_hist_and_surrogates, plot_std_score_and_peaks, highlight_connection
 from hana.recording import load_positions
-from hana.segmentation import load_compartments, neuron_position_from_trigger_electrode
+from hana.segmentation import neuron_position_from_trigger_electrode
 
 from publication.data import Experiment, FIGURE_CULTURE
 from publication.plotting import show_or_savefig, label_subplot, adjust_position
@@ -18,8 +18,6 @@ def plot_func_network_forward_vs_reverse(thr, pos, timelags, std_score_dict):
     or pre-->post if pre fired before post (reverse condition) """
     score_forward, _, _, _ = all_peaks(timelags, std_score_dict, thr=thr, direction='forward')
     score_reverse, _, _, _ = all_peaks(timelags, std_score_dict, thr=thr, direction='reverse')
-    print "forward k = ", len(score_forward)
-    print "reverse k = ", len(score_reverse)
     plt.figure(figsize=(20, 10))
     ax1 = plt.subplot(121)
     ax2 = plt.subplot(122)

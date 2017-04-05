@@ -2,7 +2,6 @@ from __future__ import division
 
 import logging
 import os
-import pickle
 
 import matplotlib.pyplot as plt
 
@@ -10,18 +9,18 @@ from hana.misc import unique_neurons
 from hana.plotting import plot_network, plot_neuron_points, mea_axes
 from hana.recording import average_electrode_area
 from hana.segmentation import load_compartments, load_positions, neuron_position_from_trigger_electrode
-from publication.figure_structur_vs_function import maybe_get_functional_and_structural_networks, plot_vs_weigth
-from publication.plotting import show_or_savefig, FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, TEMPORARY_PICKELED_NETWORKS, \
-    plot_correlation, plot_synapse_delays, adjust_position, DataFrame_from_Dicts
+
+from publication.data import Experiment, FIGURE_CULTURE
+from publication.figure_structur_vs_function import plot_vs_weigth
+from publication.plotting import show_or_savefig, plot_correlation, plot_synapse_delays, adjust_position, \
+    DataFrame_from_Dicts
 
 logging.basicConfig(level=logging.DEBUG)
 
 def make_figure(figurename, figpath=None):
 
-    maybe_get_functional_and_structural_networks(FIGURE_ARBORS_FILE, FIGURE_EVENTS_FILE, TEMPORARY_PICKELED_NETWORKS)
-
     structural_strength, structural_delay, functional_strength, functional_delay \
-        = pickle.load( open(TEMPORARY_PICKELED_NETWORKS, 'rb'))
+        = Experiment(FIGURE_CULTURE).networks()
 
     # Getting and subsetting the data
     data = DataFrame_from_Dicts(functional_delay, functional_strength, structural_delay, structural_strength)
@@ -65,7 +64,7 @@ def make_figure(figurename, figpath=None):
     plt.title('c', loc='left', fontsize=18)
 
     ax5 = plt.subplot(224)
-    trigger, _, _, _ = load_compartments(FIGURE_ARBORS_FILE)
+    trigger, _, _, _ = Experiment(FIGURE_CULTURE).compartments()
     pos = load_positions(mea='hidens')
     neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
     plot_network(ax5, zip(simultaneous.pre, simultaneous.post), neuron_pos, color='red')
