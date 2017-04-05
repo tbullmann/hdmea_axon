@@ -3,6 +3,7 @@ import pickle
 import numpy as np
 from matplotlib import pyplot as plt
 
+from publication.data import Experiment, FIGURE_CULTURE
 from publication.plotting import show_or_savefig, plot_parameter_dependency, TEMPORARY_PICKELED_NETWORKS, compare_networks, \
     format_parameter_plot
 
@@ -10,7 +11,7 @@ from publication.plotting import show_or_savefig, plot_parameter_dependency, TEM
 def make_figure(figurename, figpath=None, networks_pickel_name=TEMPORARY_PICKELED_NETWORKS):
 
     structural_strengths, structural_delays, functional_strengths, functional_delays \
-        = pickle.load( open(networks_pickel_name, 'rb'))
+        = Experiment(FIGURE_CULTURE).networks()
 
     # Making figure
     fig = plt.figure(figurename, figsize=(16, 16))
