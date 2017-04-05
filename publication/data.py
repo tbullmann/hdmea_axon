@@ -17,7 +17,7 @@ from publication.comparison import ImageIterator, ModelDiscriminatorBakkum, Mode
 FIGURE_CULTURE = 1
 FIGURE_NEURON = 5  # other neurons 5, 10, 11, 20, 25, 2, 31, 41; culture 1
 FIGURE_NEURONS = [2, 3, 4, 5, 10, 11, 13, 20, 21, 22, 23, 25, 27, 29, 31, 35, 36, 37, 41, 49, 50, 51, 59]  # culture 1
-FIGURE_CULTURES = [1, 2, 3, 4, 5, 6, 7]
+FIGURE_CULTURES = [1] # [1, 2, 3, 4, 5, 6, 7]
 GROUND_TRUTH_CULTURE = 8
 GROUND_TRUTH_NEURON = 1544
 FIGURE_CONNECTED_NEURON = 10  # culture 1
