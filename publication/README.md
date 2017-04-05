@@ -20,6 +20,6 @@
 ### Previous figures 
 These figures are not automatically generated:
 * [Estimation of structural connectivity](figure_structural.py)
-* [Estimation of structural connectivity](figure_functional.py)
+* [Estimation of functional connectivity](figure_functional.py)
 * [Comparison of structural und functional connectivity](figure_structur_vs_function.py)
 * [Putative chemical synapses](figure_synapse.py)

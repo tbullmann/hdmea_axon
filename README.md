@@ -30,14 +30,26 @@ conda install --file hana/requirements.txt
 
 ### Folders and data
 
-Now simply type ```bash install.sh``` or make these folder/symlinks as you wish:
+Now simply type ```bash install.sh```, or do: 
+1. make these folder/symlinks as you wish:
 ```bash
 cd publication
 mkdir temp 
 mkdir figures
 ```
-Download the data: _Under revision_
-
+2. Download the data: _Under revision_
+```bash
+mkdir data
+cd data
+wget "https://drive.google.com/open?id=0B-u65ZxPB5iQdTl0cUpWSkNmbk0"  # folder=/culture1 (361.9 MB)
+# folder=/culture2 (525.1 MB)
+# folder=/culture3 (582.9 MB)
+# folder=/culture4 (588.6 MB)
+# folder=/culture5 (897.4 MB)
+# folder=/culture6 (575.9 MB)
+# folder=/culture7 (528.4 MB)
+# folder=/culture8 (13.6 MB) contains only a single neuron with ground truth images
+```
 
 ### Replicate the figures
 
@@ -47,8 +59,9 @@ export PYTHONPATH=../:$PYTHONPATH     # otherwise cannot see /hana
 source activate hdmea 
 python all_figures.py 
 ```
-The script should finish after 5~10 minutes. If the temporary files already exist, the figures itself will take only about 2 minutes.
-A total of 7 main and 5 supplementary figures can be found as ```*.eps``` and ```*.png``` files in ```/figures```.
+The script takes about one hour for the first run on the full data set (7 networks, 4GByte). 
+If the temporary files already exist, the figures itself will take only about 3 minutes.
+A total of 7 main and 3 supplementary figures can be found as ```*.eps``` and ```*.png``` files in ```/figures```.
 
 In case you are using PyCharm you have to specify the [use of the project interpreter](hdmea_env_in_pycharm.jpg) from the ```hdmea``` environment.
 
