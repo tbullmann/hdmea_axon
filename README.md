@@ -2,20 +2,20 @@
 
 ![Example neuron 5](neuron5.gif) ![Example graph](synaptic_delay_graph.png)
 
-This repositiory contains the source code as well as the linkt to the example data to replicate all figures. 
+This repositiory contains the source code as well as the links to the example data to replicate all [figures](publication/README.md). 
 The Hana (high density microelectrode array recording analysis) pipeline is open source, see [licence](LICENCE.md).
 The example data consists of spike triggered averages and events that were extracted from the raw recordings.  
 
 If you use this library in your research, please cite:
 
-> Bullmann T, et al. Network analysis of high-density microelectrode recordings (????) ????
+> Bullmann T, Radivojevic M, Huber S, Deligkaris K, Hierlemann A, Frey U (2017) Network analysis of high-density microelectrode recordings. _Submitted_
 
 
 ## How to use
 
 ### Source code
 
-Clone 'hdmea' from github and and change to the folder:
+Clone ```hdmea``` from GitHub and and change to the folder:
 
 ```bash
 git clone http://github.com/tbullmann/hdmea
@@ -23,7 +23,7 @@ cd hdmea
 ```
 ### Install requirements
 
-Using conda to create an environment ```hdmea``` and install the requirements:
+Using conda to create an environment ```hdmea``` (or any other name) and install the requirements:
 ```bash
 conda create --name hdmea python
 source activate hdmea 
@@ -32,8 +32,8 @@ conda install --file hana/requirements.txt
 
 ### Folders and data
 
-Now simply type ```bash install.sh```, or do: 
-1. make these folder/symlinks as you wish:
+Now simply type ```bash install.sh```, or: 
+1. Make these folder/symlinks as you wish:
 ```bash
 cd publication
 mkdir temp 
@@ -95,9 +95,14 @@ Folders structure and important files:
 │   └── ... (Old figures)
 ├── publication
 │   ├── data  
+│   │   ├── culture1  
+│   │   └── ...
 │   ├── temp   
+│   │   ├── culture1  
+│   │   └── ...
 │   ├── figures 
 │   ├── all_figures.py
+│   ├── all_animations.py
 │   └── ...
 ├── install.sh
 ├── LICENCE.md
