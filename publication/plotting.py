@@ -415,7 +415,7 @@ def plot_correlation(ax, data, x='', y='', xlim=None, ylim=None,
         section['delayed'] = add_linear_fit(axScatter, delayed[x],
                                             delayed[y], xscale, yscale,
                                             color='green', label='fit (>1 ms)')
-    yaml.dump({'overlap _vs_z_max': section}, report)
+    yaml.dump({'overlap_vs_z_max': section}, report)
 
     # add x=y
     axScatter.plot(xlim, ylim,'k--', label='x=y')
@@ -474,16 +474,16 @@ def plot_synapse_delays(ax, data, xlim=None, ylim=None,
     :param naxes: if 3 do plot the marginals (default: 3)
     :param report: file handle (default: sys.stdout just prints)
     """
-    # TODO Correct behviour for 2 and 3 naxes!
+    # TODO Check correct behaviour for naxes == 2!
 
     # New axes
-    if naxes==2:
+    if naxes == 2:
         axScatter=ax
         fig = ax.get_figure()
         divider = make_axes_locatable(axScatter)
         axHisty = divider.new_horizontal(size="50%", pad=0.05)
         fig.add_axes(axHisty)
-    if naxes==3:
+    if naxes == 3:
         rect_histx, rect_histy, rect_scatter = axes_to_3_axes(ax)
         axScatter = plt.axes(rect_scatter)
         axHistx = plt.axes(rect_histx)
@@ -540,7 +540,7 @@ def plot_synapse_delays(ax, data, xlim=None, ylim=None,
     section['Moods_median_test'] = {'xhi2': float(xhi2),
                                     'p': float(p),
                                     'median_difference': float(med) }
-    yaml.dump({'synapses': section}, report)
+    yaml.dump({'synapse_z_max': section}, report)
 
     # define limits
     max_functional_strength = max(data.functional_strength)
