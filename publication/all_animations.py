@@ -9,7 +9,7 @@ from publication.data import Experiment, FIGURE_CULTURE, FIGURE_NEURONS
 from publication.plotting import voltage_color_bar
 
 
-def make_movies(moviepath=None, dpi=72):
+def make_movies(moviepath=None, dpi=100):
 
     culture = FIGURE_CULTURE
 

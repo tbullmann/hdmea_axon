@@ -1,14 +1,13 @@
 from __future__ import division
 
 import logging
-import os
 
 import matplotlib.pyplot as plt
 
 from hana.misc import unique_neurons
 from hana.plotting import plot_network, plot_neuron_points, mea_axes, plot_neuron_id
 from hana.recording import average_electrode_area
-from hana.segmentation import load_compartments, load_positions, neuron_position_from_trigger_electrode
+from hana.segmentation import load_positions, neuron_position_from_trigger_electrode
 
 from publication.data import Experiment, FIGURE_CULTURE
 from publication.figure_structur_vs_function import plot_vs_weigth
@@ -81,7 +80,6 @@ def make_figure(figurename, figpath=None):
     adjust_position(ax5, yshift=-0.01)
     plt.title('e     synaptic delay graph', loc='left', fontsize=18)
 
-
     show_or_savefig(figpath, figurename)
 
 
@@ -101,7 +99,7 @@ def make_synaptic_delay_graph():
 
     # Making figure
     figurename = 'synaptic_delay_graph'
-    fig = plt.figure(figurename, figsize=(5, 5))
+    fig = plt.figure(figurename, figsize=(4.3, 5))
     ax5 = plt.subplot(111)
 
     trigger, _, _, _ = Experiment(FIGURE_CULTURE).compartments()

@@ -1,6 +1,6 @@
 # Network analysis of high-density microelectrode recordings
 
-![Example neuron 5](neuron5.gif) ![Example graph](synaptic_delay_graph.png)
+![Example neuron 5](neuron5.gif) ![Example graph](synaptic_delay_graph.png) ![Exmple HDMEA](HDMEA.png)
 
 This repositiory contains the source code as well as the linkt to the example data to replicate all figures. 
 The Hana (high density microelectrode array recording analysis) pipeline is open source, see [licence](LICENCE.md).
@@ -71,7 +71,7 @@ Continue by typing:
 ```bash
 python all_animations.py
 ```
-This script takes about 15 minutes. A total of 23 movies can be found as ```*.gif``` and/or ```*.mp4``` files in ```/figures```.
+This script takes about 15 minutes. A total of 23 movies can be found as ```*.gif``` and/or ```*.mp4``` files in ```temp/culture1```.
 
 ![Example neuron 5](neuron5.gif)
 
