@@ -17,6 +17,9 @@
 1. [Segmentation of all neurons](figure_all_neurons.py)
 2. [Parameter dependency of structural and functional connectivity](figure_more_structure_vs_function.py)
 
+### Supplementary movies
+* [Movies from spike-triggered averages](all_animations.py)
+
 ### Previous figures 
 These figures are not automatically generated:
 * [Estimation of structural connectivity](figure_structural.py)

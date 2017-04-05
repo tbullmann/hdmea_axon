@@ -63,6 +63,19 @@ The script takes about one hour for the first run on the full data set (7 networ
 If the temporary files already exist, the figures itself will take only about 3 minutes.
 A total of 7 main and 3 supplementary figures can be found as ```*.eps``` and ```*.png``` files in ```/figures```.
 
+### Replicate the movies
+
+Continue by typing:
+```bash
+python all_animations.py
+```
+This script takes about one hour. A total of 23 movies can be found as ```*.gif``` and/or ```*.mp4``` files in ```/figures```.
+
+![Example neuron 5](neuron5.gif)
+
+
+## Using PyCharm
+
 In case you are using PyCharm you have to specify the [use of the project interpreter](hdmea_env_in_pycharm.jpg) from the ```hdmea``` environment.
 
 ## Folders
