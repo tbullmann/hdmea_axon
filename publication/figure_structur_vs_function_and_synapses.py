@@ -6,7 +6,7 @@ import os
 import matplotlib.pyplot as plt
 
 from hana.misc import unique_neurons
-from hana.plotting import plot_network, plot_neuron_points, mea_axes
+from hana.plotting import plot_network, plot_neuron_points, mea_axes, plot_neuron_id
 from hana.recording import average_electrode_area
 from hana.segmentation import load_compartments, load_positions, neuron_position_from_trigger_electrode
 
@@ -85,5 +85,42 @@ def make_figure(figurename, figpath=None):
     show_or_savefig(figpath, figurename)
 
 
+def make_synaptic_delay_graph():
+
+    structural_strength, structural_delay, functional_strength, functional_delay \
+        = Experiment(FIGURE_CULTURE).networks()
+
+    # Getting and subsetting the data
+    data = DataFrame_from_Dicts(functional_delay, functional_strength, structural_delay, structural_strength)
+    delayed = data[data.delayed]
+    simultaneous = data[data.simultaneous]
+
+    # Map electrode number to area covered by that electrodes
+    electrode_area = average_electrode_area(None, mea='hidens')
+    structural_strength = {key: electrode_area*value for key, value in structural_strength.items()}
+
+    # Making figure
+    figurename = 'synaptic_delay_graph'
+    fig = plt.figure(figurename, figsize=(5, 5))
+    ax5 = plt.subplot(111)
+
+    trigger, _, _, _ = Experiment(FIGURE_CULTURE).compartments()
+    pos = load_positions(mea='hidens')
+    neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
+    plot_network(ax5, zip(simultaneous.pre, simultaneous.post), neuron_pos, color='red')
+    plot_network(ax5, zip(delayed.pre, delayed.post), neuron_pos, color='green')
+    plot_neuron_points(ax5, unique_neurons(structural_delay), neuron_pos)
+    plot_neuron_id(ax5, trigger, neuron_pos)
+    # Legend by proxy
+    ax5.hlines(0, 0, 0, linestyle='-', color='red', label='<1ms')
+    ax5.hlines(0, 0, 0, linestyle='-', color='green', label='>1ms')
+    plt.legend(frameon=False)
+    mea_axes(ax5)
+    adjust_position(ax5, yshift=-0.01)
+    plt.title('Synaptic delay graph', loc='left', fontsize=18)
+
+    plt.show()
+
 if __name__ == "__main__":
-    make_figure(os.path.basename(__file__))
+    # make_figure(os.path.basename(__file__))
+    make_synaptic_delay_graph()
