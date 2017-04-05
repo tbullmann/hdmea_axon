@@ -117,7 +117,8 @@ def make_synaptic_delay_graph():
     plt.legend(frameon=False)
     mea_axes(ax5)
     adjust_position(ax5, yshift=-0.01)
-    plt.title('Synaptic delay graph', loc='left', fontsize=18)
+    plt.title('Synaptic delay graph', loc='left')
+    plt.tight_layout()
 
     plt.show()
 
