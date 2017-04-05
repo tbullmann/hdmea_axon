@@ -1,6 +1,6 @@
 # Network analysis of high-density microelectrode recordings
 
-![Example neuron 5](neuron5.gif) ![Example graph](synaptic_delay_graph.png)
+![Example neuron 5](neuron5.gif) ![Example graph](synaptic_delay_graph.png) ![Example graph](synaptic_delay_graph.jpg)
 
 This repositiory contains the source code as well as the linkt to the example data to replicate all figures. 
 The Hana (high density microelectrode array recording analysis) pipeline is open source, see [licence](LICENCE.md).
