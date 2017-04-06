@@ -32,26 +32,14 @@ conda install --file hana/requirements.txt
 
 ### Folders and data
 
-Now simply type ```bash install.sh```, or: 
-1. Make these folder/symlinks as you wish:
+Create folder by typing ```bash install.sh```, or make these folder/symlinks as you wish:
 ```bash
 cd publication
 mkdir temp 
 mkdir figures
-```
-2. Download the data: _Under revision_
-```bash
 mkdir data
-cd data
-wget "https://drive.google.com/open?id=0B-u65ZxPB5iQdTl0cUpWSkNmbk0"  # folder=/culture1 (361.9 MB)
-# folder=/culture2 (525.1 MB)
-# folder=/culture3 (582.9 MB)
-# folder=/culture4 (588.6 MB)
-# folder=/culture5 (897.4 MB)
-# folder=/culture6 (575.9 MB)
-# folder=/culture7 (528.4 MB)
-# folder=/culture8 (13.6 MB) contains only a single neuron with ground truth images
 ```
+Download the data by typing ```bash data.sh```.
 
 ### Replicate the figures
 
