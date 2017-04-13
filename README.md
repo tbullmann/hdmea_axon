@@ -39,7 +39,7 @@ mkdir temp
 mkdir figures
 mkdir data
 ```
-Download the data by typing ```bash data.sh```.
+Download the [data from google drive](https://drive.google.com/open?id=0B-u65ZxPB5iQNFBoa192WmpIQW8) and copy into the data folder. For the proper folder structure see section 'Folders' below.
 
 ### Replicate the figures
 
