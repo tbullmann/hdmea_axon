@@ -4,12 +4,11 @@
 
 This repositiory contains the source code as well as the links to the example data to replicate all [figures](publication/README.md). 
 The Hana (high density microelectrode array recording analysis) pipeline is open source, see [licence](LICENCE.md).
-The example data consists of spike triggered averages and events that were extracted from the raw recordings.  
+The example data (approx. 4 GB) consists of spike triggered averages and events that were extracted from the raw recordings.  
 
 If you use this library in your research, please cite:
 
 > Bullmann T, Radivojevic M, Huber S, Deligkaris K, Hierlemann A, Frey U (2017) Network analysis of high-density microelectrode recordings. _Submitted_
-
 
 ## How to use
 
@@ -54,6 +53,8 @@ If the temporary files already exist, the figures itself will take only about 3 
 A total of 7 main and 3 supplementary figures can be found as ```*.eps``` and ```*.png``` files in ```/figures```.
 
 ### Replicate the movies
+
+You need to install a renderer for gif ([ImageMagick](https://www.imagemagick.org/script/download.php)) or mpeg ([ffmpeg](https://ffmpeg.org/download.html)). 
 
 Continue by typing:
 ```bash

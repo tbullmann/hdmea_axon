@@ -85,7 +85,7 @@ def make_figure(figurename, figpath=None):
     cross_hair(ax1, x_AIS, y_AIS, color='red')
     mea_axes(ax1, bbox=bbox, barposition='inside')
     ax1.set_title('Method I')
-    plt.text(0.1, 0.9, r'$\mathsf{V_n>5\sigma_{V}}$', ha='left', va='center', transform=ax1.transAxes)
+    plt.text(0.0, 0.9, r'$\mathsf{V_n>5\sigma_{V}}$', ha='left', va='center', transform=ax1.transAxes)
     plt.title('a', loc='left', fontsize=18)
 
     # Map axons for Bullmann's method, grid spacing ~ 20um
@@ -97,7 +97,7 @@ def make_figure(figurename, figpath=None):
     cross_hair(ax2, x_AIS, y_AIS, color='red')
     mea_axes(ax2, bbox=bbox, barposition='inside')
     ax2.set_title('Method II')
-    plt.text(0.1, 0.9, r'$\mathsf{r\approx18\mu m}$', ha='left', va='center', transform=ax2.transAxes)
+    plt.text(0.0, 0.9, r'$\mathsf{r=18\ \mu m}$', ha='left', va='center', transform=ax2.transAxes)
     plt.title('b', loc='left', fontsize=18)
 
     # Ground truth
@@ -115,7 +115,7 @@ def make_figure(figurename, figpath=None):
                                   axon_Bakkum[3], delay_Bakkum, Vmin_Bakkum, x, y, transform=V2size)
     cross_hair(ax4, x_AIS, y_AIS, color='red')
     mea_axes(ax4, bbox=bbox, barposition='inside')
-    plt.text(0.1, 0.9, r'$\mathsf{V_n>3\sigma_{V}}$', ha='left', va='center', transform=ax4.transAxes)
+    plt.text(0.0, 0.9, r'$\mathsf{V_n>3\sigma_{V}}$', ha='left', va='center', transform=ax4.transAxes)
     plt.title('d', loc='left', fontsize=18)
 
     # Map axons for Bullmann's method, grid spacing ~ 40um
@@ -126,7 +126,7 @@ def make_figure(figurename, figpath=None):
                                   y_Bullmann[2], transform=V2size)
     cross_hair(ax5, x_AIS, y_AIS, color='red')
     mea_axes(ax5, bbox=bbox, barposition='inside')
-    plt.text(0.1, 0.9, r'$\mathsf{r\approx36\mu m}$', ha='left', va='center', transform=ax5.transAxes)
+    plt.text(0.0, 0.9, r'$\mathsf{r=36\ \mu m}$', ha='left', va='center', transform=ax5.transAxes)
     plt.title('e', loc='left', fontsize=18)
 
     # Colorbar and Size legend for A, B, D, E
