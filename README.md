@@ -6,9 +6,22 @@ This repositiory contains the source code as well as the links to the example da
 The Hana (high density microelectrode array recording analysis) pipeline is open source, see [licence](LICENCE.md).
 The example data (approx. 4 GB) consists of spike triggered averages and events that were extracted from the raw recordings.  
 
-If you use this library in your research, please cite:
+If you use this library in your research, please cite our paper ([BioRXiv](http://biorxiv.org/content/early/2017/05/18/139436)):
 
 > Bullmann T, Radivojevic M, Huber S, Deligkaris K, Hierlemann A, Frey U (2017) Network analysis of high-density microelectrode recordings. _Submitted_
+
+```bib
+@article {Bullmann139436,
+	author = {Bullmann, Torsten and Radivojevic, Milos and Huber, Stefan T. and Deligkaris, Kosmas and Hierlemann, Andreas and Frey, Urs},
+	title = {Network Analysis Of High-Density Microelectrode Recordings},
+	year = {2017},
+	doi = {10.1101/139436},
+	URL = {http://biorxiv.org/content/early/2017/05/18/139436},
+	eprint = {http://biorxiv.org/content/early/2017/05/18/139436.full.pdf},
+	journal = {bioRxiv}
+}
+```
+
 
 ## How to use
 
