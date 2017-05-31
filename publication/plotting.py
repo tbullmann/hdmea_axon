@@ -6,7 +6,6 @@ import sys
 
 import networkx as nx
 import numpy as np
-import pandas as pd
 import yaml
 from matplotlib import pyplot as plt
 from matplotlib.ticker import NullFormatter
@@ -567,21 +566,4 @@ def plot_synapse_delays(ax, data, xlim=None, ylim=None,
     axHisty.xaxis.set_major_formatter(nullfmt)
     axHisty.yaxis.set_major_formatter(nullfmt)
 
-
-def DataFrame_from_Dicts(functional_delay, functional_strength, structural_delay, structural_strength):
-    data = pd.merge(pd.merge(pd.DataFrame(((pre, post, value) for (pre, post), value in functional_delay.items()),
-                                          columns=['pre', 'post', 'functional_delay']),
-                             pd.DataFrame(((pre, post, value) for (pre, post), value in functional_strength.items()),
-                                          columns=['pre', 'post', 'functional_strength']),
-                             on=['pre', 'post']),
-                    pd.merge(pd.DataFrame(((pre, post, value) for (pre, post), value in structural_delay.items()),
-                                          columns=['pre', 'post', 'structural_delay']),
-                             pd.DataFrame(((pre, post, value) for (pre, post), value in structural_strength.items()),
-                                          columns=['pre', 'post', 'structural_strength']),
-                             on=['pre', 'post']),
-                    on=['pre', 'post'])
-    data['synaptic_delay'] = data.functional_delay - data.structural_delay
-    data['delayed'] = data.synaptic_delay > 1  # ms
-    data['simultaneous'] = data.synaptic_delay < 1  # ms
-    return data
 

@@ -184,9 +184,9 @@ def prettify_boxplot(ax, bplot):
         patch.set_color(color)
     plt.setp(bplot['medians'], color='black')
     plt.setp(bplot['whiskers'], color='black')
-    plt.xlabel(r'$\mathsf{\tau_{synapse}\ [ms]}$', fontsize=14)
+    plt.xlabel('putative synapse')
     ax.set_xticks([1, 2])
-    ax.set_xticklabels(['synapse', 'none'])
+    ax.set_xticklabels(['yes', 'no'])
     adjust_position(ax,xshrink=0.02, yshrink=0.04)
     without_spines_and_ticks(ax)
 
