@@ -17,13 +17,13 @@ from publication.comparison import ImageIterator, ModelDiscriminatorBakkum, Mode
 FIGURE_CULTURE = 1
 FIGURE_NEURON = 5  # other neurons 5, 10, 11, 20, 25, 2, 31, 41; culture 1
 FIGURE_NEURONS = [2, 3, 4, 5, 10, 11, 13, 20, 21, 22, 23, 25, 27, 29, 31, 35, 36, 37, 41, 49, 50, 51, 59]  # culture 1
-FIGURE_CULTURES = [1] # [1, 2, 3, 4, 5, 6, 7]
+FIGURE_CULTURES = [1, 2, 3, 4, 5, 6]
 GROUND_TRUTH_CULTURE = 8
 GROUND_TRUTH_NEURON = 1544
 FIGURE_CONNECTED_NEURON = 10  # culture 1
-FIGURE_NOT_CONNECTED_NEURON = 49  # or 50; culture 1
-FIGURE_THRESHOLD_OVERLAP_AREA = 3000.  # um2/electrode
-FIGURE_THRESHOLD_Z_SCORE = 10
+FIGURE_NOT_FUNCTIONAL_CONNECTED_NEURON = 50  # culture 1
+FIGURE_NOT_STRUCTURAL_CONNECTED_NEURON = 21  # 21 or 36, culture 1
+FIGURE_THRESHOLD_OVERLAP_AREA = 300.  # um2/electrode
 
 
 class Experiment():
@@ -112,6 +112,7 @@ class Experiment():
         """
         timesseries_surrogates_filename = os.path.join(self.results_directory, 'events_surrogates.p')
         if not os.path.isfile(timesseries_surrogates_filename):
+            logging.info('Surrogate time series')
             timeseries_surrogates = timeseries_to_surrogates(self.timeseries())
             pickle.dump(timeseries_surrogates, open(timesseries_surrogates_filename, 'wb'))
         else:
@@ -128,6 +129,7 @@ class Experiment():
         """
         standardscores_filename = os.path.join(self.results_directory, 'standardscores.p')
         if not os.path.isfile(standardscores_filename):
+            logging.info('Compute standard score for histograms')
             timelags, std_score_dict, timeseries_hist_dict = all_timelag_standardscore(self.timeseries(),
                                                                                        self.timeseries_surrogates())
             pickle.dump((timelags, std_score_dict, timeseries_hist_dict), open(standardscores_filename, 'wb'))
@@ -137,34 +139,41 @@ class Experiment():
 
     def networks(self):
         """
-        Extract structural and functional network
+        Extract structural, functional and synaptic network
         :return: dictionaries indexed by pairs of pre and post-synaptic neurons:
             structural_strength: overlap (area) between pre-synaptic axon and post-synaptic dendrite
             structural_delay: delay by axons
-            functional_strength: maximal z-score
+            functional_strength: maximal z-score (for functional connectivity)
             functional_delay: spike timing
+            synaptic_strength: maximal z-score (for synaptic connectivity)
+            synaptic_delay: response delay (spike timing - delay by axons)
         """
-        two_networks_pickle_name = os.path.join(self.results_directory, 'two_networks.p')
-        if not os.path.isfile(two_networks_pickle_name):
+        three_networks_pickle_name = os.path.join(self.results_directory, 'three_networks.p')
+        if not os.path.isfile(three_networks_pickle_name):
             # structural networks
             axon_delay, dendrite_peak = self.neurites()
             structural_strength, _, structural_delay = all_overlaps(axon_delay, dendrite_peak, thr_peak=0, thr_ratio=0,
                                                                     thr_overlap=1)
             # functional networks: only use forward direction
-            timeseries = self.timeseries()
-            logging.info('Surrogate time series')
-            timeseries_surrogates = timeseries_to_surrogates(timeseries, n=20, factor=2)
-            logging.info('Compute standard score for histograms')
-            timelags, std_score_dict, timeseries_hist_dict = all_timelag_standardscore(timeseries, timeseries_surrogates)
-            functional_strength, functional_delay, _, _ = all_peaks(timelags, std_score_dict, thr=1, direction='forward')
+            timelags, std_score_dict, timeseries_hist_dict = self.standardscores()
+            functional_strength, functional_delay, _ = all_peaks(timelags, std_score_dict)
+            # synaptic networks: use axonal delays from structural connectivity and a minimal synapstic delays of 0.5
+            synaptic_strength, synaptic_delay, _ = all_peaks(timelags, std_score_dict,
+                                                structural_delay_dict=structural_delay, minimal_synapse_delay=1.0)
             # pickle structural and functional network
-            pickle.dump((structural_strength, structural_delay, functional_strength, functional_delay),
-                        open(two_networks_pickle_name, 'wb'))
-            logging.info('Saved structural and functional network')
+            pickle.dump((structural_strength, structural_delay,
+                         functional_strength, functional_delay,
+                         synaptic_strength, synaptic_delay),
+                        open(three_networks_pickle_name, 'wb'))
+            logging.info('Saved structural, functional and synaptic network')
         else:
-            structural_strength, structural_delay, functional_strength, functional_delay = \
-                pickle.load(open(two_networks_pickle_name, 'rb'))
-        return structural_strength, structural_delay, functional_strength, functional_delay
+            structural_strength, structural_delay, \
+            functional_strength, functional_delay, \
+            synaptic_strength, synaptic_delay = \
+                pickle.load(open(three_networks_pickle_name, 'rb'))
+        return structural_strength, structural_delay, \
+               functional_strength, functional_delay,  \
+               synaptic_strength, synaptic_delay
 
     def putative_delays(self):
         """
