@@ -123,7 +123,7 @@ def make_figure(figurename, figpath=None):
     plt.title('d', loc='left', fontsize=18)
 
     values = pd.pivot_table(data, index='culture', columns='delayed',
-                        values=['functional_strength', 'structural_strength', 'structural_delay'], aggfunc=np.median)
+                        values=['structural_strength', 'structural_delay'], aggfunc=np.median)
 
     ax4 = plt.subplot(257)
     bplot = ax4.boxplot(np.array(values['structural_strength']) * electrode_area,   # overlap in um2
