@@ -163,8 +163,6 @@ def simulate_network(T=10, N=50, k=15, tau_axon=2*ms):
         synapse_delay = 1 * ms
         S.delay = synapse_delay + tau_axon * rand(size(S.w))
 
-
-
     # --- Initialization of variables
     G.v = 'rand()'
     S.y = 'rand()'
@@ -203,19 +201,18 @@ def springs(structural_delay):
 
 def test_simulate_network():
 
-    # axonal_delays, timeseries = simulate_network()
-
     # Getting data
-
-    # structural_delay, _ = Simulation(1).structural_network()
+    axonal_delays, timeseries = simulate_network()
+    structural_delay, _ = Simulation(1).structural_network()
     timeseries = Simulation(1).timeseries()
 
     # Plotting
-    # pos = springs(structural_delay)
-    # ax1 = plt.subplot(121)
-    # plot_network(ax1, structural_delay, pos, color='blue')
-    # plot_neuron_points(ax1, unique_neurons(structural_delay), pos)
-    # plot_neuron_id(ax1, unique_neurons(structural_delay), pos)
+    ax1 = plt.subplot(121)
+    pos = springs(structural_delay)
+    plot_network(ax1, structural_delay, pos, color='blue')
+    plot_neuron_points(ax1, unique_neurons(structural_delay), pos)
+    plot_neuron_id(ax1, unique_neurons(structural_delay), pos)
+
     ax2 = subplot(111)
     for neuron in timeseries:
         t = timeseries[neuron]
