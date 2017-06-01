@@ -150,17 +150,9 @@ class Experiment():
         """
         three_networks_pickle_name = os.path.join(self.results_directory, 'three_networks.p')
         if not os.path.isfile(three_networks_pickle_name):
-            # structural networks
-            axon_delay, dendrite_peak = self.neurites()
-            structural_strength, _, structural_delay = all_overlaps(axon_delay, dendrite_peak, thr_peak=0, thr_ratio=0,
-                                                                    thr_overlap=1)
-            # functional networks: only use forward direction
-            timelags, std_score_dict, timeseries_hist_dict = self.standardscores()
-            functional_strength, functional_delay, _ = all_peaks(timelags, std_score_dict)
-            # synaptic networks: use axonal delays from structural connectivity and a minimal synapstic delays of 0.5
-            synaptic_strength, synaptic_delay, _ = all_peaks(timelags, std_score_dict,
-                                                structural_delay_dict=structural_delay, minimal_synapse_delay=1.0)
-            # pickle structural and functional network
+            structural_delay, structural_strength = self.structural_network()
+            functional_delay, functional_strength = self.functional_network()
+            synaptic_delay, synaptic_strength = self.synaptic_network()
             pickle.dump((structural_strength, structural_delay,
                          functional_strength, functional_delay,
                          synaptic_strength, synaptic_delay),
@@ -174,6 +166,28 @@ class Experiment():
         return structural_strength, structural_delay, \
                functional_strength, functional_delay,  \
                synaptic_strength, synaptic_delay
+
+    def synaptic_network(self):
+        # synaptic networks: use axonal delays from structural connectivity and a minimal synapstic delays of 1.0 ms
+        timelags, std_score_dict, timeseries_hist_dict = self.standardscores()
+        structural_delay, structural_strength = self.structural_network()
+        synaptic_strength, synaptic_delay, _ = all_peaks(timelags, std_score_dict,
+                                                         structural_delay_dict=structural_delay,
+                                                         minimal_synapse_delay=1.0)
+        return synaptic_delay, synaptic_strength
+
+    def functional_network(self):
+        # functional networks: only use forward direction
+        timelags, std_score_dict, timeseries_hist_dict = self.standardscores()
+        functional_strength, functional_delay, _ = all_peaks(timelags, std_score_dict)
+        return functional_delay, functional_strength
+
+    def structural_network(self):
+        # structural networks
+        axon_delay, dendrite_peak = self.neurites()
+        structural_strength, _, structural_delay = all_overlaps(axon_delay, dendrite_peak, thr_peak=0, thr_ratio=0,
+                                                                thr_overlap=1)
+        return structural_delay, structural_strength
 
     def putative_delays(self):
         """
