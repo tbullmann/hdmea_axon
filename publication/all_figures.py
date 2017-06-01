@@ -22,5 +22,5 @@ if __name__ == "__main__":
     figure_simulations.make_figure('Figure7', figpath=figpath)
 
     figure_dendrite.make_figure('Supplementary Figure 1', figpath=figpath)
-    figure_all_neurons.make_figure('Supplementary Figure 2', figpath=figpath)figpath
-    figure_multiple_networks.make_figure('Supplementary Figure 3', figpath=figpath)  # TODO Fix
+    figure_all_neurons.make_figure('Supplementary Figure 2', figpath=figpath)
+    figure_multiple_networks.make_figure('Supplementary Figure 3', figpath=figpath)
