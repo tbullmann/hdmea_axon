@@ -108,13 +108,9 @@ class Simulation(Experiment):
         """
         if not os.path.isfile(self.delay_filename):
             self.run_and_save()
-        if SIMULATED_NETWORK == 'same delays':
-            logging.info('Using structural connectivity from simulation!')
-            structural_strength, structural_delay, _, _, _, _ = Experiment(self.culture).networks()
-        else:
-            logging.info('Using structural connectivity from simulation!')
-            structural_delay = pickle.load(open(self.delay_filename, 'rb'))
-            structural_strength = dict()  # empty, because no overlap defined
+        logging.info('Using structural connectivity from simulation!')
+        structural_delay = pickle.load(open(self.delay_filename, 'rb'))
+        structural_strength = dict()  # empty, because no overlap defined
         return structural_delay, structural_strength
 
 
