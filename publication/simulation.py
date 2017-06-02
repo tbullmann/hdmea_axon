@@ -118,65 +118,56 @@ def simulate_network(T=10, N=50, k=15, tau_axon=2*ms):
     """"""
     start_scope()
 
-    # --- Neurons ---
     logging.info('Define neurons')
-    delta_a = 1e-9  # stable for e-11 .. e-9
+    delta_a = 1e-9  # stable for e-11 .. e-7
     eqs = '''
         dv/dt = (a-v)/tau_mem: 1
         a : 1
         '''
-    G = NeuronGroup(N, eqs, threshold='v>1', reset='v=0', method='euler', refractory=1 * ms)
-    G.a = linspace(1 - 1 * delta_a, 1 + delta_a, N)  # T = log(a/(a-1))*tau_mem
+    G = NeuronGroup(N, eqs, threshold='v>1', reset='v=0', method='euler')
+    G.a = linspace(1 - 1 * delta_a, 1 + delta_a, N)
     tau_mem = 30 * ms  # membrane time constant of different neurons typically range from 20 to 60 ms
 
-    # --- Synapses ---
-    logging.info('Define connectivity')
-    tau_in = 10 * ms  # this should be around 2 ms
-    tau_re = 130 * tau_in
+    logging_spont_firing(G.a, tau_mem)
+    logging.info('Define synapses')
+    tau_re = 1300 * ms
     U = 0.10
     g = 20
     state_eqs = '''
         w : 1
-        x = 1 - y - z : 1
-        dy/dt = -y/tau_in : 1 (clock-driven)
-        dz/dt = y/tau_in -z/tau_re : 1 (clock-driven)
+        du/dt = (1-u)/tau_re : 1 (clock-driven)
         '''
     update_eqs = '''
-        v_post += w * g * U * x
-        y += U * x
-        x -= U * x
+        v_post += w * g * U * u
+        u -= u * U
         '''
     S = Synapses(G, G, state_eqs, on_pre=update_eqs, method='euler')
 
+    logging.info('Define connectivity and delays')
+    tau_synapse = 1 * ms
     if type(tau_axon) is dict:   # simulate network with given axonal delays for each neuron pair
-        synapse_delay = 1 * ms
         for pre, post in tau_axon:
             S.connect(i=pre, j=post)
             S.w[pre, post] = 1 / k
-            S.delay[pre, post] = synapse_delay + tau_axon[pre, post] * ms
+            S.delay[pre, post] = tau_synapse + tau_axon[pre, post] * ms
         for neuron in range(N):
             if not neuron in unique_neurons(tau_axon):
                 G.a[neuron] = 0  # inactivate neuron
     else:   # simulate Erdoes Renyi type random network
         S.connect(condition='i!=j', p=k / N)
         S.w = 1 / k
-        synapse_delay = 1 * ms
-        S.delay = synapse_delay + tau_axon * rand(size(S.w))
+        S.delay = tau_synapse + tau_axon * rand(size(S.w))
 
-    # --- Initialization of variables
+    logging.info('Initialize variables')
     G.v = 'rand()'
-    S.y = 'rand()'
-    S.z = 'rand()'
 
-    # --- Simulation ----
     logging.info('Simulate %d s' % T)
     spikemon = SpikeMonitor(G)
     for _ in tqdm(range(T)):
         run(1 * second)
 
-    # --- Report results ---
     logging.info('Report results')
-    axonal_delays = {(pre, post): float((S.delay[pre, post] - synapse_delay) / ms)
+    axonal_delays = {(pre, post): float((S.delay[pre, post] - tau_synapse) / ms)
                      for pre, post in product(range(0, N+1), repeat=2)
                      if S.delay[pre, post] / ms > 0}
     t = spikemon.t / second
@@ -184,6 +175,12 @@ def simulate_network(T=10, N=50, k=15, tau_axon=2*ms):
     timeseries = {neuron:t[i==neuron] for neuron in np.unique(i)}
 
     return axonal_delays, timeseries
+
+
+def logging_spont_firing(a, tau_mem):
+    T = np.log(a / (a - 1)) * tau_mem
+    logging.info("%d active neurons with a period of %f - %f (median=%f) s" % (
+    np.count_nonzero(np.isfinite(T)), np.nanmin(T), np.nanmax(T), np.nanmedian(T)))
 
 
 def springs(structural_delay):
@@ -203,20 +200,20 @@ def test_simulate_network():
 
     # Getting data
     axonal_delays, timeseries = simulate_network()
-    structural_delay, _ = Simulation(1).structural_network()
-    timeseries = Simulation(1).timeseries()
+    # structural_delay, _ = Simulation(1).structural_network()
+    # timeseries = Simulation(1).timeseries()
 
     # Plotting
-    ax1 = plt.subplot(121)
+    plt.figure('network')
     pos = springs(structural_delay)
     plot_network(ax1, structural_delay, pos, color='blue')
     plot_neuron_points(ax1, unique_neurons(structural_delay), pos)
     plot_neuron_id(ax1, unique_neurons(structural_delay), pos)
 
-    ax2 = subplot(111)
+    plt.figure('spike')
     for neuron in timeseries:
         t = timeseries[neuron]
-        ax2.plot(t, neuron * np.ones_like(t), '.k')
+        plt.plot(t, neuron * np.ones_like(t), '.')
     xlabel(r'$t$ [s]')
     ylabel('Neuron index')
     plt.show()
