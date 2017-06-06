@@ -41,27 +41,38 @@ def plot_histograms(data=Experiment, all_original=True):
         hist['synapse'][c] = histograms(synapse_delay)
 
     # Plot degree distributions for all networks
-    ax337 = plt.subplot(245)
-    plot_degree_distributions(hist, 'structure', 'b')
-    plt.title('f', loc='left', fontsize=18)
-    without_spines_and_ticks(ax337)
+    if all_original:
+        ax337 = plt.subplot(245)
+        plot_degree_distributions(hist, 'structure', 'b')
+        plt.title('f', loc='left', fontsize=18)
+        without_spines_and_ticks(ax337)
     ax338 = plt.subplot(246)
     plot_degree_distributions(hist, 'function', 'r')
-    plt.title('g', loc='left', fontsize=18)
+    if all_original:
+        plt.title('g', loc='left', fontsize=18)
+    else:
+        plt.title('h', loc='left', fontsize=18)
+        adjust_position(ax338, xshift=0.02, yshrink=0.01)
     without_spines_and_ticks(ax338)
+
     ax339 = plt.subplot(247)
     plot_degree_distributions(hist, 'synapse', 'g')
-    plt.title('h', loc='left', fontsize=18)
+    if all_original:
+        plt.title('h', loc='left', fontsize=18)
+    else:
+        plt.title('i', loc='left', fontsize=18)
+        adjust_position(ax339, xshift=0.02, yshrink=0.01)
     without_spines_and_ticks(ax339)
+
     ax248 = plt.subplot(248)
     if all_original:
         plt.scatter(None, None, 20, color='blue', marker='s', label='structural')
         plt.scatter(None, None, 20, color='red', marker='s', label='functional')
         plt.scatter(None, None, 20, color='green', marker='s', label='synaptic')
     else:
-        plt.scatter(None, None, 20, color='blue', marker='s', label='original structural')
-        plt.scatter(None, None, 20, color='red', marker='s', label='simulated functional')
-        plt.scatter(None, None, 20, color='green', marker='s', label='simulated synaptic')
+        plt.scatter(None, None, 20, color='blue', marker='s', label='original\nstructural')
+        plt.scatter(None, None, 20, color='red', marker='s', label='simulated\nfunctional')
+        plt.scatter(None, None, 20, color='green', marker='s', label='simulated\nsynaptic')
 
     plt.axis('off')
     plt.legend(loc='upper center', scatterpoints=1, markerscale=3., frameon=False)

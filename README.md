@@ -111,3 +111,8 @@ Folders structure and important files:
 ├── README.md
 └── ...
 ```
+
+### Acknowledgements
+
+Kleinberg's burst detection analysis on batched data was performed using the implementation by [nmarinsek](https://github.com/nmarinsek). 
+The orginal code can be found here [here](https://github.com/nmarinsek/burst_detection).

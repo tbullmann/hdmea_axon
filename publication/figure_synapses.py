@@ -55,7 +55,7 @@ def make_figure(figurename, figpath=None):
     ax12.spines['left'].set_bounds(0, 100)
     ax12.set_yticks([0,50,100])
     ax12.set_yticklabels([0,50,100])
-    ax12.set_ylabel(r'$\mathsf{z_{max}}$', fontsize=14)
+    ax12.set_ylabel(r'$\mathsf{z}$', fontsize=14)
     ax12.yaxis.set_label_coords(-0.1, 0.25)
     ax12.set_xlabel(r'$\mathsf{\tau_{synapse}=\tau_{spike}-\tau_{axon}\ [ms]}$', fontsize=14)
     plt.title('a', loc='left', fontsize=18)
