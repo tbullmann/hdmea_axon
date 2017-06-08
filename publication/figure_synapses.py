@@ -141,18 +141,27 @@ def make_figure(figurename, figpath=None):
     plt.title('f', loc='left', fontsize=18)
 
     ax6 = plt.subplot(259)
+    plot_delays(ax6, minimal_synaptic_delay, synapse_delays)
+    ax6.set_xlabel(r'$\mathsf{\tau_{synapse}\ [ms]}$', fontsize=14)
+    adjust_position(ax6, xshift=0.08, xshrink=-0.05, yshrink=0.04)
+    without_spines_and_ticks(ax6)
+    plt.title('g', loc='left', fontsize=18)
+
+    show_or_savefig(figpath, figurename)
+
+
+def plot_delays(ax, minimal_synaptic_delay, delays, fill_color='green'):
     # show distirbution of median synapse delays as boxplot
-    bplot = plt.boxplot([np.median(x) for x in synapse_delays], 0, '+', 0, positions=np.array([0.]),
+    bplot = plt.boxplot([np.median(x) for x in delays], 0, '+', 0, positions=np.array([0.]),
                         boxprops={'color': "black", "linestyle": "-"}, patch_artist=True, widths=0.7)
-    bplot['boxes'][0].set_color('green')
+    bplot['boxes'][0].set_color(fill_color)
     plt.setp(bplot['medians'], color='black')
     plt.setp(bplot['whiskers'], color='black')
     # add violin plot for every culture
-    vplot = plt.violinplot(synapse_delays, FIGURE_CULTURES, points=80, vert=False, widths=0.7,
+    vplot = plt.violinplot(delays, FIGURE_CULTURES, points=80, vert=False, widths=0.7,
                            showmeans=False, showextrema=True, showmedians=True)
-    ax6.fill([0, minimal_synaptic_delay, minimal_synaptic_delay, 0], [-1, -1, 9, 9],
-             fill=False, hatch='\\', linewidth=0)
-
+    ax.fill([0, minimal_synaptic_delay, minimal_synaptic_delay, 0], [-1, -1, 9, 9],
+            fill=False, hatch='\\', linewidth=0)
     # Make all the violin statistics marks black:
     for partname in ('cbars', 'cmins', 'cmaxes', 'cmedians'):
         vp = vplot[partname]
@@ -160,22 +169,17 @@ def make_figure(figurename, figpath=None):
         vp.set_linewidth(1)
     # Make the violin body blue with a black border:
     for pc in vplot['bodies']:
-        pc.set_facecolor('green')
+        pc.set_facecolor(fill_color)
         pc.set_alpha(0.5)
         pc.set_edgecolor('none')
-    ax6.set_xlabel(r'$\mathsf{\tau_{synapse}\ [ms]}$', fontsize=14)
-    ax6.set_xticks([0, 1, 2, 3, 4, 5])
-    ax6.set_xticklabels([0, 1, 2, 3, 4, 5])
-    ax6.set_ylabel('culture')
-    ax6.set_yticks([0,]+list(FIGURE_CULTURES))
-    ax6.set_yticklabels(['all',]+list(FIGURE_CULTURES))
-    ax6.set_ylim((-0.5,6.5))
-    ax6.invert_yaxis()
-    adjust_position(ax6, xshift=0.08, xshrink=-0.05, yshrink=0.04)
-    without_spines_and_ticks(ax6)
-    plt.title('g', loc='left', fontsize=18)
+    ax.set_xticks([0, 1, 2, 3, 4, 5])
+    ax.set_xticklabels([0, 1, 2, 3, 4, 5])
+    ax.set_ylabel('culture')
+    ax.set_yticks([0, ] + list(FIGURE_CULTURES))
+    ax.set_yticklabels(['all', ] + list(FIGURE_CULTURES))
+    ax.set_ylim((-0.5, 6.5))
+    ax.invert_yaxis()
 
-    show_or_savefig(figpath, figurename)
 
 
 def prettify_boxplot(ax, bplot):
