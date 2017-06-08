@@ -47,7 +47,7 @@ def make_figure(figurename, figpath=None):
 
     plot_scalar(plt.subplot(256), df, 'burst_length')
     plt.ylabel(r'$\mathsf{L_{SBE} [s]}}$', fontsize=16)
-    plt.ylim((0,1.0))
+    plt.ylim((0,0.6))
     plt.title('e', loc='left', fontsize=18)
 
     plot_scalar(plt.subplot(257), df, 'interburst_length')
@@ -70,6 +70,42 @@ def make_figure(figurename, figpath=None):
     plt.legend(loc='lower center', scatterpoints=1, markerscale=3., frameon=False)
 
     show_or_savefig(figpath, figurename)
+
+
+def test_spont():
+
+    timeseries = Experiment(1).timeseries()
+
+    weighted_bursts, analysed_timeseries, _, _ = detect_SBE(timeseries, t_interval=120)
+
+    intervals = np.array(weighted_bursts[['begin', 'end']].sort_values('begin').values)
+
+    # spontaneous active neurons = neurons that are active in inter burst intervals (IBI)
+    list_periods = defaultdict(list)
+    n_IBI = len(intervals)
+    for IBI_start, IBI_end in zip(intervals[:-1,1], intervals[1:,0]):
+        burst_margin = 0.100  # s
+        IBI_timeseries = cut_timeseries(analysed_timeseries, t_start=IBI_start + burst_margin,
+                                        t_interval=IBI_end - IBI_start - 2 * burst_margin)
+        for neuron in IBI_timeseries:
+            events = IBI_timeseries[neuron]
+            print events
+            period = np.median(np.diff(np.sort(events)))
+            print IBI_start, IBI_end, neuron, len(events), period
+
+            if not np.isnan(period):
+                list_periods[neuron].append(period)
+
+    spontaneous_activity = pd.DataFrame(((neuron, len(periods)/n_IBI, np.nanmedian(periods)) for neuron, periods in list_periods.items()), columns=['neuron', 'activity', 'period'])
+
+    print spontaneous_activity
+
+    plt.plot(spontaneous_activity['activity'], spontaneous_activity['period'], '.')
+    plt.show()
+
+
+    raster_plot(plt.subplot(111), analysed_timeseries, use='neuron')
+    plt.show()
 
 
 def burst_measures(timeseries):
@@ -147,17 +183,24 @@ def plot2_SBE(exp_timeseries, pos_y = 0, labels=('a','b')):
     plt.title(labels[1], loc='left', fontsize=18)
 
 
-def plot_SBE_for_all_cultures():
+def make_supplemental_figure(figurename, figpath=None):
     """Quick plot to show SBE for experiments and simulations """
-    for datatype in ('simulation', 'experiment'):
-        plt.figure(datatype, figsize=(10, 15))
+    for index, datatype in enumerate(( 'experiment', 'simulation' )):
+
+        logging.info('Making figure')
+        longfigurename = figurename + '-%d' % (index+1)
+        fig = plt.figure(longfigurename, figsize=(20, 15))
+        fig.suptitle(datatype)
+        plt.subplots_adjust(left=0.10, right=0.95, top=0.90, bottom=0.05)
 
         for c in FIGURE_CULTURES:
-            timeseries = Experiment(c).timeseries() if datatype=='experiment' else Simulation(c).timeseries()
+            timeseries = Experiment(c).timeseries() if datatype == 'experiment' else Simulation(c).timeseries()
             ax = plt.subplot(610+c)
-            plot_SBE(ax, timeseries)
+            logging.info(c)
+            plot_SBE(ax, timeseries, t_interval = 60, smooth_win=10, s=2, gamma=0.1)
+            plt.title('culture %d' % c, loc='left', fontsize=18)
 
-    plt.show()
+        show_or_savefig(figpath, longfigurename)
 
 
 def cut_timeseries(timeseries, t_start='min', t_interval=10):
@@ -172,10 +215,12 @@ def cut_timeseries(timeseries, t_start='min', t_interval=10):
         t_start = min((min(ts) for ts in timeseries.values()))
     t_end = t_start + t_interval  # use 10 s
     cropped_timeseries = {neuron: ts[ts < t_end] - t_start for neuron, ts in timeseries.items()}
+    cropped_timeseries = {neuron: ts[ts > 0]  for neuron, ts in cropped_timeseries.items()}
+
     return cropped_timeseries
 
 
-def plot_SBE(ax1, timeseries, t_start='min', t_interval = 10, bin_width = 10):
+def plot_SBE(ax1, timeseries, t_start='min', t_interval = 10, bin_width = 10, smooth_win=10, s=2, gamma=0.25):
     """
 
     :param ax1:
@@ -184,7 +229,7 @@ def plot_SBE(ax1, timeseries, t_start='min', t_interval = 10, bin_width = 10):
     :param bin_width: bin width in s (default = 10ms)
     :return:
     """
-    weighted_bursts, plotted_timeseries, edges, n_active = detect_SBE(timeseries, t_start, t_interval, bin_width)
+    weighted_bursts, plotted_timeseries, edges, n_active = detect_SBE(timeseries, t_start, t_interval, bin_width, smooth_win=smooth_win, s=s, gamma=gamma)
 
     # plotting
     raster_plot(ax1, plotted_timeseries)
@@ -195,7 +240,10 @@ def plot_SBE(ax1, timeseries, t_start='min', t_interval = 10, bin_width = 10):
     ax2.set_ylabel('active [1/%d ms]' % bin_width)
     adjust_position(ax2, yshrink=0.02)
 
-    xlim = weighted_bursts[['begin', 'end']].values[0]
+    try:
+        xlim = weighted_bursts[['begin', 'end']].values[0]
+    except:
+        xlim = None
 
     return plotted_timeseries, xlim
 
@@ -208,7 +256,7 @@ def burst_plot(ax, weighted_bursts):
         ax.add_patch(patches.Rectangle((begin, 0), end - begin, 60, color='red', alpha=0.1))  # box
 
 
-def detect_SBE(timeseries, t_start='min', t_interval=10, bin_width=10, smooth_win=10, s=2, gamma=0.25):
+def detect_SBE(timeseries, t_start='min', t_interval=10, bin_width=10, smooth_win=10, s=2, gamma=0.1):
     """
     Detect synchronised bursting events using Kleinberg's burst detection analysis on batched data.
     :param timeseries: number of active neurons per bin
@@ -264,25 +312,26 @@ def detect_SBE(timeseries, t_start='min', t_interval=10, bin_width=10, smooth_wi
     # calculate edges of bins for plotting the number of active neurons
     edges = np.linspace(0, t_interval, num_bins)
 
-
     return weighted_bursts, analysed_timeseries, edges, n_active
 
 
-def raster_plot(ax, timeseries, use='index'):
+def raster_plot(ax, timeseries, use='neuron'):
     """Plot events as dots"""
     for index, neuron in enumerate(timeseries):
         t = timeseries[neuron]
         if use=='index':
             ax.plot(t, index * np.ones_like(t), 'k.')
+            plt.ylabel('index')
         elif use=='neuron':
             ax.plot(t, neuron * np.ones_like(t), 'k.')
+            plt.ylabel('neuron')
     # ax.set_xlim((0,0.5))
     plt.xlabel(r'$t$ [s]')
-    plt.ylabel('Neuron index')
     # without_spines_and_ticks(ax)
 
 
 if __name__ == "__main__":
     # test_bd()
-    # plot_SBE_for_all_cultures()
+    # test_spont()
     make_figure(os.path.basename(__file__))
+    make_supplemental_figure(os.path.basename(__file__))

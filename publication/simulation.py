@@ -16,7 +16,7 @@ from hana.misc import unique_neurons
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-SIMULATED_INTERVAL = 120  # 120s
+SIMULATED_INTERVAL = 300  # 300 s == 5 min
 # SIMULATED_NETWORK = 'same size and connectivity'
 # SIMULATED_NETWORK = '50 neurons same connectivity'
 SIMULATED_NETWORK = 'same delays'
@@ -40,7 +40,7 @@ class Simulation(Experiment):
             os.makedirs(self.results_directory)
 
     def parameters(self):
-        _, structural_delay, _, _, _, _ = Experiment(self.culture).networks()
+        structural_strength, structural_delay, _, _, _, _ = Experiment(self.culture).networks()
 
         if SIMULATED_NETWORK == 'same size and connectivity':
             # simulate Erdoes Renyi type random network with same number of neurons and connections
@@ -69,6 +69,7 @@ class Simulation(Experiment):
             parameters = dict(T=SIMULATED_INTERVAL,
                               N=max(unique_neurons(structural_delay))+1,  # make more neurons but use only those connected
                               k=M/(n-1),
+                              overlap=structural_strength,
                               tau_axon=structural_delay,
                               )
 
@@ -113,26 +114,35 @@ class Simulation(Experiment):
         structural_strength = dict()  # empty, because no overlap defined
         return structural_delay, structural_strength
 
+def simulate_network (T = 10, N = 50, k = 15, refractory=5*ms, tau_re = 1300 * ms, U = 0.05, g = 40,
+                      tau_axon = 2 * ms, overlap=None, tau_synapse = 3 * ms, tau_mem = 20 * ms):
+    """
+    Simulate a neuronal network, either random or based on actual connectivity.
+    :param T: simulation interval in seconds (default:10)
+    :param N: number of neurons
+    :param k: connections per neuron
+    :param refractory: refractory time (default: 5*ms)
+    :param tau_axon: axonal delay in ms indexed by neuron pair; default: 2*ms, used for all connections
+    :param overlap: overlap betwen axon and dendrite indexed by neuron pair; default None, then scaling 1/k used
+    :param tau_synapse: synaptic delay in ms (default: 3*ms)
+    :param tau_mem: membrane time constant, typically in the range of 20 to 60*ms (default: 20*ms)
+    :param tau_re: timeconstant for the recovery of synaptic resources (default: 1300*ms)
+    :param U: fraction of utilized synaptic resources per pre-synaptic spike (default: 0.10)
+    :param g: synaptic strength as scaled conductance (default: 40)
+    :return: axonal_delays: axonal delays indexed by pre- and post-synaptic neuron pair
+    :return: timeseries: events indexed by neuron
+    """
 
-def simulate_network(T=10, N=50, k=15, tau_axon=2*ms):
-    """"""
     start_scope()
 
-    logging.info('Define neurons')
-    delta_a = 1e-9  # stable for e-11 .. e-7
+    logging.info('Define neurons, synapses, connectivity and delays')
     eqs = '''
-        dv/dt = (a-v)/tau_mem: 1
-        a : 1
-        '''
-    G = NeuronGroup(N, eqs, threshold='v>1', reset='v=0', method='euler')
-    G.a = linspace(1 - 1 * delta_a, 1 + delta_a, N)
-    tau_mem = 30 * ms  # membrane time constant of different neurons typically range from 20 to 60 ms
+          dv/dt = (a-v)/tau_mem + sigma*xi*tau_mem**-0.5 : 1 (unless refractory)
+          a : 1
+          '''
+    G = NeuronGroup(N, eqs, threshold='v>1', reset='v=0', refractory=refractory, method='euler')
+    G.a = 0.5
 
-    logging_spont_firing(G.a, tau_mem)
-    logging.info('Define synapses')
-    tau_re = 1300 * ms
-    U = 0.10
-    g = 20
     state_eqs = '''
         w : 1
         du/dt = (1-u)/tau_re : 1 (clock-driven)
@@ -143,12 +153,13 @@ def simulate_network(T=10, N=50, k=15, tau_axon=2*ms):
         '''
     S = Synapses(G, G, state_eqs, on_pre=update_eqs, method='euler')
 
-    logging.info('Define connectivity and delays')
-    tau_synapse = 1 * ms
     if type(tau_axon) is dict:   # simulate network with given axonal delays for each neuron pair
         for pre, post in tau_axon:
             S.connect(i=pre, j=post)
-            S.w[pre, post] = 1 / k
+            if type(overlap) is dict:   # strength proportional to (normalised) overlap
+                S.w[pre, post] = overlap[pre, post] / np.sum(overlap[i,j] for i,j in overlap.keys() if j==post)
+            else:
+                S.w[pre, post] = 1 / k
             S.delay[pre, post] = tau_synapse + tau_axon[pre, post] * ms
         for neuron in range(N):
             if not neuron in unique_neurons(tau_axon):
@@ -158,7 +169,6 @@ def simulate_network(T=10, N=50, k=15, tau_axon=2*ms):
         S.w = 1 / k
         S.delay = tau_synapse + tau_axon * rand(size(S.w))
 
-    logging.info('Initialize variables')
     G.v = 'rand()'
 
     logging.info('Simulate %d s' % T)
@@ -199,13 +209,14 @@ def springs(structural_delay):
 def test_simulate_network():
 
     # Getting data
-    axonal_delays, timeseries = simulate_network()
-    # structural_delay, _ = Simulation(1).structural_network()
-    # timeseries = Simulation(1).timeseries()
+    # structural_delay, timeseries = simulate_network()
+    structural_delay, _ = Simulation(1).structural_network()
+    timeseries = Simulation(1).timeseries()
 
     # Plotting
     plt.figure('network')
     pos = springs(structural_delay)
+    ax1 = subplot(111)
     plot_network(ax1, structural_delay, pos, color='blue')
     plot_neuron_points(ax1, unique_neurons(structural_delay), pos)
     plot_neuron_id(ax1, unique_neurons(structural_delay), pos)
