@@ -23,6 +23,7 @@ if __name__ == "__main__":
     figure_dynamics.make_figure('Figure7', figpath=figpath)
     figure_simulations.make_figure('Figure8', figpath=figpath)
 
-    figure_dendrite.make_figure('Supplementary Figure 1', figpath=figpath)
-    figure_all_neurons.make_figure('Supplementary Figure 2', figpath=figpath)
-    figure_multiple_networks.make_figure('Supplementary Figure 3', figpath=figpath)
+    figure_dendrite.make_figure('SupplementaryFigure1', figpath=figpath)
+    figure_all_neurons.make_figure('SupplementaryFigure2', figpath=figpath)
+    figure_multiple_networks.make_figure('SupplementaryFigure3', figpath=figpath)
+    figure_dynamics.make_supplemental_figure('SupplementaryFigure4', figpath=figpath)
