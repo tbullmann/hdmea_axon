@@ -13,7 +13,7 @@ If you use this library in your research, please cite our paper ([BioRXiv](http:
 ```bib
 @article {Bullmann139436,
 	author = {Bullmann, Torsten and Radivojevic, Milos and Huber, Stefan T. and Deligkaris, Kosmas and Hierlemann, Andreas and Frey, Urs},
-	title = {Network Analysis Of High-Density Microelectrode Recordings},
+	title = {Network Analysis Of High-Density Microelectrode Recordings (Running title)},
 	year = {2017},
 	doi = {10.1101/139436},
 	URL = {http://biorxiv.org/content/early/2017/05/18/139436},
@@ -39,7 +39,7 @@ Using conda to create an environment ```hdmea``` (or any other name) and install
 ```bash
 conda create --name hdmea python
 source activate hdmea 
-conda install --file hana/requirements.txt
+conda install --file publication/requirements.txt
 ```
 
 ### Folders and data
