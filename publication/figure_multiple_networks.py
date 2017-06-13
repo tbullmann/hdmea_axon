@@ -45,6 +45,7 @@ def make_figure(figurename, figpath=None):
         if not figpath:
             fig.suptitle(figurename + '-%d  Culture %d: HDMEA hidens%d recorded at %d' % (culture, culture, metadata['hidens'], metadata['recording']), fontsize=14, fontweight='bold')
         plt.subplots_adjust(left=0.10, right=0.95, top=0.90, bottom=0.05)
+        fig.suptitle('Culture %d' % culture, fontsize=14, fontweight='bold')
 
         logging.info('Plot structural connectiviy')
         ax1 = plt.subplot(231)

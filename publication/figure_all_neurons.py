@@ -26,10 +26,10 @@ def make_figure(figurename, figpath=None):
     list_of_six_neurons_each = [iter(all_axonal_delays.keys())] * 6
 
     for plot_index, six_neurons in enumerate(map(None, *list_of_six_neurons_each)):
-        longfigurename = figurename + '-%d' % plot_index
+        longfigurename = figurename + '-%d' % (plot_index+1)
         logging.info(longfigurename)
         fig = plt.figure(longfigurename, figsize=(12, 8))
-        fig.suptitle(longfigurename + '. Axons and dendrites', fontsize=14, fontweight='bold')
+        # fig.suptitle(longfigurename + '. Axons and dendrites', fontsize=14, fontweight='bold')
         for neuron in six_neurons:
             if neuron is not None:
                 plotted_neurons.append(int(neuron))
