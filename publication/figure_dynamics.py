@@ -11,6 +11,7 @@ from publication.data import Experiment, FIGURE_CULTURES
 from publication.simulation import Simulation
 from publication.plotting import show_or_savefig, without_spines_and_ticks, adjust_position
 from publication.figure_graphs import flatten
+from publication.comparison import print_test_result
 from publication import burst_detection as bd
 
 import logging
@@ -149,6 +150,9 @@ def plot_scalar(ax, df, scalar_name):
     scalar = df[scalar_name].unstack(level=-1).reindex(xorder)
     logging.info('scalar %s:' % scalar_name)
     logging.info(scalar)
+
+    print_test_result(scalar_name, np.array(scalar).T, )
+
     bplot = ax.boxplot(np.array(scalar).T,
                        boxprops={'color': "black", "linestyle": "-"}, patch_artist=True, widths=0.7)
 
@@ -190,7 +194,8 @@ def make_supplemental_figure(figurename, figpath=None):
         logging.info('Making figure')
         longfigurename = figurename + '-%d' % (index+1)
         fig = plt.figure(longfigurename, figsize=(20, 15))
-        fig.suptitle(datatype)
+        fig.suptitle(datatype, fontsize=14, fontweight='bold')
+
         plt.subplots_adjust(left=0.10, right=0.95, top=0.90, bottom=0.05)
 
         for c in FIGURE_CULTURES:

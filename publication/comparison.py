@@ -7,6 +7,7 @@ from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
 from scipy.spatial.distance import cdist
 from scipy.stats import binom, norm, beta, expon  # Note: binom, norm, beta and expon are used by eval from a string
+from scipy.stats import ttest_rel, ttest_ind, ttest_1samp
 
 from statsmodels import robust
 
@@ -338,3 +339,31 @@ def distanceBetweenCurves(C1, C2):
 
     Hmax = np.max((H1 ,H2))
     return Hmax
+
+
+def print_test_result (data_str, df1, df2=None):
+    """simply print the test results of paired, unpaired and one sample t-test"""
+    # TODO: write to a text file like "figure_name-test-results.txt"
+
+    if df2 is None:
+        data = np.array(df1)
+        sample1 = data[:, 0]
+        sample2 = data[:, 1]
+        t, p = ttest_rel(sample1, sample2)
+        sample_str = 'paired samples'
+        n1 = len(sample1)
+        n2 = len(sample2)
+    else:
+        sample1 = np.array(df1)
+        n1 = len(sample1)
+        sample2 = np.array(df2)
+        if type(df2) is float or type(df2) is int:
+            t, p = ttest_1samp(sample1.ravel(), sample2)
+            sample_str = 'one sample'
+            n2 = 1
+        else:
+            t, p = ttest_ind(sample1, sample2)
+            sample_str = 'unpaired samples'
+            n2 = len(sample2)
+
+    print ('%s, t-test on %s: t=%f, p=%f, N=%d vs. %d' % (data_str, sample_str, t, p, n1, n2))

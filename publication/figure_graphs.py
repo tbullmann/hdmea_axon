@@ -13,6 +13,7 @@ import os
 from publication.data import Experiment, FIGURE_CULTURES
 from publication.plotting import show_or_savefig, adjust_position, \
     without_spines_and_ticks
+from publication.comparison import print_test_result
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -117,6 +118,15 @@ def plot_scalar_measures(data=Experiment, all_original=True):
 def plot_scalar(ax, df, scalar_name):
     xorder = ['structure', 'function', 'synapse']
     scalar = df[scalar_name].unstack(level=-1).reindex(xorder)
+    if scalar_name == 'r':
+        print_test_result('assortativity of structural connectivity equal 0', df.loc['structure'], 0)
+        print_test_result('assortativity of functional connectivity equal 0', df.loc['function'], 0)
+        print_test_result('assortativity of synaptic connectivity equal 0', df.loc['synapse'], 0)
+    if scalar_name == 'r':
+        print_test_result('small-world-ness of structural connectivity equal 1', df.loc['structure'], 1)
+        print_test_result('small-world-ness of functional connectivity equal 1', df.loc['function'], 1)
+        print_test_result('small-world-ness of synaptic connectivity equal 1', df.loc['synapse'], 1)
+
     logging.info('scalar %s:' % scalar_name)
     logging.info(scalar)
     bplot = ax.boxplot(np.array(scalar).T,

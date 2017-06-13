@@ -2,16 +2,18 @@ from __future__ import division
 
 import logging
 import os
-import pandas as pd
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 from hana.misc import unique_neurons
 from hana.plotting import plot_network, plot_neuron_points, mea_axes, plot_neuron_id
 from hana.recording import average_electrode_area
 from hana.segmentation import load_positions, neuron_position_from_trigger_electrode
+from publication.comparison import print_test_result
 from publication.data import Experiment, FIGURE_CULTURE, FIGURE_CULTURES
-from publication.plotting import show_or_savefig, plot_synapse_delays, adjust_position, \
+from publication.plotting import show_or_savefig, adjust_position, \
     without_spines_and_ticks
 
 logging.basicConfig(level=logging.DEBUG)
@@ -114,6 +116,7 @@ def make_figure(figurename, figpath=None):
     connections['simultaneous'] = 100* connections[False] / (connections[True] + connections[False])
 
     ax3 = plt.subplot(256)
+    print_test_result('percent of structural connections for delayed vs simultaneous', connections[['delayed', 'simultaneous']])
     bplot = ax3.boxplot(np.array(connections[['delayed','simultaneous']]),
                         boxprops={'color': "black", "linestyle": "-"}, patch_artist=True,widths=0.7)
     prettify_boxplot(ax3, bplot)
@@ -126,13 +129,16 @@ def make_figure(figurename, figpath=None):
                         values=['structural_strength', 'structural_delay'], aggfunc=np.median)
 
     ax4 = plt.subplot(257)
+    print_test_result('structurual strength (overlap) for delayed vs simultaneous', values['structural_strength'])
     bplot = ax4.boxplot(np.array(values['structural_strength']) * electrode_area,   # overlap in um2
                         boxprops={'color': "black", "linestyle": "-"}, patch_artist=True, widths=0.7)
     prettify_boxplot(ax4, bplot)
+    ax4.set_ylim((0,6000))
     ax4.set_ylabel(r'$\mathsf{|A \cap D|\ [\mu m^2]}$', fontsize=14)
     plt.title('e', loc='left', fontsize=18)
 
     ax5 = plt.subplot(258)
+    print_test_result('structural (axonal) delay for delayed vs simultaneous', values['structural_delay'])
     bplot = ax5.boxplot(np.array(values['structural_delay']),
                         boxprops={'color': "black", "linestyle": "-"}, patch_artist=True, widths=0.7)
     prettify_boxplot(ax5, bplot)
