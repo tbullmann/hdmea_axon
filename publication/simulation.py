@@ -6,7 +6,6 @@ from itertools import product   # must import product from itertools after brian
 from tqdm import *
 import os
 import pickle
-from pprint import pprint
 
 from data import Experiment
 import networkx as nx
@@ -114,8 +113,9 @@ class Simulation(Experiment):
         structural_strength = dict()  # empty, because no overlap defined
         return structural_delay, structural_strength
 
-def simulate_network (T = 10, N = 50, k = 15, refractory=5*ms, tau_re = 1300 * ms, U = 0.05, g = 40,
-                      tau_axon = 2 * ms, overlap=None, tau_synapse = 3 * ms, tau_mem = 20 * ms):
+
+def simulate_network(T=10, N=50, k=15, refractory=5*ms, tau_re=1300*ms, U=0.05, g=40,
+                     tau_axon=2*ms, overlap=None, tau_synapse=3*ms, tau_mem=20*ms):
     """
     Simulate a neuronal network, either random or based on actual connectivity.
     :param T: simulation interval in seconds (default:10)
@@ -134,7 +134,7 @@ def simulate_network (T = 10, N = 50, k = 15, refractory=5*ms, tau_re = 1300 * m
     """
 
     start_scope()
-
+    sigma = 0.2
     logging.info('Define neurons, synapses, connectivity and delays')
     eqs = '''
           dv/dt = (a-v)/tau_mem + sigma*xi*tau_mem**-0.5 : 1 (unless refractory)
