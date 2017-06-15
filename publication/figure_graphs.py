@@ -1,21 +1,19 @@
 from __future__ import division
 from collections import defaultdict
 
-import logging
+from publication.comparison import print_test_result
+from publication.data import Experiment, FIGURE_CULTURES
+from publication.plotting import show_or_savefig, adjust_position, without_spines_and_ticks
 
-from scipy import stats
-import pandas as pd
+import os
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-import os
-
-from publication.data import Experiment, FIGURE_CULTURES
-from publication.plotting import show_or_savefig, adjust_position, \
-    without_spines_and_ticks
-from publication.comparison import print_test_result
-
+import pandas as pd
+from scipy import stats
+import logging
 logging.basicConfig(level=logging.DEBUG)
+
 
 def make_figure(figurename, figpath=None):
 
@@ -257,6 +255,7 @@ def small_worldness(G, num=100):
     SWS = (L/Lrand)/(C/Crand)
 
     return SWS
+
 
 def estimate_wiring_p(degrees, n):
     in_p = np.array(degrees) / (n - 1)  # probability
