@@ -114,8 +114,8 @@ class Simulation(Experiment):
         return structural_delay, structural_strength
 
 
-def simulate_network(T=10, N=50, k=15, refractory=5*ms, tau_re=1300*ms, U=0.05, g=40,
-                     tau_axon=2*ms, overlap=None, tau_synapse=3*ms, tau_mem=20*ms):
+def simulate_network(T=10, N=50, k=15, refractory=5*ms, tau_re=1300*ms, U=0.3, g=20,
+                     tau_axon=2*ms, overlap=None, tau_synapse=1*ms, tau_mem=20*ms):
     """
     Simulate a neuronal network, either random or based on actual connectivity.
     :param T: simulation interval in seconds (default:10)
@@ -153,11 +153,15 @@ def simulate_network(T=10, N=50, k=15, refractory=5*ms, tau_re=1300*ms, U=0.05, 
         '''
     S = Synapses(G, G, state_eqs, on_pre=update_eqs, method='euler')
 
+    if type(overlap) is dict:    # calculate average overlap over all neurons
+        average_overlap = np.sum(overlap.values())/len(unique_neurons(overlap))
+
     if type(tau_axon) is dict:   # simulate network with given axonal delays for each neuron pair
         for pre, post in tau_axon:
             S.connect(i=pre, j=post)
             if type(overlap) is dict:   # strength proportional to (normalised) overlap
-                S.w[pre, post] = overlap[pre, post] / np.sum(overlap[i,j] for i,j in overlap.keys() if j==post)
+                # S.w[pre, post] = overlap[pre, post] / np.sum(overlap[i,j] for i,j in overlap.keys() if j==post)
+                S.w[pre, post] = overlap[pre, post] / average_overlap
             else:
                 S.w[pre, post] = 1 / k
             S.delay[pre, post] = tau_synapse + tau_axon[pre, post] * ms
