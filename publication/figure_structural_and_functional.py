@@ -118,7 +118,7 @@ def make_figure(figurename, figpath=None):
     plot_delays(ax8, 0, functional_delays, fill_color='gray')
     ax8.set_xlabel(r'$\mathsf{\tau_{spike}\ [ms]}$', fontsize=14)
     adjust_position(ax8, yshrink=0.02)
-    plt.title('g', loc='left', fontsize=18)
+    plt.title('h', loc='left', fontsize=18)
 
     show_or_savefig(figpath, figurename)
 
