@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.DEBUG)
 def make_figure(figurename, figpath=None):
 
     # Making figure
-    fig = plt.figure(figurename, figsize=(13, 11))
+    fig = plt.figure(figurename, figsize=(13, 13))
     if not figpath:
         fig.suptitle(figurename + '    Dynamics of networks', fontsize=14, fontweight='bold')
     plt.subplots_adjust(left=0.10, right=0.92, top=0.90, bottom=0.1)
@@ -62,36 +62,50 @@ def make_figure(figurename, figpath=None):
         BRs.append(BR)
         ISIs.append(ISI)
 
-    ax1 = plt.subplot2grid((2, 4), (0, 2))
+    ax1 = plt.subplot2grid((5, 4), (0, 2), rowspan=2)
     plot_distributions(ax1, BLs, fill_color='magenta') # 0-2s
     ax1.set_xlim((0,2))
-    ax1.set_xlabel('burst length [s]')
-    adjust_position(ax1, xshrink=0.01)
+    ax1.set_xlabel('burst length (BL) [s]')
+    adjust_position(ax1, xshrink=0.01, yshrink=0.02, yshift=0.02)
     plt.title('b', loc='left', fontsize=18)
 
-    ax2 = plt.subplot2grid((2, 4), (0, 3))
+    ax2 = plt.subplot2grid((5, 4), (0, 3), rowspan=2)
     plot_distributions(ax2, IBLs, fill_color='magenta') # 0-30s
     ax2.set_xlim((0,30))
-    ax2.set_xlabel('inter burst length [s]')
-    adjust_position(ax2, xshrink=0.01)
+    ax2.set_xlabel('inter burst length (IBL) [s]')
+    adjust_position(ax2, xshrink=0.01, yshrink=0.02, yshift=0.02)
     plt.title('c', loc='left', fontsize=18)
 
-    ax3 = plt.subplot2grid((2, 4), (1, 2))
+    ax3 = plt.subplot2grid((5, 4), (2, 2), rowspan=2)
     plot_distributions(ax3, BRs, fill_color='magenta') # 0-100%
     ax3.set_xlim((0,100))
-    ax3.set_xlabel('burst recruitment [%]')
-    adjust_position(ax3, xshrink=0.01)
+    ax3.set_xlabel('burst recruitment (BR) [%]')
+    adjust_position(ax3, xshrink=0.01, yshrink=0.02, yshift=0.02)
     plt.title('d', loc='left', fontsize=18)
 
-    ax4 = plt.subplot2grid((2, 4), (1, 3))
+    ax4 = plt.subplot2grid((5, 4), (2, 3), rowspan=2)
     plot_distributions(ax4, ISIs, fill_color='gray') # 0-4s
-    ax4.set_xlim((-3,2))
-    ax4.set_xticks([-3,-2,-1,0,1,2])
+    ax4.set_xlim((-3,1))
+    ax4.set_xticks([-3,-2,-1,0,1])
     ax4.set_xticklabels([r'$\mathsf{10^{-3}}$',r'$\mathsf{10^{-2}}$',r'$\mathsf{10^{-1}}$',r'$\mathsf{10^{0}}$',r'$\mathsf{10^{1}}$',r'$\mathsf{10^{2}}$'])
-    ax4.set_xticklabels([0.001,0.01,0.1,1,10,100])
-    ax4.set_xlabel('inter spike interval [s]')
-    adjust_position(ax4, xshrink=0.01)
+    ax4.set_xticklabels([0.001,0.01,0.1,1,10])
+    ax4.set_xlabel('inter spike interval (ISI) [s]')
+    adjust_position(ax4, xshrink=0.01, yshrink=0.02, yshift=0.02)
     plt.title('e', loc='left', fontsize=18)
+
+    df = pd.read_csv('data/CCs_vs_BurstStats.csv')
+    corr = df.corr()
+    corr = corr[1:4][['BL','IBL','BR','ISI']]
+    ax = plt.subplot2grid((5, 2), (4, 1))
+    m = plot_corr_ellipses(corr, ax=ax, cmap='seismic')
+    cb = fig.colorbar(m)
+    cb.set_label('Correlation coefficient')
+    ax.set_ylabel('Clustering coefficient')
+    # ax.set_xlabel('')
+    ax.margins(0.3)
+
+    adjust_position(ax, xshrink=0.04)
+    plt.title('f', loc='left', fontsize=18)
 
     show_or_savefig(figpath, figurename)
 
@@ -148,6 +162,13 @@ def burst_measures(timeseries):
         period = np.median(np.diff(np.sort(analysed_timeseries[neuron])))
         if np.isfinite(period):
             log10ISI.append(np.log10(period))
+
+    # print ('---')
+    # print (np.median(BL))
+    # print (np.median(IBL))
+    # print (np.median(BR))
+    # print (np.median(log10ISI))
+
 
     return BL, IBL, BR, log10ISI
 
@@ -289,15 +310,75 @@ def raster_plot(ax, timeseries):
     """Plot events as vertical lines"""
     l = len(timeseries)
     markersize = 100.0 / l
-    print l, markersize
     for index, neuron in enumerate(timeseries):
         t = timeseries[neuron]
         ax.plot(t, index * np.ones_like(t), 'k|', markersize=markersize)
     ax.set_ylim((0,l))
 
 
+import pandas as pd
+from matplotlib.collections import EllipseCollection
+
+def plot_corr_ellipses(data, ax=None, **kwargs):
+    """
+    Code by ali_m answered Jan 1 '16 at 17:46 on a Stack exchange question
+    https://stackoverflow.com/questions/34556180/how-can-i-plot-a-correlation-matrix-as-a-set-of-ellipses-similar-to-the-r-open
+
+    """
+
+    M = np.array(data)
+    if not M.ndim == 2:
+        raise ValueError('data must be a 2D array')
+    if ax is None:
+        fig, ax = plt.subplots(1, 1, subplot_kw={'aspect':'equal'})
+        ax.set_xlim(-0.5, M.shape[1] - 0.5)
+        ax.set_ylim(-0.5, M.shape[0] - 0.5)
+
+    # xy locations of each ellipse center
+    xy = np.indices(M.shape)[::-1].reshape(2, -1).T
+
+    # set the relative sizes of the major/minor axes according to the strength of
+    # the positive/negative correlation
+    w = np.ones_like(M).ravel()
+    h = 1 - np.abs(M).ravel()
+    a = 45 * np.sign(M).ravel()
+
+    ec = EllipseCollection(widths=w, heights=h, angles=a, units='x', offsets=xy,
+                           transOffset=ax.transData, array=M.ravel(), **kwargs)
+    ax.add_collection(ec)
+
+    # if data is a DataFrame, use the row/column names as tick labels
+    if isinstance(data, pd.DataFrame):
+        ax.set_xticks(np.arange(M.shape[1]))
+        ax.set_xticklabels(data.columns, rotation=90)
+        ax.set_yticks(np.arange(M.shape[0]))
+        ax.set_yticklabels(data.index)
+
+    return ec
+
+
+def plot_corr(filename,size=10):
+    '''Function plots a graphical correlation matrix for each pair of columns in the dataframe.
+
+    Input:
+        df: pandas DataFrame
+        size: vertical and horizontal size of the plot'''
+
+    df = pd.read_csv(filename)
+    corr = df.corr()
+    corr = corr[1:4][['BL','IBL','BR','ISI']]
+    fig, ax = plt.subplots(figsize=(size, size))
+    # ax.matshow(corr)
+    # plt.xticks(range(len(corr.columns)), corr.columns)
+    # plt.yticks(range(len(corr.columns)), corr.columns)
+    # plt.show()
+    m = plot_corr_ellipses(corr, ax=ax, cmap='seismic')
+    cb = fig.colorbar(m)
+    cb.set_label('Correlation coefficient')
+    ax.margins(0.2)
+    plt.show()
+
+
 if __name__ == "__main__":
-    # test_bd()
-    # test_spont()
     make_figure(os.path.basename(__file__))
-    # make_supplemental_figure(os.path.basename(__file__))
+    # plot_corr('data/CCs_vs_BurstStats.csv')
