@@ -4,10 +4,13 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
+import pandas as pd
 import os
 
 from publication.data import Experiment, FIGURE_CULTURES
+from publication.simulation import Simulation
 from publication.plotting import show_or_savefig, without_spines_and_ticks, adjust_position
+from publication.figure_graphs import flatten
 from publication.comparison import print_test_result
 from publication import burst_detection as bd
 
@@ -19,137 +22,127 @@ logging.basicConfig(level=logging.DEBUG)
 def make_figure(figurename, figpath=None):
 
     # Making figure
-    fig = plt.figure(figurename, figsize=(13, 11))
+    fig = plt.figure(figurename, figsize=(13, 10))
     if not figpath:
-        fig.suptitle(figurename + '    Dynamics of networks', fontsize=14, fontweight='bold')
+        fig.suptitle(figurename + '    Dynamics of original and simulated networks', fontsize=14, fontweight='bold')
     plt.subplots_adjust(left=0.10, right=0.92, top=0.90, bottom=0.1)
 
-    for c in FIGURE_CULTURES:
-        timeseries = Experiment(c).timeseries()
-        ax = plt.subplot2grid((6, 2), (c-1, 0))
+    exp_timeseries = Experiment(1).timeseries()
+    sim_timeseries = Simulation(1).timeseries()
 
-        logging.info(c)
-        plot_SBE(ax, timeseries, t_interval=60, smooth_win=10, s=2, gamma=0.1)
-        # ax.axis('off')
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['left'].set_visible(False)
-        ax.get_yaxis().set_ticks([])
-        ax.xaxis.set_ticks_position('bottom')
-        ax.set_title('culture %d' % c, loc='center', fontsize=12)
+    plot2_SBE(exp_timeseries)
+    plot2_SBE(sim_timeseries, pos_y=1, labels=('c','d'))
 
-        if c == 1:
-            plt.title('a', loc='left', fontsize=18)
-        if c == 6:
-            plt.xlabel('t [s]')
-            max_y = max(ax.get_ylim())
-            ax.set_ylim((-2, max_y))
-        else:
-            ax.get_xaxis().set_ticks([])
-            ax.spines['bottom'].set_visible(False)
-
-
-    BLs = list()
-    IBLs = list()
-    BRs = list()
-    ISIs = list()
-
+    scal = defaultdict(dict)
     for c in FIGURE_CULTURES:
         exp_timeseries = Experiment(c).timeseries()
-        BL, IBL, BR, ISI = burst_measures(exp_timeseries)
-        BLs.append(BL.astype(np.float))
-        IBLs.append(IBL.astype(np.float))
-        BRs.append(BR)
-        ISIs.append(ISI)
+        sim_timeseries = Simulation(c).timeseries()
 
-    ax1 = plt.subplot2grid((2, 4), (0, 2))
-    plot_distributions(ax1, BLs, fill_color='magenta') # 0-2s
-    ax1.set_xlim((0,2))
-    ax1.set_xlabel('burst length [s]')
-    adjust_position(ax1, xshrink=0.01)
-    plt.title('b', loc='left', fontsize=18)
+        scal['original'][c] = burst_measures(exp_timeseries)
+        scal['simulated'][c] = burst_measures(sim_timeseries)
 
-    ax2 = plt.subplot2grid((2, 4), (0, 3))
-    plot_distributions(ax2, IBLs, fill_color='magenta') # 0-30s
-    ax2.set_xlim((0,30))
-    ax2.set_xlabel('inter burst length [s]')
-    adjust_position(ax2, xshrink=0.01)
-    plt.title('c', loc='left', fontsize=18)
+    # flatten dictionary with each level stored in key
+    df = pd.DataFrame(flatten(scal, ['type', 'culture', 'measure', 'value']))
+    df = df.pivot_table(index=['type', 'culture'], columns='measure', values='value')
 
-    ax3 = plt.subplot2grid((2, 4), (1, 2))
-    plot_distributions(ax3, BRs, fill_color='magenta') # 0-100%
-    ax3.set_xlim((0,100))
-    ax3.set_xlabel('burst recruitment [%]')
-    adjust_position(ax3, xshrink=0.01)
-    plt.title('d', loc='left', fontsize=18)
 
-    ax4 = plt.subplot2grid((2, 4), (1, 3))
-    plot_distributions(ax4, ISIs, fill_color='gray') # 0-4s
-    ax4.set_xlim((-3,2))
-    ax4.set_xticks([-3,-2,-1,0,1,2])
-    ax4.set_xticklabels([r'$\mathsf{10^{-3}}$',r'$\mathsf{10^{-2}}$',r'$\mathsf{10^{-1}}$',r'$\mathsf{10^{0}}$',r'$\mathsf{10^{1}}$',r'$\mathsf{10^{2}}$'])
-    ax4.set_xticklabels([0.001,0.01,0.1,1,10,100])
-    ax4.set_xlabel('inter spike interval [s]')
-    adjust_position(ax4, xshrink=0.01)
+    plot_scalar(plt.subplot(256), df, 'burst_length')
+    plt.ylabel(r'$\mathsf{L_{SBE} [s]}}$', fontsize=16)
+    plt.ylim((0,0.6))
     plt.title('e', loc='left', fontsize=18)
+
+    plot_scalar(plt.subplot(257), df, 'interburst_length')
+    plt.ylabel(r'$\mathsf{L_{IBI} [s]}}$', fontsize=16)
+    plt.title('f', loc='left', fontsize=18)
+
+    plot_scalar(plt.subplot(258), df, 'firing_rate')
+    plt.ylabel(r'$\mathsf{f\ [Hz]}}$', fontsize=16)
+    plt.title('g', loc='left', fontsize=18)
+
+    plot_scalar(plt.subplot(259), df, 'burst_recruitment')
+    plt.ylabel(r'$\mathsf{neuron/burst\ [\%]}}$', fontsize=16)
+    plt.ylim((0,100))
+    plt.title('h', loc='left', fontsize=18)
+
+    ax = plt.subplot2grid((2, 5), (1, 4), colspan=1)
+    plt.scatter(None, None, 20, color='gray', marker='s', label='experiment')
+    plt.scatter(None, None, 20, color='brown', marker='s', label='simulation')
+    plt.axis('off')
+    plt.legend(loc='lower center', scatterpoints=1, markerscale=3., frameon=False)
 
     show_or_savefig(figpath, figurename)
 
 
-def plot_distributions(ax, values, fill_color='gray'):
-    # show distirbution of median as boxplot
-    bplot = plt.boxplot([np.median(x) for x in values], 0, '+', 0, positions=np.array([0.]),
-                        boxprops={'color': "black", "linestyle": "-"}, patch_artist=True, widths=0.7)
-    bplot['boxes'][0].set_color(fill_color)
-    plt.setp(bplot['medians'], color='black')
-    plt.setp(bplot['whiskers'], color='black')
-    # add violin plot for every culture
-    vplot = plt.violinplot(values, FIGURE_CULTURES, points=80, vert=False, widths=0.7,
-                           showmeans=False, showextrema=True, showmedians=True)
-    # Make all the violin statistics marks black:
-    for partname in ('cbars', 'cmins', 'cmaxes', 'cmedians'):
-        vp = vplot[partname]
-        vp.set_edgecolor('black')
-        vp.set_linewidth(1)
-    # Make the violin body blue with a black border:
-    for pc in vplot['bodies']:
-        pc.set_facecolor(fill_color)
-        pc.set_alpha(0.5)
-        pc.set_edgecolor('none')
-    ax.set_ylabel('culture')
-    ax.set_yticks([0, ] + list(FIGURE_CULTURES))
-    ax.set_yticklabels(['all', ] + list(FIGURE_CULTURES))
-    ax.set_ylim((-0.5, 6.5))
-    ax.invert_yaxis()
+def test_spont():
 
+    timeseries = Experiment(1).timeseries()
 
-def burst_measures(timeseries):
-    weighted_bursts, analysed_timeseries, _, _ = detect_SBE(timeseries, t_interval=600)
+    weighted_bursts, analysed_timeseries, _, _ = detect_SBE(timeseries, t_interval=120)
 
     intervals = np.array(weighted_bursts[['begin', 'end']].sort_values('begin').values)
 
-    BL = np.diff(intervals, axis=1)
+    # spontaneous active neurons = neurons that are active in inter burst intervals (IBI)
+    list_periods = defaultdict(list)
+    n_IBI = len(intervals)
+    for IBI_start, IBI_end in zip(intervals[:-1,1], intervals[1:,0]):
+        burst_margin = 0.100  # s
+        IBI_timeseries = cut_timeseries(analysed_timeseries, t_start=IBI_start + burst_margin,
+                                        t_interval=IBI_end - IBI_start - 2 * burst_margin)
+        for neuron in IBI_timeseries:
+            events = IBI_timeseries[neuron]
+            print events
+            period = np.median(np.diff(np.sort(events)))
+            print IBI_start, IBI_end, neuron, len(events), period
 
-    IBL = np.diff(np.vstack((intervals[1:,0], intervals[:-1,1])))
+            if not np.isnan(period):
+                list_periods[neuron].append(period)
+
+    spontaneous_activity = pd.DataFrame(((neuron, len(periods)/n_IBI, np.nanmedian(periods)) for neuron, periods in list_periods.items()), columns=['neuron', 'activity', 'period'])
+
+    print spontaneous_activity
+
+    plt.plot(spontaneous_activity['activity'], spontaneous_activity['period'], '.')
+    plt.show()
+
+
+    raster_plot(plt.subplot(111), analysed_timeseries, use='neuron')
+    plt.show()
+
+
+def burst_measures(timeseries):
+    weighted_bursts, analysed_timeseries, _, _ = detect_SBE(timeseries, t_interval=120)
+
+    intervals = np.array(weighted_bursts[['begin', 'end']].sort_values('begin').values)
+
+    burst_length = np.median(np.diff(intervals, axis=1))
+
+    interburst_length = np.median(np.diff(np.vstack((intervals[1:,0], intervals[:-1,1]))))
 
     # number of neurons active in burst
+    burst_recruitment = 10
     n_neurons = len(analysed_timeseries.keys())
-    BR = list()
+    br = list()
     for begin, end in intervals:
         active_neurons=0
         for neuron, ts in analysed_timeseries.items():
             if np.any(np.logical_and(ts>begin, ts<end)):
                 active_neurons +=1
-        BR.append(active_neurons/n_neurons * 100)   # in percent
+        br.append(active_neurons/n_neurons * 100)   # in percent
+    burst_recruitment = np.nanmedian(br)
 
     # median of median firing rate of each neurons
-    log10ISI = list()
+    fr = list()
     for neuron in analysed_timeseries:
         period = np.median(np.diff(np.sort(analysed_timeseries[neuron])))
-        if np.isfinite(period):
-            log10ISI.append(np.log10(period))
+        fr.append(1 / period)
+    firing_rate = np.nanmedian(fr)
 
-    return BL, IBL, BR, log10ISI
+
+    return {'burst_length' : float(burst_length),
+            'burst_recruitment': float(burst_recruitment),
+            'interburst_length' : float(interburst_length),
+            'firing_rate': float(firing_rate),
+            }
 
 
 def plot_scalar(ax, df, scalar_name):
@@ -180,6 +173,39 @@ def plot_scalar(ax, df, scalar_name):
         top='off',  # ticks along the top edge are off
         labelbottom='off'  # labels along the bottom edge are off
     )
+
+
+def plot2_SBE(exp_timeseries, pos_y = 0, labels=('a','b')):
+    ax1 = plt.subplot2grid((4, 3), (pos_y, 0), colspan=2)
+    plotted_exp_timeseries, xlim = plot_SBE(ax1, exp_timeseries)
+    plt.title(labels[0], loc='left', fontsize=18)
+
+    ax2 = plt.subplot2grid((4,4), (pos_y, 3), colspan=1)
+    raster_plot(ax2, plotted_exp_timeseries)
+    ax2.set_xlim(xlim)
+    adjust_position(ax2, yshrink=0.02)
+    plt.title(labels[1], loc='left', fontsize=18)
+
+
+def make_supplemental_figure(figurename, figpath=None):
+    """Quick plot to show SBE for experiments and simulations """
+    for index, datatype in enumerate(( 'experiment', 'simulation' )):
+
+        logging.info('Making figure')
+        longfigurename = figurename + '-%d' % (index+1)
+        fig = plt.figure(longfigurename, figsize=(20, 15))
+        fig.suptitle(datatype, fontsize=14, fontweight='bold')
+
+        plt.subplots_adjust(left=0.10, right=0.95, top=0.90, bottom=0.05)
+
+        for c in FIGURE_CULTURES:
+            timeseries = Experiment(c).timeseries() if datatype == 'experiment' else Simulation(c).timeseries()
+            ax = plt.subplot(610+c)
+            logging.info(c)
+            plot_SBE(ax, timeseries, t_interval = 60, smooth_win=10, s=2, gamma=0.1)
+            plt.title('culture %d' % c, loc='left', fontsize=18)
+
+        show_or_savefig(figpath, longfigurename)
 
 
 def cut_timeseries(timeseries, t_start='min', t_interval=10):
@@ -213,9 +239,18 @@ def plot_SBE(ax1, timeseries, t_start='min', t_interval = 10, bin_width = 10, sm
     # plotting
     raster_plot(ax1, plotted_timeseries)
     burst_plot(ax1, weighted_bursts)
-    # adjust_position(ax1, yshrink=0.01)
+    adjust_position(ax1, yshrink=0.02)
+    ax2 = ax1.twinx()
+    ax2.step(edges, n_active, alpha=0.5, where='mid')
+    ax2.set_ylabel('active [1/%d ms]' % bin_width)
+    adjust_position(ax2, yshrink=0.02)
 
-    return plotted_timeseries
+    try:
+        xlim = weighted_bursts[['begin', 'end']].values[0]
+    except:
+        xlim = None
+
+    return plotted_timeseries, xlim
 
 
 def burst_plot(ax, weighted_bursts):
@@ -223,7 +258,7 @@ def burst_plot(ax, weighted_bursts):
     matrix = weighted_bursts[['begin', 'end']].values
     for begin, end in matrix:
         # plt.hlines(+1, edges[begin - 1], edges[end - 1], 'red', alpha=1.0)  # bar
-        ax.add_patch(patches.Rectangle((begin, 0), end - begin, 60, color='magenta'))  # box
+        ax.add_patch(patches.Rectangle((begin, 0), end - begin, 60, color='red', alpha=0.1))  # box
 
 
 def detect_SBE(timeseries, t_start='min', t_interval=10, bin_width=10, smooth_win=10, s=2, gamma=0.1):
@@ -285,19 +320,23 @@ def detect_SBE(timeseries, t_start='min', t_interval=10, bin_width=10, smooth_wi
     return weighted_bursts, analysed_timeseries, edges, n_active
 
 
-def raster_plot(ax, timeseries):
-    """Plot events as vertical lines"""
-    l = len(timeseries)
-    markersize = 100.0 / l
-    print l, markersize
+def raster_plot(ax, timeseries, use='neuron'):
+    """Plot events as dots"""
     for index, neuron in enumerate(timeseries):
         t = timeseries[neuron]
-        ax.plot(t, index * np.ones_like(t), 'k|', markersize=markersize)
-    ax.set_ylim((0,l))
+        if use=='index':
+            ax.plot(t, index * np.ones_like(t), 'k.')
+            plt.ylabel('index')
+        elif use=='neuron':
+            ax.plot(t, neuron * np.ones_like(t), 'k.')
+            plt.ylabel('neuron')
+    # ax.set_xlim((0,0.5))
+    plt.xlabel(r'$t$ [s]')
+    # without_spines_and_ticks(ax)
 
 
 if __name__ == "__main__":
     # test_bd()
     # test_spont()
     make_figure(os.path.basename(__file__))
-    # make_supplemental_figure(os.path.basename(__file__))
+    make_supplemental_figure(os.path.basename(__file__))

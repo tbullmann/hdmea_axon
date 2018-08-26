@@ -1,123 +1,165 @@
+from __future__ import division
+
+import logging
 import os
 
+import numpy as np
 from matplotlib import pyplot as plt
 
-from hana.function import all_peaks, timelag_standardscore
+from hana.function import timelag_standardscore, all_peaks
 from hana.misc import unique_neurons
-from hana.plotting import plot_network, plot_neuron_points, plot_neuron_id, mea_axes, \
-    plot_timeseries_hist_and_surrogates, plot_std_score_and_peaks, highlight_connection
-from hana.recording import load_positions
+from hana.plotting import plot_neuron_points, plot_neuron_id, plot_neuron_pair, plot_network, mea_axes, highlight_connection, \
+    plot_timeseries_hist_and_surrogates
+from hana.recording import load_positions, average_electrode_area
 from hana.segmentation import neuron_position_from_trigger_electrode
+from hana.structure import find_overlap, all_overlaps
+from misc.figure_structural import plot_two_colorbars
+from publication.data import Experiment, FIGURE_CULTURE, FIGURE_NEURON, FIGURE_CONNECTED_NEURON, \
+    FIGURE_NOT_FUNCTIONAL_CONNECTED_NEURON, FIGURE_NOT_STRUCTURAL_CONNECTED_NEURON, FIGURE_THRESHOLD_OVERLAP_AREA
+from hana.plotting import plot_std_score_and_peaks
+from publication.plotting import show_or_savefig, adjust_position, without_spines_and_ticks
+from publication.figure_synapses import plot_delays
+from publication.data import FIGURE_CULTURES
 
-from publication.data import Experiment, FIGURE_CULTURE
-from publication.plotting import show_or_savefig, label_subplot, adjust_position
-
-
-def plot_func_network_forward_vs_reverse(thr, pos, timelags, std_score_dict):
-    """Display functional networks calculated either with pre-->post if post fired after pre (forward condition)
-    or pre-->post if pre fired before post (reverse condition) """
-    score_forward, _, _, _ = all_peaks(timelags, std_score_dict, thr=thr, direction='forward')
-    score_reverse, _, _, _ = all_peaks(timelags, std_score_dict, thr=thr, direction='reverse')
-    plt.figure(figsize=(20, 10))
-    ax1 = plt.subplot(121)
-    ax2 = plt.subplot(122)
-    plot_network(ax1, score_forward, pos)
-    neuron_dict = unique_neurons(score_forward)
-    plot_neuron_points(ax1, neuron_dict, pos)
-    plot_neuron_id(ax1, neuron_dict, pos)
-    mea_axes(ax1)
-    ax1.set_title(r'pre$\longrightarrow$post if post fired after pre')
-    plot_network(ax2, score_reverse, pos)
-    neuron_dict = unique_neurons(score_reverse)
-    plot_neuron_points(ax2, neuron_dict, pos)
-    plot_neuron_id(ax2, neuron_dict, pos)
-    mea_axes(ax2)
-    ax2.set_title('pre$\longrightarrow$post if pre fired before post')
-    mea_axes(ax2)
+logging.basicConfig(level=logging.DEBUG)
 
 
-def plot_func_example_and_network(ax1, ax2, ax3, pre, post, direction, thr, pos, std_score_dict, timelags, timeseries,
-                                  timeseries_surrogates):
-    """Displays functional connectivity of one highlighted connection withing the network"""
-    # Calculate (again) details for a single neuron pair
-    if direction == 'forward':
-        timelags, std_score, timeseries_hist, surrogates_mean, surrogates_std \
-            = timelag_standardscore(timeseries[pre], timeseries[post], timeseries_surrogates[post])
-    if direction == 'reverse':
-        timelags, std_score, timeseries_hist, surrogates_mean, surrogates_std \
-            = timelag_standardscore(timeseries[post], timeseries[pre],
-                                    timeseries_surrogates[pre])  # calculate for network
-    peak_score, peak_timelag, _, _ = all_peaks(timelags, std_score_dict, thr=thr, direction=direction)
-    # Plot histograms for single neuron pair
-    loc = 2 if direction=='forward' else 1
-    plot_timeseries_hist_and_surrogates(ax2, timelags, timeseries_hist, surrogates_mean, surrogates_std,loc=loc)
-    if direction == 'forward': ax2.set_title('neuron pair %d $\longrightarrow$ %d' % (pre, post), loc='left')
-    if direction == 'reverse': ax2.set_title('neuron pair %d $\longleftarrow$ %d' % (post, pre), loc='left')
+# Final version
 
-    if (pre, post) in peak_timelag:
-        peak = peak_timelag[(pre, post)]
-        if direction == 'reverse': peak = -peak
-    else:
-        peak = None
-    plot_std_score_and_peaks(ax3, timelags, std_score, thr=thr, peak=peak, loc=loc)
-    # Plot network and highlight the connection between the single neuron pair
-    plot_network(ax1, peak_score, pos)
-    neuron_dict = unique_neurons(peak_score)
-    plot_neuron_points(ax1, neuron_dict, pos)
-    plot_neuron_id(ax1, neuron_dict, pos)
-    if direction == 'forward': ax1.set_title(r'pre-synaptic spike followed by post-synaptic spike')
-    if direction == 'reverse': ax1.set_title(r'post-synaptic spike preceded by pre-synaptic spike ')
-    if peak is not None: highlight_connection(ax1, (pre, post), pos)
-    ax1.text(200,150,r'$\zeta=$%d' % thr)
-    mea_axes(ax1, barposition='inside')
+def make_figure(figurename, figpath=None):
+
+    # Neuron compartments and AIS positions
+    trigger, _, axon_delay, dendrite_peak = Experiment(FIGURE_CULTURE).compartments()
+    pos = load_positions(mea='hidens')
+    # electrode_area = average_electrode_area(pos)
+    neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
+
+    # functional connectivity
+    _, _, functional_strength, functional_delay, _, _ = Experiment(FIGURE_CULTURE).networks()
+
+    # Making figure
+    fig = plt.figure(figurename, figsize=(13, 13))
+    if not figpath:
+        fig.suptitle(figurename + ' Estimate functional connectivity', fontsize=14, fontweight='bold')
+    plt.subplots_adjust(left=0.10, right=0.95, top=0.90, bottom=0.05)
 
 
-def make_figure(figurename, figpath=None, thr =20):
-    """FIGURE showing Displays functional connectivity according to forward and reverse definition for two
-    neuron pairs within the network"""
-
+    # Examples for functional connected and unconnected neurons and functional network
     timeseries = Experiment(FIGURE_CULTURE).timeseries()
     timeseries_surrogates = Experiment(FIGURE_CULTURE).timeseries_surrogates()
     timelags, std_score_dict, timeseries_hist_dict = Experiment(FIGURE_CULTURE).standardscores()
-
-    trigger, _, axon_delay, dendrite_peak = Experiment(FIGURE_CULTURE).compartments()
-    pos = load_positions(mea='hidens')
-    neuron_pos = neuron_position_from_trigger_electrode (pos, trigger)
-
-    # for k,v in trigger.iteritems(): print (k,v)  # show neuron -> trigger electrode index
-    pre, post  = 10, 4 # electrodes 4972, 3240
-    # pre, post = 37, 31 #  pre, post = 8060,7374
-
-    # Making figure
-    fig = plt.figure(figurename, figsize=(16, 16))
-    fig.suptitle(figurename + ' Functional connectivity', fontsize=14, fontweight='bold')
+    peak_score, peak_timelag, z_threshold = all_peaks(timelags, std_score_dict)
 
     # Plotting forward
-    ax1 = plt.subplot(222)
-    ax2 = plt.subplot(421)
-    ax3 = plt.subplot(423)
-    plot_func_example_and_network(ax1, ax2, ax3, pre, post, 'forward', thr, neuron_pos, std_score_dict,
-                                  timelags, timeseries, timeseries_surrogates)
-    adjust_position(ax2, yshrink=0.01)
-    adjust_position(ax3, yshrink=0.01)
-    label_subplot(ax1, 'C', xoffset=-0.03, yoffset=-0.01)
-    label_subplot(ax2, 'A', xoffset=-0.05, yoffset=-0.01)
-    label_subplot(ax3, 'B', xoffset=-0.05, yoffset=-0.01)
+    ax4 = plt.subplot2grid((4,4), (0,2), colspan=2, rowspan=2)
+    plot_network(ax4, peak_score, neuron_pos, color='gray')
+    neuron_dict = unique_neurons(peak_score)
 
-    # Plotting reverse
-    ax4 = plt.subplot(224)
-    ax5 = plt.subplot(425)
-    ax6 = plt.subplot(427)
-    plot_func_example_and_network(ax4, ax5, ax6, pre, post, 'reverse', thr, neuron_pos, std_score_dict,
-                                  timelags, timeseries, timeseries_surrogates)
-    adjust_position(ax5, yshrink=0.01)
-    adjust_position(ax6, yshrink=0.01)
-    label_subplot(ax4, 'F', xoffset=-0.03, yoffset=-0.01)
-    label_subplot(ax5, 'D', xoffset=-0.05, yoffset=-0.01)
-    label_subplot(ax6, 'E', xoffset=-0.05, yoffset=-0.01)
+    plot_neuron_points(ax4, neuron_dict, neuron_pos)
+    plot_neuron_id(ax4, neuron_dict, neuron_pos)
+    highlight_connection(ax4, (FIGURE_NEURON, FIGURE_NOT_FUNCTIONAL_CONNECTED_NEURON), neuron_pos, connected=False, color='red')
+    highlight_connection(ax4, (FIGURE_NEURON, FIGURE_CONNECTED_NEURON), neuron_pos, color='red')
+    mea_axes(ax4)
+    adjust_position(ax4, yshrink=0.03, yshift=0.02, xshift=0.02)
+    plt.title('c', loc='left', fontsize=18)
+    ax4.set_title ('culture %d' % FIGURE_CULTURE)
+
+
+    ax1 = plt.subplot2grid((4,4), (0,0), colspan=1, rowspan=1)
+    # Calculate (again) details for a single neuron pair
+    timelags, std_score, timeseries_hist, surrogates_mean, surrogates_std \
+        = timelag_standardscore(timeseries[FIGURE_NEURON], timeseries[FIGURE_CONNECTED_NEURON], timeseries_surrogates[FIGURE_CONNECTED_NEURON])
+    peak_score, peak_timelag, _ = all_peaks(timelags, std_score_dict)  # thr=thr, direction=direction)
+    # Plot histograms for single neuron pair
+    plot_timeseries_hist_and_surrogates(ax1, timelags, timeseries_hist, surrogates_mean, surrogates_std, loc=None)
+    ax1.set_xlabel(r'$\mathsf{time\ lag\ \Delta t\ [ms]}$', fontsize = 14)
+
+    ax1.set_title ('%d $\longrightarrow$ %d' % (FIGURE_NEURON, FIGURE_CONNECTED_NEURON))
+    without_spines_and_ticks(ax1)
+    plt.title('a', loc='left', fontsize=18)
+    ax1.set_xlim((0, 5))
+
+    ax2 =  plt.subplot2grid((4,4), (1,0), colspan=1, rowspan=1)
+    plot_z_score (ax2, FIGURE_NEURON, FIGURE_CONNECTED_NEURON, z_threshold, peak_timelag, timelags, std_score_dict)
+    without_spines_and_ticks(ax2)
+
+    adjust_position(ax1, yshrink=0.02, yshift=+0.01)
+    adjust_position(ax2, yshrink=0.02, yshift=+0.03)
+    ax2.set_ylim((-5, 15))
+    ax2.set_xlabel(r'$\mathsf{time\ lag\ \Delta t\ [ms]}$', fontsize = 14)
+
+    # Not connected neuron pair
+
+    ax3 = plt.subplot2grid((4,4), (0,1), colspan=1, rowspan=1)
+    # Calculate (again) details for a single neuron pair
+    timelags, std_score, timeseries_hist, surrogates_mean, surrogates_std \
+        = timelag_standardscore(timeseries[FIGURE_NEURON], timeseries[FIGURE_NOT_FUNCTIONAL_CONNECTED_NEURON], timeseries_surrogates[FIGURE_NOT_FUNCTIONAL_CONNECTED_NEURON])
+    peak_score, peak_timelag, _ = all_peaks(timelags, std_score_dict)  # thr=thr, direction=direction)
+    # Plot histograms for single neuron pair
+    plot_timeseries_hist_and_surrogates(ax3, timelags, timeseries_hist, surrogates_mean, surrogates_std, loc=None)
+
+    ax3.set_title ('%d $\longrightarrow$ %d' % (FIGURE_NEURON, FIGURE_NOT_FUNCTIONAL_CONNECTED_NEURON))
+    without_spines_and_ticks(ax3)
+    plt.title('b', loc='left', fontsize=18)
+    ax3.set_xlim((0, 5))
+    ax3.set_xlabel(r'$\mathsf{time\ lag\ \Delta t\ [ms]}$', fontsize = 14)
+
+    ax4 =  plt.subplot2grid((4,4), (1,1), colspan=1, rowspan=1)
+    plot_z_score (ax4, FIGURE_NEURON, FIGURE_NOT_FUNCTIONAL_CONNECTED_NEURON, z_threshold, peak_timelag, timelags, std_score_dict)
+    without_spines_and_ticks(ax4)
+
+    adjust_position(ax3, yshrink=0.02, yshift=+0.01, xshift=0.03)
+    adjust_position(ax4, yshrink=0.02, yshift=+0.03, xshift=0.03)
+    ax4.set_ylim((-5, 15))
+    ax4.set_xlabel(r'$\mathsf{time\ lag\ \Delta t\ [ms]}$', fontsize = 14)
+
+    # Summary
+    functional_delays = list()
+    for culture in FIGURE_CULTURES:
+        _, _, _, functional_delay, _, _ = Experiment(culture).networks()
+        functional_delays.append(functional_delay.values())
+
+    ax8 = plt.subplot2grid((4,4), (2,0), colspan=1, rowspan=2)
+    plot_delays(ax8, 0, functional_delays, fill_color='red')
+    ax8.set_xlabel(r'$\mathsf{\tau_{spike}\ [ms]}$', fontsize=14)
+    adjust_position(ax8, yshrink=0.02)
+    plt.title('d', loc='left', fontsize=18)
+
+    # all graphs
+    plot_culture_functional_graph(1, (2, 1), pos)
+    plt.title('e', loc='left', fontsize=18)
+    plot_culture_functional_graph(2, (2, 2), pos)
+    plot_culture_functional_graph(3, (2, 3), pos)
+    plot_culture_functional_graph(4, (3, 1), pos)
+    plot_culture_functional_graph(5, (3, 2), pos)
+    plot_culture_functional_graph(6, (3, 3), pos)
+
 
     show_or_savefig(figpath, figurename)
 
 
+def plot_culture_functional_graph(culture, grid_pos, pos):
+    trigger, _, axon_delay, dendrite_peak = Experiment(culture=culture).compartments()
+    neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
+    _, _, _, functional_delay, _, _ = Experiment(culture).networks()
+    neuron_dict = unique_neurons(functional_delay)
+    axc1 = plt.subplot2grid((4, 4), grid_pos, colspan=1, rowspan=1)
+    plot_network(axc1, functional_delay, neuron_pos, color='red')
+    plot_neuron_points(axc1, neuron_dict, neuron_pos)
+    mea_axes(axc1)
+    axc1.set_title ('culture %d' % culture)
+    adjust_position(axc1, yshrink=0.02)
+
+
+def plot_z_score (ax3, pre, post, thr, peak_timelag, timelags, std_score_dict):
+    std_score = std_score_dict[(pre, post)]
+    if (pre, post) in peak_timelag:
+        peak = peak_timelag[(pre, post)]
+    else:
+        peak = None
+    plot_std_score_and_peaks(ax3, timelags, std_score, thr=thr, peak=peak, loc=0)
+    ax3.set_xlim((0,5))
+
 if __name__ == "__main__":
     make_figure(os.path.basename(__file__))
+

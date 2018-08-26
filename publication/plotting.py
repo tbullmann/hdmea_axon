@@ -342,10 +342,10 @@ def plot_pairwise_comparison(ax, data, measure, ylim=None, legend=True):
         top='off')  # ticks along the top edge are off
 
 
-def show_or_savefig(path, figure_name):
+def show_or_savefig(path, figure_name, dpi=300):
     if path:
         plt.savefig(os.path.join(path, figure_name + '.eps'))
-        plt.savefig(os.path.join(path, figure_name + '.png'))
+        plt.savefig(os.path.join(path, figure_name + '.png'), dpi=dpi)
     else:
         plt.show()
 

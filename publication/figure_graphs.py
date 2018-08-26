@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.DEBUG)
 def make_figure(figurename, figpath=None):
 
     # Making figure
-    fig = plt.figure(figurename, figsize=(13, 8))
+    fig = plt.figure(figurename, figsize=(13, 13))
     if not figpath:
         fig.suptitle(figurename + '    Compare networks', fontsize=14, fontweight='bold')
     plt.subplots_adjust(left=0.10, right=0.92, top=0.90, bottom=0.1)
@@ -26,6 +26,15 @@ def make_figure(figurename, figpath=None):
     plot_scalar_measures()
 
     plot_histograms()
+
+    ax = plt.subplot(313)
+    import matplotlib.image as mpimg
+    img = mpimg.imread('figures/ComparisonGraphs.png')
+    plt.imshow(img)
+    plt.axis('off')
+    plt.title('i', loc='left', fontsize=18)
+    ax.set_anchor('W')
+    adjust_position(ax, xshift=0.02,yshift=-0.03)
 
     show_or_savefig(figpath, figurename)
 
@@ -41,11 +50,11 @@ def plot_histograms(data=Experiment, all_original=True):
 
     # Plot degree distributions for all networks
     if all_original:
-        ax337 = plt.subplot(245)
+        ax337 = plt.subplot(345)
         plot_degree_distributions(hist, 'structure', 'b')
         plt.title('f', loc='left', fontsize=18)
         without_spines_and_ticks(ax337)
-    ax338 = plt.subplot(246)
+    ax338 = plt.subplot(346)
     plot_degree_distributions(hist, 'function', 'r')
     if all_original:
         plt.title('g', loc='left', fontsize=18)
@@ -54,7 +63,7 @@ def plot_histograms(data=Experiment, all_original=True):
         adjust_position(ax338, xshift=0.02, yshrink=0.01)
     without_spines_and_ticks(ax338)
 
-    ax339 = plt.subplot(247)
+    ax339 = plt.subplot(347)
     plot_degree_distributions(hist, 'synapse', 'g')
     if all_original:
         plt.title('h', loc='left', fontsize=18)
@@ -63,15 +72,15 @@ def plot_histograms(data=Experiment, all_original=True):
         adjust_position(ax339, xshift=0.02, yshrink=0.01)
     without_spines_and_ticks(ax339)
 
-    ax248 = plt.subplot(248)
+    ax248 = plt.subplot(348)
     if all_original:
         plt.scatter(None, None, 20, color='blue', marker='s', label='structural')
         plt.scatter(None, None, 20, color='red', marker='s', label='functional')
-        plt.scatter(None, None, 20, color='green', marker='s', label='synaptic')
+        plt.scatter(None, None, 20, color='green', marker='s', label='effective')
     else:
         plt.scatter(None, None, 20, color='blue', marker='s', label='original\nstructural')
         plt.scatter(None, None, 20, color='red', marker='s', label='simulated\nfunctional')
-        plt.scatter(None, None, 20, color='green', marker='s', label='simulated\nsynaptic')
+        plt.scatter(None, None, 20, color='green', marker='s', label='simulated\neffective')
 
     plt.axis('off')
     plt.legend(loc='upper center', scatterpoints=1, markerscale=3., frameon=False)
@@ -91,23 +100,23 @@ def plot_scalar_measures(data=Experiment, all_original=True):
     # flatten dictionary with each level stored in key
     df = pd.DataFrame(flatten(scal, ['type', 'culture', 'measure', 'value']))
     df = df.pivot_table(index=['type', 'culture'], columns='measure', values='value')
-    plot_scalar(plt.subplot(251), df, 'mean_p')
+    plot_scalar(plt.subplot(351), df, 'mean_p')
     plt.ylim((0, 1))
     plt.ylabel(r'$\mathsf{p}}$', fontsize=16)
     plt.title('a', loc='left', fontsize=18)
-    plot_scalar(plt.subplot(252), df, 'r')
+    plot_scalar(plt.subplot(352), df, 'r')
     plt.ylabel(r'$\mathsf{R}$', fontsize=16)
     plt.ylim((-1, 1))
     plt.title('b', loc='left', fontsize=18)
-    plot_scalar(plt.subplot(253), df, 'c')
+    plot_scalar(plt.subplot(353), df, 'c')
     plt.ylabel(r'$\mathsf{C}$', fontsize=16)
     plt.ylim((0, 1))
     plt.title('c', loc='left', fontsize=18)
-    plot_scalar(plt.subplot(254), df, 'l')
+    plot_scalar(plt.subplot(354), df, 'l')
     plt.ylim((0, 3))
     plt.ylabel(r'$\mathsf{L}$', fontsize=16)
     plt.title('d', loc='left', fontsize=18)
-    plot_scalar(plt.subplot(255), df, 'SWS')
+    plot_scalar(plt.subplot(355), df, 'SWS')
     plt.ylim((0, 2))
     plt.ylabel(r'$\mathsf{S_{ws}}$', fontsize=16)
     plt.title('e', loc='left', fontsize=18)
