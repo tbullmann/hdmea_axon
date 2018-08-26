@@ -13,7 +13,7 @@ from publication.data import Experiment, FIGURE_CULTURES
 from simulation import Simulation
 from publication.plotting import show_or_savefig, \
     plot_loglog_fit, without_spines_and_ticks, adjust_position, plot_correlation, plot_synapse_delays
-from publication.figure_synapses import DataFrame_from_Dicts
+from publication.figure_effective import DataFrame_from_Dicts
 
 logging.basicConfig(level=logging.DEBUG)
 

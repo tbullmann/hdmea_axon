@@ -18,7 +18,7 @@ from publication.data import Experiment, FIGURE_CULTURE, FIGURE_NEURON, FIGURE_C
     FIGURE_NOT_FUNCTIONAL_CONNECTED_NEURON, FIGURE_NOT_STRUCTURAL_CONNECTED_NEURON, FIGURE_THRESHOLD_OVERLAP_AREA
 from hana.plotting import plot_std_score_and_peaks
 from publication.plotting import show_or_savefig, adjust_position, without_spines_and_ticks
-from publication.figure_synapses import plot_delays
+from publication.figure_effective import plot_delays
 from publication.data import FIGURE_CULTURES
 
 logging.basicConfig(level=logging.DEBUG)
@@ -50,22 +50,18 @@ def make_figure(figurename, figpath=None):
     timelags, std_score_dict, timeseries_hist_dict = Experiment(FIGURE_CULTURE).standardscores()
     peak_score, peak_timelag, z_threshold = all_peaks(timelags, std_score_dict)
 
-    # Plotting forward
-    ax4 = plt.subplot2grid((4,4), (0,2), colspan=2, rowspan=2)
-    plot_network(ax4, peak_score, neuron_pos, color='gray')
-    neuron_dict = unique_neurons(peak_score)
-
-    plot_neuron_points(ax4, neuron_dict, neuron_pos)
-    plot_neuron_id(ax4, neuron_dict, neuron_pos)
-    highlight_connection(ax4, (FIGURE_NEURON, FIGURE_NOT_FUNCTIONAL_CONNECTED_NEURON), neuron_pos, connected=False, color='red')
-    highlight_connection(ax4, (FIGURE_NEURON, FIGURE_CONNECTED_NEURON), neuron_pos, color='red')
-    mea_axes(ax4)
-    adjust_position(ax4, yshrink=0.03, yshift=0.02, xshift=0.02)
-    plt.title('c', loc='left', fontsize=18)
-    ax4.set_title ('culture %d' % FIGURE_CULTURE)
+    # Schema
+    ax = plt.subplot2grid((2, 3), (0, 0), colspan=1, rowspan=1)
+    import matplotlib.image as mpimg
+    img = mpimg.imread('data/sketch_functional.png')
+    plt.imshow(img)
+    plt.axis('off')
+    plt.title('a', loc='left', fontsize=18)
+    ax.set_anchor('W')
+    adjust_position(ax, yshift=-0.01)
 
 
-    ax1 = plt.subplot2grid((4,4), (0,0), colspan=1, rowspan=1)
+    ax1 = plt.subplot2grid((4,3), (0,1), colspan=1, rowspan=1)
     # Calculate (again) details for a single neuron pair
     timelags, std_score, timeseries_hist, surrogates_mean, surrogates_std \
         = timelag_standardscore(timeseries[FIGURE_NEURON], timeseries[FIGURE_CONNECTED_NEURON], timeseries_surrogates[FIGURE_CONNECTED_NEURON])
@@ -76,21 +72,21 @@ def make_figure(figurename, figpath=None):
 
     ax1.set_title ('%d $\longrightarrow$ %d' % (FIGURE_NEURON, FIGURE_CONNECTED_NEURON))
     without_spines_and_ticks(ax1)
-    plt.title('a', loc='left', fontsize=18)
+    plt.title('b', loc='left', fontsize=18)
     ax1.set_xlim((0, 5))
 
-    ax2 =  plt.subplot2grid((4,4), (1,0), colspan=1, rowspan=1)
+    ax2 = plt.subplot2grid((4,3), (1,1), colspan=1, rowspan=1)
     plot_z_score (ax2, FIGURE_NEURON, FIGURE_CONNECTED_NEURON, z_threshold, peak_timelag, timelags, std_score_dict)
     without_spines_and_ticks(ax2)
 
-    adjust_position(ax1, yshrink=0.02, yshift=+0.01)
-    adjust_position(ax2, yshrink=0.02, yshift=+0.03)
+    adjust_position(ax1, yshrink=0.02, yshift=+0.01, xshift=-0.02)
+    adjust_position(ax2, yshrink=0.02, yshift=+0.03, xshift=-0.02)
     ax2.set_ylim((-5, 15))
     ax2.set_xlabel(r'$\mathsf{time\ lag\ \Delta t\ [ms]}$', fontsize = 14)
 
     # Not connected neuron pair
 
-    ax3 = plt.subplot2grid((4,4), (0,1), colspan=1, rowspan=1)
+    ax3 = plt.subplot2grid((4, 3), (0, 2), colspan=1, rowspan=1)
     # Calculate (again) details for a single neuron pair
     timelags, std_score, timeseries_hist, surrogates_mean, surrogates_std \
         = timelag_standardscore(timeseries[FIGURE_NEURON], timeseries[FIGURE_NOT_FUNCTIONAL_CONNECTED_NEURON], timeseries_surrogates[FIGURE_NOT_FUNCTIONAL_CONNECTED_NEURON])
@@ -100,16 +96,16 @@ def make_figure(figurename, figpath=None):
 
     ax3.set_title ('%d $\longrightarrow$ %d' % (FIGURE_NEURON, FIGURE_NOT_FUNCTIONAL_CONNECTED_NEURON))
     without_spines_and_ticks(ax3)
-    plt.title('b', loc='left', fontsize=18)
+    plt.title('c', loc='left', fontsize=18)
     ax3.set_xlim((0, 5))
     ax3.set_xlabel(r'$\mathsf{time\ lag\ \Delta t\ [ms]}$', fontsize = 14)
 
-    ax4 =  plt.subplot2grid((4,4), (1,1), colspan=1, rowspan=1)
+    ax4 = plt.subplot2grid((4, 3), (1, 2), colspan=1, rowspan=1)
     plot_z_score (ax4, FIGURE_NEURON, FIGURE_NOT_FUNCTIONAL_CONNECTED_NEURON, z_threshold, peak_timelag, timelags, std_score_dict)
     without_spines_and_ticks(ax4)
 
-    adjust_position(ax3, yshrink=0.02, yshift=+0.01, xshift=0.03)
-    adjust_position(ax4, yshrink=0.02, yshift=+0.03, xshift=0.03)
+    adjust_position(ax3, yshrink=0.02, yshift=+0.01)
+    adjust_position(ax4, yshrink=0.02, yshift=+0.03)
     ax4.set_ylim((-5, 15))
     ax4.set_xlabel(r'$\mathsf{time\ lag\ \Delta t\ [ms]}$', fontsize = 14)
 

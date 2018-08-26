@@ -38,67 +38,57 @@ def make_figure(figurename, figpath=None):
 
     remaining_keys = [key for key in structural_delay.keys() if not key in synapse_delay.keys()]
 
-    ax12 = plt.subplot2grid((4,5), (0,0), colspan=2, rowspan=1)
+    pos = load_positions(mea='hidens')
 
-    postsynaptic = timelags > 0
-    for i, (pair, axonal_delay) in enumerate(sorted(structural_delay.items(), key=lambda x: x[1])):
-        x = timelags[postsynaptic] - axonal_delay
-        y = i + std_score_dict[pair][postsynaptic]
-        xx = np.hstack((x[0], np.ravel(zip(x[:-1], x[1:])) , x[-1]))
-        yy = np.hstack((i,    np.ravel(zip(y[:-1], y[:-1])), i))
-        plt.fill_between(xx, 0, yy, color='white', zorder=-i, clip_on=False)
-        plt.plot(xx, yy, color='black', zorder=-i, clip_on=False)
-        plt.plot(-axonal_delay, i, 'b.')
-        if pair in synapse_delay:
-            plt.vlines(synapse_delay[pair] - axonal_delay +0.05, i, i+synapse_strength[pair], 'green', linewidth=5, zorder=-i)
-    without_spines_and_ticks(ax12)
-    ax12.set_ylim((-10,300))
-    ax12.set_xlim((-3.2,5))
-    ax12.spines['bottom'].set_bounds(-3, 5)
-    ax12.spines['left'].set_bounds(0, 100)
-    ax12.set_yticks([0,50,100])
-    ax12.set_yticklabels([0,50,100])
-    ax12.set_ylabel(r'$\mathsf{z}$', fontsize=14)
-    ax12.yaxis.set_label_coords(-0.1, 0.25)
-    ax12.set_xlabel(r'$\mathsf{\Delta t_{constrained}=\Delta t-\tau_{axon}\ [ms]}$', fontsize=14)
-    adjust_position(ax12, yshrink=0.02, xshrink=0.02, xshift=-0.02)
+    # Functional vs structural delays
+    ax1 = plt.subplot2grid((2,4), (0,0), colspan=1, rowspan=1)
+
+    _, structural_delay, _, functional_delay, _, _ = Experiment(FIGURE_CULTURE).networks()
+    x = list()
+    y = list()
+    for pair in structural_delay:
+        if pair in functional_delay:
+            x.append(structural_delay[pair])
+            y.append(functional_delay[pair])
+
+    ax1.scatter(x, y, color='black')
+    ax1.plot([0,3],[0,3],color='blue')
+    ax1.fill([0,3,3,0], [0,3,0,0], fill=False, hatch='\\', linewidth=0)
+    ax1.set_xlim(0, 3)
+    ax1.set_ylim(0, 6)
+    ax1.set_aspect('equal', adjustable='box')
+    ax1.set_xlabel(r'$\mathsf{\tau_{axon}\ [ms]}$', fontsize=14)
+    ax1.set_ylabel(r'$\mathsf{\tau_{spike}\ [ms]}$', fontsize=14)
+    ax1.set_title ('culture %d' % FIGURE_CULTURE)
+    adjust_position(ax1, yshrink=0.02)
+    without_spines_and_ticks(ax1)
     plt.title('a', loc='left', fontsize=18)
 
-    ax111 = plt.subplot2grid((4,5), (1,0), colspan=2, rowspan=1)
-    for i, (pair, axonal_delay) in enumerate(sorted(structural_delay.items(), key=lambda x: x[1])):
-        plt.plot(-axonal_delay, i, 'b.')
-        if pair in synapse_delay:
-            plt.plot(synapse_delay[pair]-axonal_delay,i, 'g.')
-    ax111.set_ylabel(r'$\mathsf{structural\ connection\ rank\ by\ \tau_{axon}}$', fontsize=14)
-    ax111.fill([0, minimal_synaptic_delay, minimal_synaptic_delay, 0], [0, 0, 300, 300], fill=False, hatch='\\',
-               linewidth=0)
-    ax111.set_ylim((0, 300))
-    ax111.set_xticks([-3, -2, -1, 0, 1, 2, 3, 4, 5])
-    ax111.set_xticklabels([3, 2, 1, 0, 1, 2, 3, 4, 5])
-    without_spines_and_ticks(ax111)
-    ax111.set_xlabel(r'$\mathsf{\tau_{axon}\ [ms]\ \leftarrow\ \ \ \ \ \rightarrow\tau_{constrained}\ [ms]}$', fontsize=14)
-    ax111.xaxis.set_label_coords(0.35, -0.1)
-    ax111.spines['bottom'].set_bounds(-3, 5)
-    ax111.set_xlim((-3.2,5))
-    adjust_position(ax111, yshrink=0.02, xshrink=0.02, yshift=0.01, xshift=-0.02)
+    # Summary
+    synaptic_delays = list()
+    for culture in FIGURE_CULTURES:
+        _, structural_delay, _, functional_delay, _, _ = Experiment(culture).networks()
+        differences = list()
+        for pair in structural_delay:
+            if pair in functional_delay:
+                differences.append(functional_delay[pair]-structural_delay[pair])
+        synaptic_delays.append(differences)
+
+    ax2 = plt.subplot2grid((2,4), (0,1), colspan=1, rowspan=1)
+    plot_delays(ax2, -4, synaptic_delays, xticks = [-4, -3, -2, -1, 0, 1, 2, 3, 4, 5])
+    ax2.set_xlabel(r'$\mathsf{\tau_{spike}-\tau_{axon}\ [ms]}$', fontsize=14)
+    adjust_position(ax2, yshrink=0.02, xshift=0.02)
     plt.title('b', loc='left', fontsize=18)
 
-    ax2 = plt.subplot2grid((4,5), (0,2), colspan=2, rowspan=2)
-    trigger, _, _, _ = Experiment(FIGURE_CULTURE).compartments()
-    pos = load_positions(mea='hidens')
-    neuron_pos = neuron_position_from_trigger_electrode(pos, trigger)
-    plot_network(ax2, synapse_delay.keys(), neuron_pos, color='gray')
-    plot_network(ax2, remaining_keys, neuron_pos, color='green')
-    plot_neuron_points(ax2, unique_neurons(structural_delay), neuron_pos)
-    plot_neuron_id(ax2, trigger, neuron_pos)
-    # Legend by proxy
-    ax2.hlines(0, 0, 0, linestyle='-', color='gray', label='none')
-    ax2.hlines(0, 0, 0, linestyle='-', color='green', label='effective')
-    plt.legend(frameon=False)
-    mea_axes(ax2)
-    adjust_position(ax2, yshift=0.005, xshift=-0.02)
-    ax2.set_title('culture %d' % FIGURE_CULTURE)
+    # Schema
+    ax3 = plt.subplot2grid((2,4), (0,2), colspan=1, rowspan=1)
+    import matplotlib.image as mpimg
+    img = mpimg.imread('data/sketch_effective.png')
+    plt.imshow(img)
+    plt.axis('off')
     plt.title('c', loc='left', fontsize=18)
+    ax3.set_anchor('W')
+    adjust_position(ax3, yshift=-0.005, xshift=0.02)
 
     # make summaries
     data = []
@@ -119,15 +109,14 @@ def make_figure(figurename, figpath=None):
     connections['simultaneous'] = 100* connections[False] / (connections[True] + connections[False])
 
     # Summary
-
-    ax3 = plt.subplot2grid((4,5), (0,4), colspan=1, rowspan=2)
+    ax4 = plt.subplot2grid((2,4), (0,3), colspan=1, rowspan=1)
 
     print_test_result('percent of structural connections for delayed vs simultaneous', connections[['delayed', 'simultaneous']])
-    bplot = ax3.boxplot(np.array(connections[['delayed','simultaneous']]),
+    bplot = ax4.boxplot(np.array(connections[['delayed','simultaneous']]),
                         boxprops={'color': "black", "linestyle": "-"}, patch_artist=True,widths=0.7)
-    prettify_boxplot(ax3, bplot)
-    ax3.set_ylim((0,100))
-    ax3.set_ylabel('percent of structural connections [%]')
+    prettify_boxplot(ax4, bplot)
+    ax4.set_ylim((0,100))
+    ax4.set_ylabel('percent of structural connections [%]')
     plt.title('d', loc='left', fontsize=18)
 
     synaptic_delays = list()
@@ -138,10 +127,10 @@ def make_figure(figurename, figpath=None):
             effective_delay.append(structural_delay[pair] + synaptic_delay[pair])
         synaptic_delays.append(effective_delay)
 
-    ax8 = plt.subplot2grid((4, 4), (2, 0), colspan=1, rowspan=2)
-    plot_delays(ax8, minimal_synaptic_delay, synaptic_delays, fill_color='green', xticks=(0,1,2,3,4,5,6,7,8,9,10))
-    ax8.set_xlabel(r'$\mathsf{\tau_{effective}=\tau_{axon}+\tau_{constrained}\ [ms]}$', fontsize=14)
-    adjust_position(ax8, yshrink=0.02)
+    ax5 = plt.subplot2grid((4, 4), (2, 0), colspan=1, rowspan=2)
+    plot_delays(ax5, minimal_synaptic_delay, synaptic_delays, fill_color='green', xticks=(0,1,2,3,4,5,6,7,8,9,10))
+    ax5.set_xlabel(r'$\mathsf{\tau_{effective}=\tau_{axon}+\tau_{constrained}\ [ms]}$', fontsize=14)
+    adjust_position(ax5, yshrink=0.02)
     plt.title('e', loc='left', fontsize=18)
 
     # all graphs
@@ -210,7 +199,7 @@ def prettify_boxplot(ax, bplot):
     plt.xlabel('effective connection')
     ax.set_xticks([1, 2])
     ax.set_xticklabels(['yes', 'no'])
-    adjust_position(ax,xshrink=0.02, yshrink=0.04, yshift=0.02)
+    adjust_position(ax, yshrink=0.02, xshrink=0.03, xshift=0.02)
     without_spines_and_ticks(ax)
 
 

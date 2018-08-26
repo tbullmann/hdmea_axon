@@ -17,7 +17,7 @@ from publication.data import Experiment, FIGURE_CULTURE, FIGURE_NEURON, FIGURE_C
     FIGURE_NOT_FUNCTIONAL_CONNECTED_NEURON, FIGURE_NOT_STRUCTURAL_CONNECTED_NEURON, FIGURE_THRESHOLD_OVERLAP_AREA
 from publication.figure_functional import plot_std_score_and_peaks
 from publication.plotting import show_or_savefig, adjust_position, without_spines_and_ticks
-from publication.figure_synapses import plot_delays
+from publication.figure_effective import plot_delays
 from publication.data import FIGURE_CULTURES
 
 logging.basicConfig(level=logging.DEBUG)

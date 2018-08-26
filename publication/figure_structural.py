@@ -17,7 +17,7 @@ from publication.data import Experiment, FIGURE_CULTURE, FIGURE_NEURON, FIGURE_C
     FIGURE_NOT_FUNCTIONAL_CONNECTED_NEURON, FIGURE_NOT_STRUCTURAL_CONNECTED_NEURON, FIGURE_THRESHOLD_OVERLAP_AREA
 from publication.figure_functional import plot_std_score_and_peaks
 from publication.plotting import show_or_savefig, adjust_position, without_spines_and_ticks
-from publication.figure_synapses import plot_delays
+from publication.figure_effective import plot_delays
 from publication.data import FIGURE_CULTURES
 
 logging.basicConfig(level=logging.DEBUG)
@@ -42,29 +42,27 @@ def make_figure(figurename, figpath=None):
         fig.suptitle(figurename + ' Estimate structural connectivity', fontsize=14, fontweight='bold')
     plt.subplots_adjust(left=0.10, right=0.95, top=0.90, bottom=0.05)
 
-    ax1 = plt.subplot2grid((2,3), (0,0), colspan=1, rowspan=1)
+    ax1 = plt.subplot2grid((2,3), (0,1), colspan=1, rowspan=1)
     plot_neuron_pair(ax1, pos, axon_delay, dendrite_peak, neuron_pos, FIGURE_CONNECTED_NEURON, FIGURE_NEURON, structural_delay[FIGURE_NEURON, FIGURE_CONNECTED_NEURON], color='blue')
     mea_axes(ax1)
     ax1.set_title ('%d $\longrightarrow$ %d' % (FIGURE_NEURON, FIGURE_CONNECTED_NEURON))
-    plt.title('a', loc='left', fontsize=18)
+    plt.title('b', loc='left', fontsize=18)
 
-    ax2 = plt.subplot2grid((2,3), (0,1), colspan=1, rowspan=1)
+    ax2 = plt.subplot2grid((2,3), (0,2), colspan=1, rowspan=1)
     plot_neuron_pair(ax2, pos, axon_delay, dendrite_peak, neuron_pos, FIGURE_NOT_STRUCTURAL_CONNECTED_NEURON, FIGURE_NEURON, np.NaN, color='blue')
     mea_axes(ax2)
     ax2.set_title('%d $\dashrightarrow$ %d' % (FIGURE_NEURON, FIGURE_NOT_STRUCTURAL_CONNECTED_NEURON))
-    plt.title('b', loc='left', fontsize=18)
-
-    # Whole network
-    ax3 = plt.subplot2grid((2,3), (0,2), colspan=1, rowspan=1)
-    # all_overlap, all_ratio, all_delay = all_overlaps(axon_delay, dendrite_peak, thr_overlap=thr_overlap)
-    plot_network (ax3, structural_delay, neuron_pos, color='gray')
-    plot_neuron_points(ax3, unique_neurons(structural_delay), neuron_pos)
-    plot_neuron_id(ax3, trigger, neuron_pos)
-    highlight_connection(ax3, (FIGURE_NEURON, FIGURE_NOT_STRUCTURAL_CONNECTED_NEURON), neuron_pos, connected=False, color='blue')
-    highlight_connection(ax3, (FIGURE_NEURON, FIGURE_CONNECTED_NEURON), neuron_pos, color='blue')
-    mea_axes(ax3)
     plt.title('c', loc='left', fontsize=18)
-    ax3.set_title('culture %d' % FIGURE_CULTURE)
+
+    # Schema
+    ax = plt.subplot2grid((2, 3), (0, 0), colspan=1, rowspan=1)
+    import matplotlib.image as mpimg
+    img = mpimg.imread('data/sketch_structural.png')
+    plt.imshow(img)
+    plt.axis('off')
+    plt.title('a', loc='left', fontsize=18)
+    ax.set_anchor('W')
+    adjust_position(ax, yshift=-0.01)
 
 
     structural_delays = list()

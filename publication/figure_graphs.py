@@ -29,7 +29,7 @@ def make_figure(figurename, figpath=None):
 
     ax = plt.subplot(313)
     import matplotlib.image as mpimg
-    img = mpimg.imread('figures/ComparisonGraphs.png')
+    img = mpimg.imread('data/ComparisonGraphs.png')
     plt.imshow(img)
     plt.axis('off')
     plt.title('i', loc='left', fontsize=18)
