@@ -1,7 +1,8 @@
 from hana.recording import load_positions
 from hana.plotting import mea_axes
 from publication.plotting import show_or_savefig, cross_hair, adjust_position
-from publication.data import Experiment, FIGURE_CULTURE
+from publication.data import FIGURE_CULTURE
+from publication.experiment import Experiment
 
 import os
 import numpy as np

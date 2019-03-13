@@ -7,7 +7,8 @@ from hana.plotting import annotate_x_bar, mea_axes
 from hana.recording import DELAY_EPSILON, neighborhood, electrode_neighborhoods
 from hana.segmentation import segment_axon_verbose, restrict_to_compartment
 
-from publication.data import Experiment, FIGURE_CULTURE, FIGURE_NEURON
+from publication.data import FIGURE_CULTURE, FIGURE_NEURON
+from publication.experiment import Experiment
 from publication.plotting import show_or_savefig, without_spines_and_ticks, cross_hair, \
     legend_without_multiple_labels, plot_traces_and_delays, adjust_position
 

@@ -5,7 +5,8 @@ import matplotlib.animation as animation
 from matplotlib import pyplot as plt
 
 from hana.plotting import mea_axes
-from publication.data import Experiment, FIGURE_CULTURE, FIGURE_NEURONS
+from publication.data import FIGURE_CULTURE, FIGURE_NEURONS
+from publication.experiment import Experiment
 from publication.plotting import voltage_color_bar
 
 

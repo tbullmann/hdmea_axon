@@ -7,8 +7,10 @@ from matplotlib import pyplot as plt
 from hana.plotting import mea_axes
 from hana.recording import electrode_neighborhoods
 from publication.comparison import ModelDiscriminatorBakkum, ModelDiscriminatorBullmann
-from publication.data import Experiment, FIGURE_CULTURE, FIGURE_NEURON
+from publication.data import FIGURE_CULTURE, FIGURE_NEURON
+from publication.experiment import Experiment
 from publication.plotting import show_or_savefig, adjust_position, plot_pairwise_comparison, without_spines_and_ticks
+from data import FIGURE_NEURONS
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -28,7 +30,7 @@ def make_figure(figurename, figpath=None):
     Model2.fit(t, V, neighbors)
     Model2.predict()
 
-    evaluation = Experiment(FIGURE_CULTURE).comparison_of_discriminators()
+    evaluation = Experiment(FIGURE_CULTURE).comparison_of_discriminators(FIGURE_NEURONS)
 
     # Plotting Frames A~E
     fig = plt.figure(figurename, figsize=(13, 10))
