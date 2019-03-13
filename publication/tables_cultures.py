@@ -1,19 +1,10 @@
 import logging
 import os
-import pickle
-import yaml
-from matplotlib import pyplot as plt
 
-from hana.misc import unique_neurons
-from hana.plotting import plot_neuron_points, mea_axes, plot_neuron_id, plot_network
 from hana.recording import load_positions
-from hana.segmentation import load_compartments, neuron_position_from_trigger_electrode
+from hana.segmentation import neuron_position_from_trigger_electrode
 
 from publication.data import Experiment, FIGURE_CULTURES
-from simulation import Simulation
-from publication.plotting import show_or_savefig, \
-    plot_loglog_fit, without_spines_and_ticks, adjust_position, plot_correlation, plot_synapse_delays
-from publication.figure_effective import DataFrame_from_Dicts
 from collections import Counter
 
 logging.basicConfig(level=logging.DEBUG)

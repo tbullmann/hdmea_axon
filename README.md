@@ -2,7 +2,7 @@
 
 ![Example neuron 5](neuron5.gif) ![Example graph](synaptic_delay_graph.png)
 
-This repositiory contains the source code as well as the links to the example data to replicate all [figures](publication/README.md). 
+This repositiory contains the source code as well as the links to the example data to replicate all [figures](publication2/README.md). 
 The Hana (high density microelectrode array recording analysis) pipeline is open source, see [licence](LICENCE.md).
 The example data (approx. 4 GB) consists of spike triggered averages and events that were extracted from the raw recordings.  
 
