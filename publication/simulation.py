@@ -213,9 +213,9 @@ def springs(structural_delay):
 def test_simulate_network():
 
     # Getting data
-    # structural_delay, timeseries = simulate_network()
-    structural_delay, _ = Simulation(1).structural_network()
-    timeseries = Simulation(1).timeseries()
+    structural_delay, timeseries = simulate_network()
+    # structural_delay,  _ = Simulation(1).structural_network()
+    # timeseries = Simulation(1).timeseries()
 
     # Plotting
     plt.figure('network')
@@ -233,6 +233,29 @@ def test_simulate_network():
     ylabel('Neuron index')
     plt.show()
 
+def evalute_network_estimation():
+
+    # Getting data
+    given_delays, timeseries = simulate_network()
+    # structural_delay,  _ = Simulation(1).structural_network()
+    # timeseries = Simulation(1).timeseries()
+
+    # Plotting
+    plt.figure('true network')
+    pos = springs(given_delays)
+    ax1 = subplot(111)
+    plot_network(ax1, given_delays, pos, color='blue')
+    plot_neuron_points(ax1, unique_neurons(given_delays), pos)
+    plot_neuron_id(ax1, unique_neurons(given_delays), pos)
+
+    plt.figure('simulated spikes')
+    for neuron in timeseries:
+        t = timeseries[neuron]
+        plt.plot(t, neuron * np.ones_like(t), '.')
+    xlabel(r'$t$ [s]')
+    ylabel('Neuron index')
+    plt.show()
 
 if __name__ == "__main__":
-    test_simulate_network()
+    # test_simulate_network()
+    evalute_network_estimation()
