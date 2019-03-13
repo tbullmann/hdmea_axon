@@ -26,7 +26,7 @@ def make_figure(figurename, figpath=None):
 
     for c in FIGURE_CULTURES:
         timeseries = Experiment(c).timeseries()
-        ax = plt.subplot2grid((6, 2), (c-1, 0))
+        ax = plt.subplot2grid((5, 2), (c-1, 0))
 
         logging.info(c)
         plot_SBE(ax, timeseries, t_interval=60, smooth_win=10, s=2, gamma=0.1)
@@ -62,28 +62,28 @@ def make_figure(figurename, figpath=None):
         BRs.append(BR)
         ISIs.append(ISI)
 
-    ax1 = plt.subplot2grid((5, 4), (0, 2), rowspan=2)
+    ax1 = plt.subplot2grid((4, 4), (0, 2), rowspan=2)
     plot_distributions(ax1, BLs, fill_color='magenta') # 0-2s
     ax1.set_xlim((0,2))
     ax1.set_xlabel('burst length (BL) [s]')
     adjust_position(ax1, xshrink=0.01, yshrink=0.02, yshift=0.02)
     plt.title('b', loc='left', fontsize=18)
 
-    ax2 = plt.subplot2grid((5, 4), (0, 3), rowspan=2)
+    ax2 = plt.subplot2grid((4, 4), (0, 3), rowspan=2)
     plot_distributions(ax2, IBLs, fill_color='magenta') # 0-30s
     ax2.set_xlim((0,30))
     ax2.set_xlabel('inter burst length (IBL) [s]')
     adjust_position(ax2, xshrink=0.01, yshrink=0.02, yshift=0.02)
     plt.title('c', loc='left', fontsize=18)
 
-    ax3 = plt.subplot2grid((5, 4), (2, 2), rowspan=2)
+    ax3 = plt.subplot2grid((4, 4), (2, 2), rowspan=2)
     plot_distributions(ax3, BRs, fill_color='magenta') # 0-100%
     ax3.set_xlim((0,100))
     ax3.set_xlabel('burst recruitment (BR) [%]')
     adjust_position(ax3, xshrink=0.01, yshrink=0.02, yshift=0.02)
     plt.title('d', loc='left', fontsize=18)
 
-    ax4 = plt.subplot2grid((5, 4), (2, 3), rowspan=2)
+    ax4 = plt.subplot2grid((4, 4), (2, 3), rowspan=2)
     plot_distributions(ax4, ISIs, fill_color='gray') # 0-4s
     ax4.set_xlim((-3,1))
     ax4.set_xticks([-3,-2,-1,0,1])
@@ -93,19 +93,19 @@ def make_figure(figurename, figpath=None):
     adjust_position(ax4, xshrink=0.01, yshrink=0.02, yshift=0.02)
     plt.title('e', loc='left', fontsize=18)
 
-    df = pd.read_csv('data/CCs_vs_BurstStats.csv')
-    corr = df.corr()
-    corr = corr[1:4][['BL','IBL','BR','ISI']]
-    ax = plt.subplot2grid((5, 2), (4, 1))
-    m = plot_corr_ellipses(corr, ax=ax, cmap='seismic')
-    cb = fig.colorbar(m)
-    cb.set_label('Correlation coefficient')
-    ax.set_ylabel('Clustering coefficient')
-    # ax.set_xlabel('')
-    ax.margins(0.3)
-
-    adjust_position(ax, xshrink=0.04)
-    plt.title('f', loc='left', fontsize=18)
+    # df = pd.read_csv('data/CCs_vs_BurstStats.csv')
+    # corr = df.corr()
+    # corr = corr[0:3][['BL','IBL','BR','ISI']]
+    # ax = plt.subplot2grid((5, 2), (4, 1))  # (5,2) does not work with (4,4)
+    # m = plot_corr_ellipses(corr, ax=ax, cmap='seismic')
+    # cb = fig.colorbar(m)
+    # cb.set_label('Correlation coefficient')
+    # ax.set_ylabel('Clustering coefficient')
+    # # ax.set_xlabel('')
+    # ax.margins(0.3)
+    #
+    # adjust_position(ax, xshrink=0.04, xshift=-0.02)
+    # plt.title('f', loc='left', fontsize=18)
 
     show_or_savefig(figpath, figurename)
 
@@ -133,12 +133,12 @@ def plot_distributions(ax, values, fill_color='gray'):
     ax.set_ylabel('culture')
     ax.set_yticks([0, ] + list(FIGURE_CULTURES))
     ax.set_yticklabels(['all', ] + list(FIGURE_CULTURES))
-    ax.set_ylim((-0.5, 6.5))
+    ax.set_ylim((-0.5, 5.5))
     ax.invert_yaxis()
 
 
 def burst_measures(timeseries):
-    weighted_bursts, analysed_timeseries, _, _ = detect_SBE(timeseries, t_interval=600)
+    weighted_bursts, analysed_timeseries, _, _ = detect_SBE(timeseries, t_interval=3600)
 
     intervals = np.array(weighted_bursts[['begin', 'end']].sort_values('begin').values)
 
@@ -350,14 +350,15 @@ def plot_corr_ellipses(data, ax=None, **kwargs):
     # if data is a DataFrame, use the row/column names as tick labels
     if isinstance(data, pd.DataFrame):
         ax.set_xticks(np.arange(M.shape[1]))
-        ax.set_xticklabels(data.columns, rotation=90)
+        ax.set_xticklabels(r'$\mathsf{'+data.columns+'}$', rotation=90)
         ax.set_yticks(np.arange(M.shape[0]))
-        ax.set_yticklabels(data.index)
+        ax.set_yticklabels(r'$\mathsf{'+data.index+'}$')
 
     return ec
 
 
-def plot_corr(filename,size=10):
+
+def figure_corr(filename,size=10):
     '''Function plots a graphical correlation matrix for each pair of columns in the dataframe.
 
     Input:
@@ -366,19 +367,116 @@ def plot_corr(filename,size=10):
 
     df = pd.read_csv(filename)
     corr = df.corr()
-    corr = corr[1:4][['BL','IBL','BR','ISI']]
-    fig, ax = plt.subplots(figsize=(size, size))
-    # ax.matshow(corr)
-    # plt.xticks(range(len(corr.columns)), corr.columns)
-    # plt.yticks(range(len(corr.columns)), corr.columns)
-    # plt.show()
+    fig, ax = plt.subplots(figsize=(size, 0.8*size))
     m = plot_corr_ellipses(corr, ax=ax, cmap='seismic')
     cb = fig.colorbar(m)
     cb.set_label('Correlation coefficient')
-    ax.margins(0.2)
+    ax.margins(0.1)
     plt.show()
 
 
+def restrict_CC_to_IBI (timeseries):
+    weighted_bursts, analysed_timeseries, _, _ = detect_SBE(timeseries, t_interval=10000)
+
+    BIs = np.array(weighted_bursts[['begin', 'end']].sort_values('begin').values)
+    print (BIs)
+
+    IBIs = np.transpose(np.array([BIs[:-1,1],BIs[1:,0]]))
+    print (IBIs)
+
+    # number of neurons active in inter burst
+    n_neurons = len(analysed_timeseries.keys())
+    BR = list()
+    for begin, end in IBIs:
+        active_neurons=0
+        for neuron, ts in analysed_timeseries.items():
+            if np.any(np.logical_and(ts>begin, ts<end)):
+                active_neurons +=1
+        BR.append(active_neurons/n_neurons * 100)   # in percent
+
+
+    # retricting the timeseries to the spikes between the bursts
+    new_timeseries = list()
+    for neuron, ts in analysed_timeseries.items():
+        new_ts = list()
+        for begin, end in IBIs:
+            index = np.logical_and(ts > begin, ts < end)
+            if np.any(index):
+                new_ts += list(ts[index])
+            if len(new_ts)>1:
+                new_timeseries.append((neuron, np.array(new_ts)))
+    new_timeseries = dict(new_timeseries)
+
+    # print (new_timeseries)
+
+    # ax1=plt.subplot(211)
+    # plot_SBE(ax1, analysed_timeseries, t_start=0, t_interval=60 )
+    # ax2=plt.subplot(212, sharex=ax1)
+    # plot_SBE(ax2, new_timeseries, t_start=0, t_interval=60)
+    # # ax2.set_xlim((0,10))
+    # plt.show()
+
+    from data import timeseries_to_surrogates, all_timelag_standardscore
+    from hana.function import all_peaks
+
+    new_timeseries_surrogates = timeseries_to_surrogates(new_timeseries)
+    timelags, std_score_dict, timeseries_hist_dict = all_timelag_standardscore(new_timeseries, new_timeseries_surrogates)
+    peak_score, peak_timelag, z_threshold = all_peaks(timelags, std_score_dict)
+
+    print (peak_timelag)
+
+    _, structural_delay, _, functional_delay, _, effective_delay = Experiment(1).networks()
+
+    ax1 = plt.subplot(222)
+    plot_delays(ax1, effective_delay, peak_timelag)
+    ax1.set_xlabel(r'$\mathsf{\tau_{effective}\ [ms]}$', fontsize=14)
+    ax1.set_ylabel(r'$\mathsf{\tau_{spike, IBI}\ [ms]}$', fontsize=14)
+    without_spines_and_ticks(ax1)
+    plt.title('effective connectivity vs. \nfunctional connectivity retricted to IBI', loc='center', fontsize=18)
+
+
+    ax2 = plt.subplot(221)
+    plot_delays(ax2, structural_delay, effective_delay)
+    ax2.set_xlabel(r'$\mathsf{\tau_{axon}\ [ms]}$', fontsize=14)
+    ax2.set_ylabel(r'$\mathsf{\tau_{effective}\ [ms]}$', fontsize=14)
+    without_spines_and_ticks(ax2)
+    plt.title('effective connectivity vs. \nfunctional connectivity retricted to IBI', loc='center', fontsize=18)
+
+    ax3 = plt.subplot(223)
+    plot_delays(ax3, structural_delay, peak_timelag)
+    ax3.set_xlabel(r'$\mathsf{\tau_{axon}\ [ms]}$', fontsize=14)
+    ax3.set_ylabel(r'$\mathsf{\tau_{spike, IBI}\ [ms]}$', fontsize=14)
+    without_spines_and_ticks(ax3)
+    plt.title('effective connectivity vs. \nfunctional connectivity retricted to IBI', loc='center', fontsize=18)
+
+    ax4 = plt.subplot(224)
+    plot_delays(ax4, functional_delay, peak_timelag)
+    ax4.set_xlabel(r'$\mathsf{\tau_{spike}\ [ms]}$', fontsize=14)
+    ax4.set_ylabel(r'$\mathsf{\tau_{spike, IBI}\ [ms]}$', fontsize=14)
+    without_spines_and_ticks(ax4)
+    plt.title('effective connectivity vs. \nfunctional connectivity retricted to IBI', loc='center', fontsize=18)
+
+
+    plt.show()
+
+
+def plot_delays(ax, x_delays, y_delays):
+    x = list()
+    y = list()
+    for pair in y_delays:
+        if pair in x_delays:
+            x.append(x_delays[pair])
+            y.append(y_delays[pair])
+    ax.scatter(x, y, color='black')
+    ax.plot([0, 6], [0, 6], color='blue')
+    ax.set_xlim(0, 6)
+    ax.set_ylim(0, 6)
+    ax.set_aspect('equal', adjustable='box')
+
+
 if __name__ == "__main__":
-    make_figure(os.path.basename(__file__))
-    # plot_corr('data/CCs_vs_BurstStats.csv')
+    # make_figure(os.path.basename(__file__))
+    # figure_corr('data/CCs_vs_BurstStats.csv')
+
+    timeseries = Experiment(1).timeseries()
+    restrict_CC_to_IBI(timeseries)

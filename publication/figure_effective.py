@@ -140,7 +140,7 @@ def make_figure(figurename, figpath=None):
     plot_culture_synapse_graph(3, (2, 3), pos)
     plot_culture_synapse_graph(4, (3, 1), pos)
     plot_culture_synapse_graph(5, (3, 2), pos)
-    plot_culture_synapse_graph(6, (3, 3), pos)
+    # plot_culture_synapse_graph(6, (3, 3), pos)
 
     show_or_savefig(figpath, figurename)
 
@@ -185,7 +185,7 @@ def plot_delays(ax, minimal_synaptic_delay, delays, fill_color='gray', xticks = 
     ax.set_ylabel('culture')
     ax.set_yticks([0, ] + list(FIGURE_CULTURES))
     ax.set_yticklabels(['all', ] + list(FIGURE_CULTURES))
-    ax.set_ylim((-0.5, 6.5))
+    ax.set_ylim((-0.5, 5.5))
     ax.invert_yaxis()
 
 

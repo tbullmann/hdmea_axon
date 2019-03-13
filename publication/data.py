@@ -14,15 +14,15 @@ from hana.structure import all_overlaps
 from publication.plotting import correlate_two_dicts_verbose
 from publication.comparison import ImageIterator, ModelDiscriminatorBakkum, ModelDiscriminatorBullmann
 
-FIGURE_CULTURE = 1
-FIGURE_NEURON = 5  # other neurons 5, 10, 11, 20, 25, 2, 31, 41; culture 1
+FIGURE_CULTURE = 2
+FIGURE_NEURON = 5  # old neuron 5 or other neurons 5, 10, 11, 20, 25, 2, 31, 41; culture 1
 FIGURE_NEURONS = [2, 3, 4, 5, 10, 11, 13, 20, 21, 22, 23, 25, 27, 29, 31, 35, 36, 37, 41, 49, 50, 51, 59]  # culture 1
-FIGURE_CULTURES = [1, 2, 3, 4, 5, 6]
+FIGURE_CULTURES = [1, 2, 3, 4, 5]
 GROUND_TRUTH_CULTURE = 8
 GROUND_TRUTH_NEURON = 1544
-FIGURE_CONNECTED_NEURON = 10  # culture 1: 10, 31 (large narrow peak!)
-FIGURE_NOT_FUNCTIONAL_CONNECTED_NEURON = 36  # culture 1:  29, 36, 49
-FIGURE_NOT_STRUCTURAL_CONNECTED_NEURON = 59  # 21 or 36, culture 1
+FIGURE_CONNECTED_NEURON = 84 # others might be 74, 124(!),...
+FIGURE_NOT_FUNCTIONAL_CONNECTED_NEURON = 19  # 17, 109,107,121,...
+FIGURE_NOT_STRUCTURAL_CONNECTED_NEURON = 124  # old neuron 59 ( 21 or 36 )
 FIGURE_THRESHOLD_OVERLAP_AREA = 300.  # um2/electrode
 
 
@@ -150,6 +150,9 @@ class Experiment():
         """
         three_networks_pickle_name = os.path.join(self.results_directory, 'three_networks.p')
         if not os.path.isfile(three_networks_pickle_name):
+            logging.info('Could not find structural, functional and synaptic network in')
+            logging.info(three_networks_pickle_name)
+            logging.info('Calculate structural, functional and synaptic network')
             structural_delay, structural_strength = self.structural_network()
             functional_delay, functional_strength = self.functional_network()
             synaptic_delay, synaptic_strength = self.synaptic_network()

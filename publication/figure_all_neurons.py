@@ -10,7 +10,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 
-def make_figure(figurename, figpath=None):
+def make_figure(figurename, figpath=None, Culture=1):
 
     # Load electrode coordinates and calculate neighborhood
     pos = load_positions(mea='hidens')
@@ -18,14 +18,16 @@ def make_figure(figurename, figpath=None):
     x = pos.x
     y = pos.y
 
-    all_triggers, all_AIS, all_axonal_delays, all_dendritic_return_currents = Experiment(FIGURE_CULTURE).compartments()
+    all_triggers, all_AIS, all_axonal_delays, all_dendritic_return_currents = Experiment(Culture).compartments()
 
     index_plot = 0
     plotted_neurons = []
 
-    list_of_six_neurons_each = [iter(all_axonal_delays.keys())] * 6
+    list_of_six_neurons_each = zip(*[iter(sorted(all_axonal_delays.keys()))] * 6)
 
-    for plot_index, six_neurons in enumerate(map(None, *list_of_six_neurons_each)):
+    for plot_index, six_neurons in enumerate(list_of_six_neurons_each):
+    # plot_index = 0
+    # while plot_index ==0:
         longfigurename = figurename + '-%d' % (plot_index+1)
         logging.info(longfigurename)
         fig = plt.figure(longfigurename, figsize=(12, 8))
@@ -35,26 +37,27 @@ def make_figure(figurename, figpath=None):
                 plotted_neurons.append(int(neuron))
 
                 # Get electrodes
+                index_trigger = all_triggers[neuron]
                 index_AIS = all_AIS[neuron]
                 index_axon = np.where(np.isfinite(all_axonal_delays[neuron]))
-                index_dendrite = np.where(np.isfinite(all_dendritic_return_currents[neuron]))
+                # index_dendrite = np.where(np.isfinite(all_dendritic_return_currents[neuron]))
 
                 # Map of axon and dendrites
                 ax = plt.subplot(231 + (index_plot % 6))
                 adjust_position(ax, yshrink=0.015)
                 ax.scatter(x[index_axon], y[index_axon], c='blue', s=20, marker='.', edgecolor='None', label='axon', alpha=0.5)
-                ax.scatter(x[index_dendrite], y[index_dendrite], c='red', s=20, marker='.', edgecolor='None', label='dendrite',
-                           alpha=0.5)
+                # ax.scatter(x[index_dendrite], y[index_dendrite], c='red', s=20, marker='.', edgecolor='None', label='dendrite',
+                #           alpha=0.5)
                 cross_hair(ax, x[index_AIS], y[index_AIS], color='black')
                 mea_axes(ax)
-                ax.set_title('neuron %d' % (neuron))
+                ax.set_title('trigger %d: neuron %d' % (index_trigger, neuron))
                 # legend_without_multiple_labels(ax)
 
                 # Report plot and increase index_plot
                 logging.info('Plot %d on ' % (index_plot + 1) + longfigurename)
                 index_plot += 1
 
-
+        print (figpath, ' : ', longfigurename)
         show_or_savefig(figpath, longfigurename)
 
     logging.info('Plotted neurons:')
@@ -63,5 +66,6 @@ def make_figure(figurename, figpath=None):
 
 if __name__ == "__main__":
 
-    make_figure(os.path.basename(__file__))
+    #make_figure(os.path.basename(__file__))
+    make_figure('spikesorted_footprints', figpath='figures\culture5', Culture=5)
 

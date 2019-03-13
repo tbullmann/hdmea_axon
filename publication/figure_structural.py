@@ -68,7 +68,7 @@ def make_figure(figurename, figpath=None):
     structural_delays = list()
     for culture in FIGURE_CULTURES:
         _, structural_delay, _, functional_delay, _, _ = Experiment(culture).networks()
-        structural_delays.append(structural_delay.values())
+        structural_delays.append(list(structural_delay.values()))
 
     ax7 = plt.subplot2grid((4,4), (2,0), colspan=1, rowspan=2)
     plot_delays(ax7, 0, structural_delays, fill_color='blue')
@@ -83,7 +83,7 @@ def make_figure(figurename, figpath=None):
     plot_culture_structural_graph(3, (2, 3), pos)
     plot_culture_structural_graph(4, (3, 1), pos)
     plot_culture_structural_graph(5, (3, 2), pos)
-    plot_culture_structural_graph(6, (3, 3), pos)
+    # plot_culture_structural_graph(6, (3, 3), pos)
 
 
     show_or_savefig(figpath, figurename)

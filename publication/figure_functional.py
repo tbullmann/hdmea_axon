@@ -36,7 +36,6 @@ def make_figure(figurename, figpath=None):
 
     # functional connectivity
     _, _, functional_strength, functional_delay, _, _ = Experiment(FIGURE_CULTURE).networks()
-
     # Making figure
     fig = plt.figure(figurename, figsize=(13, 13))
     if not figpath:
@@ -113,9 +112,10 @@ def make_figure(figurename, figpath=None):
     functional_delays = list()
     for culture in FIGURE_CULTURES:
         _, _, _, functional_delay, _, _ = Experiment(culture).networks()
-        functional_delays.append(functional_delay.values())
+        functional_delays.append(list(functional_delay.values()))
 
     ax8 = plt.subplot2grid((4,4), (2,0), colspan=1, rowspan=2)
+    print(functional_delays)
     plot_delays(ax8, 0, functional_delays, fill_color='red')
     ax8.set_xlabel(r'$\mathsf{\tau_{spike}\ [ms]}$', fontsize=14)
     adjust_position(ax8, yshrink=0.02)
@@ -128,10 +128,25 @@ def make_figure(figurename, figpath=None):
     plot_culture_functional_graph(3, (2, 3), pos)
     plot_culture_functional_graph(4, (3, 1), pos)
     plot_culture_functional_graph(5, (3, 2), pos)
-    plot_culture_functional_graph(6, (3, 3), pos)
+    # plot_culture_functional_graph(6, (3, 3), pos)
 
 
     show_or_savefig(figpath, figurename)
+
+
+def print_functional_for_figure_neuron():
+    timeseries = Experiment(FIGURE_CULTURE).timeseries()
+    timelags, std_score_dict, timeseries_hist_dict = Experiment(FIGURE_CULTURE).standardscores()
+    peak_score, peak_timelag, z_threshold = all_peaks(timelags, std_score_dict)
+
+    print(z_threshold)
+    for post in timeseries.keys():
+        try:
+            print("%d, %d have %1.3f ms delay with score of %1.3f" % (
+            FIGURE_NEURON, post, peak_timelag[(FIGURE_NEURON, post)], peak_score[(FIGURE_NEURON, post)]))
+        except:
+            print("%d, %d are not connected" % (FIGURE_NEURON, post))
+    print(peak_timelag[(5, 10)])
 
 
 def plot_culture_functional_graph(culture, grid_pos, pos):
@@ -157,5 +172,6 @@ def plot_z_score (ax3, pre, post, thr, peak_timelag, timelags, std_score_dict):
     ax3.set_xlim((0,5))
 
 if __name__ == "__main__":
+    # print_functional_for_figure_neuron()  # for finding the neuron pairs in the figure
     make_figure(os.path.basename(__file__))
 

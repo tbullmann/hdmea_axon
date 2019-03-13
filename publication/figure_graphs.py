@@ -32,7 +32,7 @@ def make_figure(figurename, figpath=None):
     img = mpimg.imread('data/ComparisonGraphs.png')
     plt.imshow(img)
     plt.axis('off')
-    plt.title('i', loc='left', fontsize=18)
+    plt.title('j', loc='left', fontsize=18)
     ax.set_anchor('W')
     adjust_position(ax, xshift=0.02,yshift=-0.03)
 
@@ -52,23 +52,23 @@ def plot_histograms(data=Experiment, all_original=True):
     if all_original:
         ax337 = plt.subplot(345)
         plot_degree_distributions(hist, 'structure', 'b')
-        plt.title('f', loc='left', fontsize=18)
+        plt.title('g', loc='left', fontsize=18)
         without_spines_and_ticks(ax337)
     ax338 = plt.subplot(346)
     plot_degree_distributions(hist, 'function', 'r')
     if all_original:
-        plt.title('g', loc='left', fontsize=18)
-    else:
         plt.title('h', loc='left', fontsize=18)
+    else:
+        plt.title('i', loc='left', fontsize=18)
         adjust_position(ax338, xshift=0.02, yshrink=0.01)
     without_spines_and_ticks(ax338)
 
     ax339 = plt.subplot(347)
     plot_degree_distributions(hist, 'synapse', 'g')
     if all_original:
-        plt.title('h', loc='left', fontsize=18)
-    else:
         plt.title('i', loc='left', fontsize=18)
+    else:
+        plt.title('j', loc='left', fontsize=18)
         adjust_position(ax339, xshift=0.02, yshrink=0.01)
     without_spines_and_ticks(ax339)
 
@@ -97,35 +97,44 @@ def plot_scalar_measures(data=Experiment, all_original=True):
         scal['function'][c] = scalar_measures(functional_delay)
         scal['synapse'][c] = scalar_measures(synapse_delay)
 
+    print (scal)
+
     # flatten dictionary with each level stored in key
     df = pd.DataFrame(flatten(scal, ['type', 'culture', 'measure', 'value']))
+
+    print (df)
+
     df = df.pivot_table(index=['type', 'culture'], columns='measure', values='value')
-    plot_scalar(plt.subplot(351), df, 'mean_p')
+    plot_scalar(plt.subplot(361), df, 'mean_p')
     plt.ylim((0, 1))
-    plt.ylabel(r'$\mathsf{p}}$', fontsize=16)
+    plt.ylabel(r'average connection density  $\mathsf{p}}$', fontsize=12)
     plt.title('a', loc='left', fontsize=18)
-    plot_scalar(plt.subplot(352), df, 'r')
-    plt.ylabel(r'$\mathsf{R}$', fontsize=16)
-    plt.ylim((-1, 1))
+    plot_scalar(plt.subplot(362), df, 'rud')
+    plt.ylim((0, 1))
+    plt.ylabel(r'unidirectionality  $\mathsf{r_{uni}}$', fontsize=12)
     plt.title('b', loc='left', fontsize=18)
-    plot_scalar(plt.subplot(353), df, 'c')
+    plot_scalar(plt.subplot(363), df, 'r')
+    plt.ylabel(r'assortativity  $\mathsf{R}$', fontsize=12)
+    plt.ylim((-1, 1))
+    plt.title('c', loc='left', fontsize=18)
+    plot_scalar(plt.subplot(364), df, 'c')
     # print ('structural:')
     # print (df['c']['structure'])
     # print ('functional:')
     # print (df['c']['function'])
     # print ('effective:')
     # print (df['c']['synapse'])
-    plt.ylabel(r'$\mathsf{C}$', fontsize=16)
+    plt.ylabel(r'average clustering coefficient  $\mathsf{C}$', fontsize=12)
     plt.ylim((0, 1))
-    plt.title('c', loc='left', fontsize=18)
-    plot_scalar(plt.subplot(354), df, 'l')
-    plt.ylim((0, 3))
-    plt.ylabel(r'$\mathsf{L}$', fontsize=16)
     plt.title('d', loc='left', fontsize=18)
-    plot_scalar(plt.subplot(355), df, 'SWS')
-    plt.ylim((0, 2))
-    plt.ylabel(r'$\mathsf{S_{ws}}$', fontsize=16)
+    plot_scalar(plt.subplot(365), df, 'l')
+    plt.ylim((0, 3))
+    plt.ylabel(r'characteristic path length  $\mathsf{L}$', fontsize=12)
     plt.title('e', loc='left', fontsize=18)
+    plot_scalar(plt.subplot(366), df, 'SWS')
+    plt.ylim((0, 2))
+    plt.ylabel(r'small world-ness  $\mathsf{S_{ws}}$', fontsize=12)
+    plt.title('f', loc='left', fontsize=18)
 
 
 def plot_scalar(ax, df, scalar_name):
@@ -172,7 +181,7 @@ def flatten(data, group_names):
         return  # Nothing more to do, it is already considered flattened
 
     try:
-        for key, value in data.iteritems():
+        for key, value in data.items():
             # value can contain nested dictionaries
             # so flatten it and iterate over the result
             for flattened in flatten(value, group_names):
@@ -206,13 +215,16 @@ def scalar_measures(edges):
     l = nx.average_shortest_path_length(Gc)
 
     # edge dispersion --- NOT USED
-    in_degrees = list(G.in_degree().values())
+    in_degrees = list(dict(G.in_degree).values())
     CV_k_in = np.std(in_degrees)/np.mean(in_degrees)
-    out_degrees = list(G.out_degree().values())
+    out_degrees = list(dict(G.out_degree).values())
     CV_k_out = np.std(out_degrees)/np.mean(out_degrees)
 
     # small worldness
     SWS = small_worldness(Gc)
+
+    # ratio of unidirectional connections
+    rud = ratio_unidirectional(edges)
 
     return {'mean_p': mean_p,
                'r': r,
@@ -220,7 +232,8 @@ def scalar_measures(edges):
                'l': l,
                'CV_k_in': CV_k_in,
                'CV_k_out': CV_k_out,
-               'SWS': SWS}
+               'SWS': SWS,
+               'rud': rud}
 
 
 def histograms(edges):
@@ -231,8 +244,8 @@ def histograms(edges):
 
     n = G.order()
 
-    ps, p_in = estimate_wiring_p(G.in_degree().values(), n)
-    ps, p_out = estimate_wiring_p(G.out_degree().values(), n)
+    ps, p_in = estimate_wiring_p(list(dict(G.in_degree).values()), n)
+    ps, p_out = estimate_wiring_p(list(dict(G.out_degree).values()), n)
 
     rc = nx.rich_club_coefficient(undirected_G, normalized=False)
 
@@ -274,6 +287,7 @@ def small_worldness(G, num=100):
 
 def estimate_wiring_p(degrees, n):
     in_p = np.array(degrees) / (n - 1)  # probability
+    print(in_p)
     gkde = stats.gaussian_kde(in_p)
     ps = np.linspace(0, 1, 100)
     h = gkde.evaluate(ps)
@@ -299,5 +313,90 @@ def prettify_boxplot(ax, bplot):
         labelbottom='off')  # labels along the bottom edge are off
 
 
+def test_connectivity (data=Experiment, all_original=True):
+    # --- Scalar measures
+    scal = defaultdict(dict)
+    for c in FIGURE_CULTURES:
+        structural_strength, structural_delay, functional_strength, functional_delay, synapse_strength, synapse_delay \
+            = data(c).networks()
+
+        count_FFT(structural_delay)
+        count_FFT(functional_delay)
+        count_FFT(synapse_delay)
+
+
+def count_FFT(connectivity):
+    """
+    Counting the number of feed-forward triangles, that are chain & shortcut motives like A-->B-->C & A-->C.
+
+    Note: According to U.Alon's book ("Introduction to Systems Biology"), the mean number of times that a
+    subgraph G with n edges occurs in a random network is given by the following formula:
+
+        <N_G> = 1/alpha * N^n * p^n
+
+    alpha: is a number that includes combinatorial factors related to the structure and symmetry of each subgraph,
+    equal to 1 for feed-forward loop (FFL) and equal to 3 for feed-back loop (FBL)
+    N^n is the number of ways of choosing a set of n nodes out of N. Because there are N ways of choosing the first
+    one, times N-1 ways of choosing the second one, and so on..(so N^n approximation is true for large networks)
+    p^g is the probability to get the g edges in the appropriate places (each with probability p)
+
+    With k = pN, the number of edges it transformes to
+
+        <N_G> = 1/alpha * k^n    or better <N_G> + 1/alpha * k * (k-1) * ... * (k-n)
+
+    :param connectivity:
+    :return:
+    """
+    observed_triangles = 0
+    errors = list()
+    for (pre, post) in connectivity:
+        for (pre2, intermediate) in connectivity:
+            if pre == pre2 and ((intermediate, post) in connectivity):
+                observed_triangles += 1
+                errors.append(connectivity[(pre, intermediate)] + connectivity[(intermediate, post)]
+                              - connectivity[(pre, post)])
+
+    # score is the log10 of observed/expected triangles
+    k = len(connectivity)
+    expected_triangles = k * (k-1) * (k-2)
+    score = np.log10(observed_triangles / expected_triangles)
+
+    print (observed_triangles, score, np.mean(errors), np.median(errors))
+
+
+def ratio_unidirectional(connectivity):
+    """
+    Neurons are connected unidirectional instead of bidirectional. In other words, in most cases there is a pre- and
+    a post-synaptic neuron and not pairs that are pre- (and post-synaptic) to each other. One can argue, that spurios
+    connections are most likely bidirectional.
+    :param connectivity:
+    :return: ratio of unidirectional connections in all connections
+    """
+
+    number_bidirectional = 0
+    number_unidirectional = 0
+
+    for (pre, post) in connectivity:
+        if (post, pre) in connectivity:
+            number_bidirectional += 1
+        else:
+            number_unidirectional += 1
+
+    return (number_unidirectional/(number_bidirectional+number_unidirectional))
+
+
 if __name__ == "__main__":
-    make_figure(os.path.basename(__file__))
+    # make_figure(os.path.basename(__file__))
+    # test_connectivity()
+    a = {
+        'foo': {
+            'cat': {'name': 'Hodor', 'age': 7},
+            'dog': {'name': 'Mordor', 'age': 5},
+        },
+        'bar': {
+            'rat': {'name': 'Izidor', 'age': 3},
+        },
+        'baz': 'woops',
+    }
+    print(a)
+    print(list(flatten(a, ['foobar', 'animal'])))
