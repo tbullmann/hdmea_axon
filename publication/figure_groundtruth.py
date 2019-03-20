@@ -21,6 +21,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 def make_figure(figurename, figpath=None):
 
+    colormap = plt.cm.hsv
+
     # Get traces
     V, t, x, y, trigger, neuron = Experiment(GROUND_TRUTH_CULTURE).traces(GROUND_TRUTH_NEURON)
     if trigger<0:  # may added to load_traces with trigger>-1 as condition
@@ -90,7 +92,7 @@ def make_figure(figurename, figpath=None):
     plt.title('a', loc='left', fontsize=18)
 
     # Map axons for Bullmann's method, grid spacing ~ 20um
-    ax2 = plt.subplot(332)
+    ax2 = plt.subplot(3,3,2)
     ax2h = plot_image_axon_delay_voltage(ax2,
                                          Experiment(GROUND_TRUTH_CULTURE).images(GROUND_TRUTH_NEURON, type='axon'),
                                          axon_Bullmann[1], delay_Bullmann[1], Vmin_Bullmann[1], x_Bullmann[1],
@@ -101,11 +103,16 @@ def make_figure(figurename, figpath=None):
     plt.text(0.0, 0.9, r'$\mathsf{r=18\ \mu m}$', ha='left', va='center', transform=ax2.transAxes)
     plt.title('b', loc='left', fontsize=18)
 
-    # Ground truth
-    ax3 = plt.subplot(333)
-    Experiment(GROUND_TRUTH_CULTURE).images(GROUND_TRUTH_NEURON).plot()
+    # Ground truth =====================================================================
+    ax3 = plt.subplot(1,3,3)
+    from publication.figure_footprint import plot_traces
+    # Plot traces over high res background images
+    images = Experiment(GROUND_TRUTH_CULTURE).images(GROUND_TRUTH_NEURON, type='enhanced')
+    images.plot(alpha=1.0)
+    plot_traces(ax3, x, y, axon_Bullmann[1], delay_Bullmann[1], t, V, max_axon_delay=2.5, background_color='none')
     cross_hair(ax2, x_AIS, y_AIS, color='red')
-    mea_axes(ax3, bbox=bbox, barposition='inside')
+    adjust_position(ax3,yshift=0.21)
+    mea_axes(ax3, bbox=[410,740,1200,1620], barposition='outside')
     ax3.set_title('Groundtruth')
     plt.title('c', loc='left', fontsize=18)
 
@@ -130,23 +137,23 @@ def make_figure(figurename, figpath=None):
     plt.text(0.0, 0.9, r'$\mathsf{r=36\ \mu m}$', ha='left', va='center', transform=ax5.transAxes)
     plt.title('e', loc='left', fontsize=18)
 
-    # Colorbar and Size legend for A, B, D, E
-    ax6 = plt.subplot(336)
-    for V in [1, 3, 10, 30, 100]:
-        plt.scatter([],[],s=V2size(V), color='gray', edgecolor='none', label='%d' % V)
-    leg = plt.legend(loc=2, scatterpoints=1, frameon=False, title = r'$\mathsf{V_n\ [\mu V]}\ \ \ \ \ $')
-    leg.get_title().set_fontsize(14)
-    plt.axis('off')
-    adjust_position(ax6,xshrink=0.05,yshrink=0.02,xshift=-0.04)
-    divider = make_axes_locatable(ax6)
-    cax = divider.append_axes("right", size="10%", pad=0.05)
-
-    norm = mpl.colors.Normalize(vmin=0, vmax=2)
-    cbar = mpl.colorbar.ColorbarBase(cax,
-                                     cmap=plt.cm.summer,
-                                     norm=norm,
-                                     orientation='vertical')
-    cbar.set_label(r'$\mathsf{\tau_{axon}\ [ms]}$', fontsize=14)
+    # # Colorbar and Size legend for A, B, D, E
+    # ax6 = plt.subplot(336)
+    # for V in [1, 3, 10, 30, 100]:
+    #     plt.scatter([],[],s=V2size(V), color='gray', edgecolor='none', label='%d' % V)
+    # leg = plt.legend(loc=2, scatterpoints=1, frameon=False, title = r'$\mathsf{V_n\ [\mu V]}\ \ \ \ \ $')
+    # leg.get_title().set_fontsize(14)
+    # plt.axis('off')
+    # adjust_position(ax6,xshrink=0.05,yshrink=0.02,xshift=-0.04)
+    # divider = make_axes_locatable(ax6)
+    # cax = divider.append_axes("right", size="10%", pad=0.05)
+    #
+    # norm = mpl.colors.Normalize(vmin=0, vmax=2)
+    # cbar = mpl.colorbar.ColorbarBase(cax,
+    #                                  cmap=plt.cm.summer,
+    #                                  norm=norm,
+    #                                  orientation='vertical')
+    # cbar.set_label(r'$\mathsf{\tau_{axon}\ [ms]}$', fontsize=14)
 
     # Reading groundtruth xg, yg from the axon label file(s)
     xg, yg = Experiment(GROUND_TRUTH_CULTURE).images(GROUND_TRUTH_NEURON, type='axon').truth()
@@ -183,11 +190,13 @@ def make_figure(figurename, figpath=None):
     without_spines_and_ticks(ax8)
     plt.title('g', loc='left', fontsize=18)
 
-    ax9 = plt.subplot(339)
+    ax9 = plt.subplot(5,3,15)
     img = plt.imread('larger_neighborhoods.png')
     plt.imshow(img)
     plt.axis('off')
     plt.title('h', loc='left', fontsize=18)
+    adjust_position(ax9, xshift=-0.015, yshift=-0.011)
+
 
     show_or_savefig(figpath, figurename)
 
@@ -199,12 +208,12 @@ def compare_with_groundtruth(x, y, xg, yg):
     return distance
 
 
-def plot_image_axon_delay_voltage(ax, images, axon, delay, V, x, y, transform=np.abs, alpha=1):
+def plot_image_axon_delay_voltage(ax, images, axon, delay, V, x, y, transform=np.abs, alpha=1, colormap=plt.cm.hsv):
     images.plot(alpha=alpha)
     radius = transform(V) if transform else V
     s = ax.scatter(x[axon], y[axon], s=radius[axon], c=delay[axon],
                    marker='o', edgecolor='none',
-                   cmap=plt.cm.summer, vmin=0, vmax=2, alpha=0.8)
+                   cmap=colormap, vmin=0, vmax=2, alpha=0.8)
     return s
 
 
