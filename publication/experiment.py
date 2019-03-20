@@ -42,6 +42,29 @@ class Experiment():
         logging.info ('Culture%d on hidens%d recorded on %d' % (metadata['culture'], metadata['hidens'], metadata['recording']))
         return metadata
 
+    def event_map(self):
+        """
+        Reading the summary statistics of the event map
+        el, x, y, count, median_neg_peak
+        :return:
+        """
+        # Reading hidens and recording date
+        event_map = pd.read_csv(os.path.join(self.data_base_dir, self.sub_dir, 'activity_map.csv'), 'r', delimiter=',')
+        logging.info('Read the summary statistics of the event map')
+        return event_map
+
+    def fixed_electrodes(self):
+        """
+        Reading the summary statistics of the event map
+        el
+        :return:
+        """
+        # Reading hidens and recording date
+        fixed_el = pd.read_csv(os.path.join(self.data_base_dir, self.sub_dir, 'fixed_el.csv'), 'r', delimiter=',')
+        logging.info('Read the fixed electrodes')
+        return fixed_el
+
+
     def traces(self, neuron):
         """
         Spike triggered averages for a neuron.
