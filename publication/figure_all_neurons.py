@@ -1,21 +1,21 @@
 from hana.recording import load_positions
 from hana.plotting import mea_axes
-from publication.plotting import show_or_savefig, cross_hair, adjust_position
 from publication.data import FIGURE_CULTURE
 from publication.experiment import Experiment
+from publication.plotting import show_or_savefig, cross_hair, adjust_position, make_axes_locatable
 
 import os
 import numpy as np
+import matplotlib as mpl
 from matplotlib import pyplot as plt
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
 
-def make_figure(figurename, figpath=None, Culture=1):
+def make_figure(figurename, figpath=None, Culture=FIGURE_CULTURE, with_background_image=True):
 
     # Load electrode coordinates and calculate neighborhood
     pos = load_positions(mea='hidens')
-
     x = pos.x
     y = pos.y
 
@@ -24,45 +24,70 @@ def make_figure(figurename, figpath=None, Culture=1):
     index_plot = 0
     plotted_neurons = []
 
-    list_of_six_neurons_each = zip(*[iter(sorted(all_axonal_delays.keys()))] * 6)
+    neurons = sorted(all_axonal_delays.keys())
+    print (neurons)
 
-    for plot_index, six_neurons in enumerate(list_of_six_neurons_each):
-    # plot_index = 0
-    # while plot_index ==0:
-        longfigurename = figurename + '-%d' % (plot_index+1)
-        logging.info(longfigurename)
-        fig = plt.figure(longfigurename, figsize=(12, 8))
-        # fig.suptitle(longfigurename + '. Axons and dendrites', fontsize=14, fontweight='bold')
-        for neuron in six_neurons:
-            if neuron is not None:
-                plotted_neurons.append(int(neuron))
+    for neuron in neurons:
 
-                # Get electrodes
-                index_trigger = all_triggers[neuron]
-                index_AIS = all_AIS[neuron]
-                index_axon = np.where(np.isfinite(all_axonal_delays[neuron]))
-                # index_dendrite = np.where(np.isfinite(all_dendritic_return_currents[neuron]))
+        # Plot figure
+        fig = plt.figure(figurename, figsize=(8, 7))
+        ax = plt.subplot(111)
 
-                # Map of axon and dendrites
-                ax = plt.subplot(231 + (index_plot % 6))
-                adjust_position(ax, yshrink=0.015)
-                ax.scatter(x[index_axon], y[index_axon], c='blue', s=20, marker='.', edgecolor='None', label='axon', alpha=0.5)
-                # ax.scatter(x[index_dendrite], y[index_dendrite], c='red', s=20, marker='.', edgecolor='None', label='dendrite',
-                #           alpha=0.5)
-                cross_hair(ax, x[index_AIS], y[index_AIS], color='black')
-                mea_axes(ax)
-                ax.set_title('trigger %d: neuron %d' % (index_trigger, neuron))
-                # legend_without_multiple_labels(ax)
+        # Load and plot background images
+        if with_background_image:
+            fullfilename = os.path.join(Experiment(Culture).data_directory, "neuron%d.png" % neuron)
+            raw_image = plt.imread(fullfilename)
+            plt.imshow(raw_image,
+                cmap='gray',
+                alpha=0.5,
+                extent=[165.5, 1918.9, 2106.123, 88.123001])
 
-                # Report plot and increase index_plot
-                logging.info('Plot %d on ' % (index_plot + 1) + longfigurename)
-                index_plot += 1
+        # Map axons for Bullmann's method
+        delay = all_axonal_delays[neuron]
+        index_AIS = all_AIS[neuron]
+        axon = np.isfinite(delay)
+        V, _, _, _, _, _ = Experiment(Culture).traces(neuron)
+        # max_axon_delay = np.around(np.nanmax(delay), decimals=1)
+        max_axon_delay = 2.5 # same scaling for all neurons
 
-        print (figpath, ' : ', longfigurename)
-        show_or_savefig(figpath, longfigurename)
+        V2size = lambda x: np.sqrt(np.abs(x)) * 5
+        radius = V2size(V)
+        ax.scatter(x[axon], y[axon], s=radius[axon], c=delay[axon],
+                   marker='o', edgecolor='none',
+                   cmap=plt.cm.hsv, vmin=0, vmax=max_axon_delay, alpha=1)
 
-    logging.info('Plotted neurons:')
-    logging.info(plotted_neurons)
+        plt.title('neuron %d' % neuron)
+
+        if with_background_image:
+            # cross_hair(ax, x[index_AIS], y[index_AIS], color='red')
+            mea_axes(ax)
+        else:
+            ax.plot(x[index_AIS], y[index_AIS], marker='x', markersize=20, color='blue')
+            mea_axes(ax, style='axes')
+            ax.spines['bottom'].set_color('blue')
+            ax.spines['top'].set_color('blue')
+            ax.spines['right'].set_color('blue')
+            ax.spines['left'].set_color('blue')
+            ax.tick_params(axis='x', colors='blue')
+            ax.tick_params(axis='y', colors='blue')
+
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="10%", pad=0.05)
+
+        norm = mpl.colors.Normalize(vmin=0, vmax=max_axon_delay)
+        cbar = mpl.colorbar.ColorbarBase(cax,
+                                         cmap=plt.cm.hsv,
+                                         norm=norm,
+                                         orientation='vertical')
+        cbar.set_label(r'$\mathsf{\tau_{axon}\ [ms]}$', fontsize=14)
+
+
+        longfigurename = "neuron%0d" % neuron
+        show_or_savefig(os.path.join(figpath, 'neurons'), longfigurename)
+        print ("Plotted neuron %d" % neuron)
+
+        plt.close()
+
 
 
 if __name__ == "__main__":
