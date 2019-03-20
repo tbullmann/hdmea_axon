@@ -1,16 +1,16 @@
 from publication.experiment import Experiment
 
 FIGURE_CULTURE = 1
-FIGURE_NEURON = 5  # old neuron 5 or other neurons 5, 10, 11, 20, 25, 2, 31, 41; culture 1
-FIGURE_NEURONS = [10, 11, 13, 2, 20, 21, 22, 23, 25, 27, 29, 3, 31, 35, 36, 37, 4, 41, 49, 5, 50, 51, 57, 59]  # culture 1
-FIGURE_CULTURES = [1, 8]
-GROUND_TRUTH_CULTURE = 8
-GROUND_TRUTH_NEURON = 1544
-# FIGURE_CONNECTED_NEURON = 84 # others might be 74, 124(!),...
-# FIGURE_NOT_FUNCTIONAL_CONNECTED_NEURON = 19  # 17, 109,107,121,...
-# FIGURE_NOT_STRUCTURAL_CONNECTED_NEURON = 124  # old neuron 59 ( 21 or 36 )
-# FIGURE_THRESHOLD_OVERLAP_AREA = 300.  # um2/electrode
+FIGURE_NEURON = 5
 
+# culture 1 with spikesorting, approx 46 neurons
+FIGURE_NEURONS = [1, 2, 3, 4, 5, 10, 15, 16, 17, 19, 21, 23, 25, 33, 34, 35, 36, 42, 44, 47, 48, 52, 55, 57, 59, 61,
+                  65, 66, 73, 76, 80, 82, 84, 89, 97, 100, 103, 104, 105, 107, 109, 114, 116, 121, 124, 127]
+
+FIGURE_CULTURES = [1, 2]
+
+GROUND_TRUTH_CULTURE = 2
+GROUND_TRUTH_NEURON = 1544
 
 def extract_multiple_networks():
     """
