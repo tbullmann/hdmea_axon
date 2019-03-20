@@ -97,7 +97,7 @@ def make_figure(figurename, figpath=None):
     adjust_position(ax6b, xshift = 0.01, yshrink = 0.05)
     plt.title('g', loc='left', fontsize=18)
     ax6c =plt.subplot(2,9,18)
-    plot_pairwise_comparison(ax6c, evaluation, 'FPR', ylim=(0, 0.01), legend=False)
+    plot_pairwise_comparison(ax6c, evaluation, 'FPR', ylim=(0, 0.02), legend=False)
     adjust_position(ax6c, xshift = 0.02, yshrink = 0.05)
     plt.title('h', loc='left', fontsize=18)
 
