@@ -1,6 +1,6 @@
 from hana.recording import load_positions
 from hana.plotting import mea_axes
-from publication.data import FIGURE_CULTURE
+from publication.data import FIGURE_CULTURE, FIGURE_NEURONS
 from publication.experiment import Experiment
 from publication.plotting import show_or_savefig, cross_hair, adjust_position, make_axes_locatable
 
@@ -12,7 +12,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 
-def make_figure(figurename, figpath=None, Culture=FIGURE_CULTURE, with_background_image=True):
+def make_figure(figurename, figpath=None, Culture=FIGURE_CULTURE, with_background_image=False):
 
     # Load electrode coordinates and calculate neighborhood
     pos = load_positions(mea='hidens')
@@ -21,13 +21,7 @@ def make_figure(figurename, figpath=None, Culture=FIGURE_CULTURE, with_backgroun
 
     all_triggers, all_AIS, all_axonal_delays, all_dendritic_return_currents = Experiment(Culture).compartments()
 
-    index_plot = 0
-    plotted_neurons = []
-
-    neurons = sorted(all_axonal_delays.keys())
-    print (neurons)
-
-    for neuron in neurons:
+    for neuron in FIGURE_NEURONS:
 
         # Plot figure
         fig = plt.figure(figurename, figsize=(8, 7))
