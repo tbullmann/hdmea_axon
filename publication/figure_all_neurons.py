@@ -12,7 +12,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 
-def make_figure(figurename, figpath=None, Culture=FIGURE_CULTURE, with_background_image=False):
+def make_figure(figurename, figpath=None, Culture=FIGURE_CULTURE, with_background_image=True):
 
     # Load electrode coordinates and calculate neighborhood
     pos = load_positions(mea='hidens')
