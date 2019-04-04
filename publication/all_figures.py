@@ -3,6 +3,7 @@ import figure_axon
 import figure_groundtruth
 import figure_comparison
 import figure_all_neurons
+import figure_statistics
 
 if __name__ == "__main__":
 
@@ -13,3 +14,4 @@ if __name__ == "__main__":
     figure_groundtruth.make_figure('Figure4', figpath=figpath)
     figure_comparison.make_figure('Figure5', figpath=figpath)
     figure_all_neurons.make_figure('Figure6', figpath=figpath)
+    figure_statistics.make_figure('Figure7', figpath=figpath)
