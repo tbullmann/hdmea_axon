@@ -48,7 +48,7 @@ def make_figure(figurename, figpath=None, Culture=FIGURE_CULTURE, with_backgroun
         r = distances[index_AIS, axon]
 
         # Polynomial fit to delay ~ r
-        Coefficents = np.polyfit(r, delay, 3)
+        Coefficents = np.polyfit(r, delay, 1)
         print(Coefficents)
 
         # Sholl analysis
@@ -66,8 +66,8 @@ def make_figure(figurename, figpath=None, Culture=FIGURE_CULTURE, with_backgroun
         all_N_gaps.append(N_gaps)
 
     from collections import Counter
-    print(all_N_gaps)
-    print(Counter(all_N_gaps))
+    # print(all_N_gaps)
+    # print(Counter(all_N_gaps))
 
     # # Colors for neurons
     # cNorm = mpl.colors.Normalize(vmin=1, vmax=max(FIGURE_NEURONS))
@@ -84,7 +84,6 @@ def make_figure(figurename, figpath=None, Culture=FIGURE_CULTURE, with_backgroun
     adjust_position(ax1, xshrink=0.02)
     plt.title('a', loc='left', fontsize=18)
 
-
     ax2 = plt.subplot(122)
     ax2.plot(R, np.array(all_Delay).T, '-' )
     ax2.set_xlim((0,1400))
@@ -92,6 +91,13 @@ def make_figure(figurename, figpath=None, Culture=FIGURE_CULTURE, with_backgroun
     ax2.set_xlabel(r'distance from AIS in $\mathsf{\mu m}$')
     adjust_position(ax2, xshrink=0.02)
     plt.title('b', loc='left', fontsize=18)
+
+    # from sklearn.decomposition import NMF
+    # model = NMF(n_components=2)
+    # model.fit(all_Count)
+    #
+    # x, y = zip(*model.transform(all_Count))
+    # ax2.plot(np.log(np.array(x)+1),np.log(np.array(y)+1),'.')
 
     show_or_savefig(figpath, figurename)
     # plt.close()
@@ -145,5 +151,5 @@ def sholl_analysis(r, value=[], fun=np.mean, min_n=5, shell_thickness=100, shell
 if __name__ == "__main__":
 
     #make_figure(os.path.basename(__file__))
-    make_figure('statistics', figpath='figures')
+    make_figure('statistics')
 
