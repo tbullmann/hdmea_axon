@@ -14,6 +14,11 @@ logging.basicConfig(level=logging.DEBUG)
 
 def make_figure(figurename, figpath=None, Culture=FIGURE_CULTURE, with_background_image=True):
 
+    # make directory
+    subfolderpath = os.path.join(figpath, 'neurons')
+    if not os.path.exists(subfolderpath):
+        os.makedirs(subfolderpath)
+
     # Load electrode coordinates and calculate neighborhood
     pos = load_positions(mea='hidens')
     x = pos.x
@@ -77,7 +82,7 @@ def make_figure(figurename, figpath=None, Culture=FIGURE_CULTURE, with_backgroun
 
 
         longfigurename = "neuron%0d" % neuron
-        show_or_savefig(os.path.join(figpath, 'neurons'), longfigurename)
+        show_or_savefig(subfolderpath, longfigurename)
         print ("Plotted neuron %d" % neuron)
 
         plt.close()
