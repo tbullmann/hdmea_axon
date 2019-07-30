@@ -21,20 +21,32 @@ def make_movies(moviepath=None, dpi=72):
         ani = make_movie(V, t, x, y, culture, neuron)
 
         # Saving the animation
-        filename = os.path.join(moviepath, 'neuron%d' % neuron)
-        saved = False
-        if 'imagemagick' in animation.writers.avail:
-            writer = animation.writers['imagemagick'](fps=30)
-            ani.save(filename+'.gif', writer=writer, dpi=dpi)
-            saved = True
-        if 'ffmpeg' in animation.writers.avail:
-            writer = animation.writers['imagemagick'](fps=30)
-            ani.save(filename + '.mp4', writer=writer, dpi=dpi)
-            saved = True
-        if saved:
-            print ('Saved ' + filename)
-        else:
-            print ('Please install video codec, e.g. imagemagick or ffmpeg')
+        save_movie(ani, dpi, moviepath, 'neuron%d' % neuron)
+
+
+def save_movie(ani, dpi, moviepath, basename):
+    """
+    Saves an animation as gif or mp4 using imagemagick or ffmpeg, respectively
+    :param ani: animation object
+    :param dpi: dot per inch for output image scaling
+    :param moviepath: path where movies are stored
+    :param basename: basename of that particular animation file
+    :return:
+    """
+    filename = os.path.join(moviepath, basename)
+    saved = False
+    if 'imagemagick' in animation.writers.avail:
+        writer = animation.writers['imagemagick'](fps=30)
+        ani.save(filename + '.gif', writer=writer, dpi=dpi)
+        saved = True
+    if 'ffmpeg' in animation.writers.avail:
+        writer = animation.writers['imagemagick'](fps=30)
+        ani.save(filename + '.mp4', writer=writer, dpi=dpi)
+        saved = True
+    if saved:
+        print ('Saved ' + filename)
+    else:
+        print ('Please install video codec, e.g. imagemagick or ffmpeg')
 
 
 def make_movie(V, t, x, y, culture, neuron):
