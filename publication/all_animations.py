@@ -59,7 +59,7 @@ def make_movie(V, t, x, y, culture, neuron):
     :return: ani: animation handle
     """
 
-    t *= 1000  # ms
+    t_ms = t * 1000  # ms
     n_frames = len(t)
 
     fig = plt.figure()
@@ -71,7 +71,7 @@ def make_movie(V, t, x, y, culture, neuron):
                    extent=[min(x), max(x), max(y), min(y)],
                    cmap='seismic',
                    interpolation='nearest')
-    ax.set_title('Culture %d, Neuron %d, Time %1.1f' % (culture, neuron, t[0]))
+    ax.set_title('Culture %d, Neuron %d, Time %1.1f' % (culture, neuron, t_ms[0]))
     voltage_color_bar(im, label=r'$V$ [$\mu$V]', shrink=0.5)
     mea_axes(ax)
     fig.set_size_inches([5, 5])
@@ -80,10 +80,12 @@ def make_movie(V, t, x, y, culture, neuron):
     def update_frame(n):
         tmp = interpolate_frame(V[:, n], x, y)
         im.set_data(tmp)
-        ax.set_title('Culture %d, Neuron %d, %1.3f ms' % (culture, neuron, t[n]))
+        ax.set_title('Culture %d, Neuron %d, %1.3f ms' % (culture, neuron, t_ms[n]))
         return im
 
     ani = animation.FuncAnimation(fig, update_frame, n_frames, interval=30)
+
+    plt.cla
     return ani
 
 
