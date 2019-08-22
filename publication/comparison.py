@@ -301,7 +301,7 @@ class ImageIterator:
         """
         for raw_image, tile in self:
             image = transform(raw_image) if transform else raw_image
-            plt.imshow(image,
+            plt.imshow(image.astype(np.float32),
                        cmap=cmap,
                        alpha=alpha,
                        extent=[tile.xstart, tile.xend, tile.yend, tile.ystart])
