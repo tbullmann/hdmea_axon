@@ -43,8 +43,8 @@ git clone http://github.com/tbullmann/hana hdmea_axon/hana
 
 Using conda to create an environment ```hdmea``` (or any other name) and install the requirements:
 ```bash
-conda create --name hdmea python=2.7
-source activate hdmea 
+conda create --name hana python=2.7
+source activate hana
 conda install --file hdmea_axon/hana/requirements.txt
 ```
 
@@ -95,20 +95,18 @@ In case you are using PyCharm you have to specify the [use of the project interp
 Folders structure and important files:
 ```
 .
-├── hana    (Symlink or git repo)
+├── hana          (Symlink or cloned git repo)
 │   └── ...
-├── matlab
-│   └── ... (Export function for Matlab)
 ├── misc           
-│   └── ... (Old figures)
+│   └── ...       (Old figures)
 ├── publication
-│   ├── data  
+│   ├── data      (Symlink or directory)
 │   │   ├── culture1  
 │   │   └── ...
-│   ├── temp   
+│   ├── temp      (Symlink or directory)
 │   │   ├── culture1  
 │   │   └── ...
-│   ├── figures 
+│   ├── figures   (Symlink or directory)
 │   ├── all_figures.py
 │   ├── all_animations.py
 │   └── ...
