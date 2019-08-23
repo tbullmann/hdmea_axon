@@ -8,7 +8,7 @@ from hana.plotting import mea_axes
 from hana.recording import electrode_neighborhoods
 from publication.comparison import ModelDiscriminatorBakkum, ModelDiscriminatorBullmann
 from publication.data import FIGURE_CULTURE, FIGURE_NEURON
-from publication.experiment import Experiment
+from publication.experiment import AxonExperiment
 from publication.plotting import show_or_savefig, adjust_position, plot_pairwise_comparison, without_spines_and_ticks
 from data import FIGURE_NEURONS
 
@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 def make_figure(figurename, figpath=None):
 
-    V, t, x, y, trigger, neuron = Experiment(FIGURE_CULTURE).traces(FIGURE_NEURON)
+    V, t, x, y, trigger, neuron = AxonExperiment(FIGURE_CULTURE).traces(FIGURE_NEURON)
     t *= 1000  # convert to ms
 
     # Neighborhood from electrode positions
@@ -30,7 +30,7 @@ def make_figure(figurename, figpath=None):
     Model2.fit(t, V, neighbors)
     Model2.predict()
 
-    evaluation = Experiment(FIGURE_CULTURE).comparison_of_discriminators(FIGURE_NEURONS)
+    evaluation = AxonExperiment(FIGURE_CULTURE).comparison_of_discriminators(FIGURE_NEURONS)
 
     # Plotting Frames A~E
     fig = plt.figure(figurename, figsize=(13, 10))

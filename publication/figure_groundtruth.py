@@ -13,7 +13,7 @@ from hana.recording import load_traces
 from hana.segmentation import segment_axon_verbose, find_AIS
 from publication.comparison import segment_axon_Bakkum, ImageIterator, distanceBetweenCurves
 from publication.data import FIGURE_CULTURE, FIGURE_NEURON, GROUND_TRUTH_CULTURE, GROUND_TRUTH_NEURON
-from publication.experiment import Experiment
+from publication.experiment import AxonExperiment
 from publication.plotting import show_or_savefig, cross_hair, adjust_position, without_spines_and_ticks
 
 logging.basicConfig(level=logging.DEBUG)
@@ -24,7 +24,7 @@ def make_figure(figurename, figpath=None):
     colormap = plt.cm.hsv
 
     # Get traces
-    V, t, x, y, trigger, neuron = Experiment(GROUND_TRUTH_CULTURE).traces(GROUND_TRUTH_NEURON)
+    V, t, x, y, trigger, neuron = AxonExperiment(GROUND_TRUTH_CULTURE).traces(GROUND_TRUTH_NEURON)
     if trigger<0:  # may added to load_traces with trigger>-1 as condition
         trigger = find_AIS(V)
 
@@ -83,7 +83,7 @@ def make_figure(figurename, figpath=None):
     # Map axons for Bakkum's method, high threshold
     ax1 = plt.subplot(331)
     plot_image_axon_delay_voltage(ax1,
-                                  Experiment(GROUND_TRUTH_CULTURE).images(GROUND_TRUTH_NEURON, type='axon'),
+                                  AxonExperiment(GROUND_TRUTH_CULTURE).images(GROUND_TRUTH_NEURON, type='axon'),
                                   axon_Bakkum[5], delay_Bakkum, Vmin_Bakkum, x, y, transform=V2size)
     cross_hair(ax1, x_AIS, y_AIS, color='red')
     mea_axes(ax1, bbox=bbox, barposition='inside')
@@ -94,7 +94,7 @@ def make_figure(figurename, figpath=None):
     # Map axons for Bullmann's method, grid spacing ~ 20um
     ax2 = plt.subplot(3,3,2)
     ax2h = plot_image_axon_delay_voltage(ax2,
-                                         Experiment(GROUND_TRUTH_CULTURE).images(GROUND_TRUTH_NEURON, type='axon'),
+                                         AxonExperiment(GROUND_TRUTH_CULTURE).images(GROUND_TRUTH_NEURON, type='axon'),
                                          axon_Bullmann[1], delay_Bullmann[1], Vmin_Bullmann[1], x_Bullmann[1],
                                          y_Bullmann[1], transform=V2size)
     cross_hair(ax2, x_AIS, y_AIS, color='red')
@@ -107,7 +107,7 @@ def make_figure(figurename, figpath=None):
     ax3 = plt.subplot(1,3,3)
     from publication.figure_footprint import plot_traces
     # Plot traces over high res background images
-    images = Experiment(GROUND_TRUTH_CULTURE).images(GROUND_TRUTH_NEURON, type='enhanced')
+    images = AxonExperiment(GROUND_TRUTH_CULTURE).images(GROUND_TRUTH_NEURON, type='enhanced')
     images.plot(alpha=1.0)
     plot_traces(ax3, x, y, axon_Bullmann[1], delay_Bullmann[1], t, V, max_axon_delay=2.5, background_color='none')
     cross_hair(ax2, x_AIS, y_AIS, color='red')
@@ -119,7 +119,7 @@ def make_figure(figurename, figpath=None):
     # Map axons for Bakkum's method, low threshold
     ax4 = plt.subplot(334)
     plot_image_axon_delay_voltage(ax4,
-                                  Experiment(GROUND_TRUTH_CULTURE).images(GROUND_TRUTH_NEURON, type='axon'),
+                                  AxonExperiment(GROUND_TRUTH_CULTURE).images(GROUND_TRUTH_NEURON, type='axon'),
                                   axon_Bakkum[3], delay_Bakkum, Vmin_Bakkum, x, y, transform=V2size)
     cross_hair(ax4, x_AIS, y_AIS, color='red')
     mea_axes(ax4, bbox=bbox, barposition='inside')
@@ -129,7 +129,7 @@ def make_figure(figurename, figpath=None):
     # Map axons for Bullmann's method, grid spacing ~ 40um
     ax5 = plt.subplot(335)
     plot_image_axon_delay_voltage(ax5,
-                                  Experiment(GROUND_TRUTH_CULTURE).images(GROUND_TRUTH_NEURON, type='axon'),
+                                  AxonExperiment(GROUND_TRUTH_CULTURE).images(GROUND_TRUTH_NEURON, type='axon'),
                                   axon_Bullmann[2], delay_Bullmann[2], Vmin_Bullmann[2], x_Bullmann[2],
                                   y_Bullmann[2], transform=V2size)
     cross_hair(ax5, x_AIS, y_AIS, color='red')
@@ -156,7 +156,7 @@ def make_figure(figurename, figpath=None):
     # cbar.set_label(r'$\mathsf{\tau_{axon}\ [ms]}$', fontsize=14)
 
     # Reading groundtruth xg, yg from the axon label file(s)
-    xg, yg = Experiment(GROUND_TRUTH_CULTURE).images(GROUND_TRUTH_NEURON, type='axon').truth()
+    xg, yg = AxonExperiment(GROUND_TRUTH_CULTURE).images(GROUND_TRUTH_NEURON, type='axon').truth()
 
     # Bakkum's method: Haussdorf distance vs. threshold
     ax7 = plt.subplot(337)
@@ -270,7 +270,7 @@ def test(neuron=1536, method=2):
 
 
 def test_subset():
-    V, t, x, y, trigger, neuron = Experiment(FIGURE_CULTURE).traces(FIGURE_NEURON)
+    V, t, x, y, trigger, neuron = AxonExperiment(FIGURE_CULTURE).traces(FIGURE_NEURON)
 
     hidens = HidensTransformation(x, y)
     xs, ys, Vs = hidens.subset(V)
@@ -285,7 +285,7 @@ def test_subset():
 
 
 def test_grid():
-    V, t, x, y, trigger, neuron = Experiment(FIGURE_CULTURE).traces(FIGURE_NEURON)
+    V, t, x, y, trigger, neuron = AxonExperiment(FIGURE_CULTURE).traces(FIGURE_NEURON)
 
     hidens = HidensTransformation(x, y)
 

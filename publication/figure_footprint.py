@@ -9,7 +9,7 @@ from hana.recording import DELAY_EPSILON, neighborhood, electrode_neighborhoods
 from hana.segmentation import segment_axon_verbose, restrict_to_compartment
 
 from publication.data import FIGURE_CULTURE, FIGURE_NEURON
-from publication.experiment import Experiment
+from publication.experiment import AxonExperiment
 from publication.plotting import show_or_savefig, cross_hair, adjust_position, make_axes_locatable
 from publication.figure_groundtruth import plot_image_axon_delay_voltage
 
@@ -22,11 +22,11 @@ def make_figure(figurename, figpath=None):
     neighbors = electrode_neighborhoods(mea='hidens')
 
     # Load example data
-    V, t, x, y, trigger, neuron = Experiment(FIGURE_CULTURE).traces(FIGURE_NEURON)
+    V, t, x, y, trigger, neuron = AxonExperiment(FIGURE_CULTURE).traces(FIGURE_NEURON)
     t *= 1000  # convert to ms
 
     # Load background images
-    images = Experiment(FIGURE_CULTURE).images(FIGURE_NEURON, type='axon')
+    images = AxonExperiment(FIGURE_CULTURE).images(FIGURE_NEURON, type='axon')
 
 
     # Verbose axon segmentation function
@@ -37,8 +37,8 @@ def make_figure(figurename, figpath=None):
     fig = plt.figure(figurename, figsize=(13, 7))
 
     # Map activity
-    triggers, AIS, delays, positive_peak = Experiment(FIGURE_CULTURE).compartments()
-    map_data = Experiment(FIGURE_CULTURE).event_map()
+    triggers, AIS, delays, positive_peak = AxonExperiment(FIGURE_CULTURE).compartments()
+    map_data = AxonExperiment(FIGURE_CULTURE).event_map()
     ax1 = plt.subplot(121)
     ax1.scatter(map_data['x'] , map_data['y'],
                 # s=10,
@@ -90,7 +90,7 @@ def make_figure(figurename, figpath=None):
     plt.close()
 
     # Plot traces over high res background images
-    images = Experiment(FIGURE_CULTURE).images(FIGURE_NEURON, type='axonhires')
+    images = AxonExperiment(FIGURE_CULTURE).images(FIGURE_NEURON, type='axonhires')
     fig = plt.figure(figurename, figsize=(13, 13))
     ax = plt.subplot(111)
     images.plot(alpha=0.5)
