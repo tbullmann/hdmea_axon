@@ -6,10 +6,10 @@ from matplotlib import pyplot as plt
 
 from hana.plotting import mea_axes
 from hana.recording import electrode_neighborhoods
-from publication.comparison import ModelDiscriminatorBakkum, ModelDiscriminatorBullmann
-from publication.data import FIGURE_CULTURE, FIGURE_NEURON
-from publication.experiment import AxonExperiment
-from publication.plotting import show_or_savefig, adjust_position, plot_pairwise_comparison, without_spines_and_ticks
+from comparison import ModelDiscriminatorBakkum, ModelDiscriminatorBullmann
+from data import FIGURE_CULTURE, FIGURE_NEURON
+from experiment import AxonExperiment
+from plotting import show_or_savefig, adjust_position, plot_pairwise_comparison, without_spines_and_ticks
 from data import FIGURE_NEURONS
 
 logging.basicConfig(level=logging.DEBUG)

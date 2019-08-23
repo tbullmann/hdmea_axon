@@ -1,5 +1,5 @@
 import numpy as np
-from publication.experiment import Experiment
+from experiment import Experiment
 
 FIGURE_CULTURE = 1
 FIGURE_NEURON = 5

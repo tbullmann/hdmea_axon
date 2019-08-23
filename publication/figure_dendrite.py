@@ -7,9 +7,9 @@ from hana.plotting import annotate_x_bar, mea_axes
 from hana.recording import half_peak_width, half_peak_domain, electrode_neighborhoods, DELAY_EPSILON
 from hana.segmentation import segment_dendrite_verbose
 
-from publication.data import FIGURE_CULTURE, FIGURE_NEURON
-from publication.experiment import Experiment
-from publication.plotting import show_or_savefig, without_spines_and_ticks, cross_hair, \
+from data import FIGURE_CULTURE, FIGURE_NEURON
+from experiment import Experiment
+from plotting import show_or_savefig, without_spines_and_ticks, cross_hair, \
     legend_without_multiple_labels, adjust_position
 
 logging.basicConfig(level=logging.DEBUG)

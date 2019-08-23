@@ -5,9 +5,9 @@ import matplotlib.animation as animation
 from matplotlib import pyplot as plt
 
 from hana.plotting import mea_axes
-from publication.data import FIGURE_CULTURE, FIGURE_NEURONS
-from publication.experiment import Experiment
-from publication.plotting import voltage_color_bar
+from data import FIGURE_CULTURE, FIGURE_NEURONS
+from experiment import Experiment
+from plotting import voltage_color_bar
 
 
 def make_movies(moviepath=None, dpi=72):

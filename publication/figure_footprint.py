@@ -8,10 +8,10 @@ from hana.plotting import annotate_x_bar, mea_axes
 from hana.recording import DELAY_EPSILON, neighborhood, electrode_neighborhoods
 from hana.segmentation import segment_axon_verbose, restrict_to_compartment
 
-from publication.data import FIGURE_CULTURE, FIGURE_NEURON
-from publication.experiment import AxonExperiment
-from publication.plotting import show_or_savefig, cross_hair, adjust_position, make_axes_locatable
-from publication.figure_groundtruth import plot_image_axon_delay_voltage
+from data import FIGURE_CULTURE, FIGURE_NEURON
+from experiment import AxonExperiment
+from plotting import show_or_savefig, cross_hair, adjust_position, make_axes_locatable
+from figure_groundtruth import plot_image_axon_delay_voltage
 
 logging.basicConfig(level=logging.DEBUG)
 

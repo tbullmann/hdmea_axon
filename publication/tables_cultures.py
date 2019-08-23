@@ -4,8 +4,8 @@ import os
 from hana.recording import load_positions
 from hana.segmentation import neuron_position_from_trigger_electrode
 
-from publication.data import FIGURE_CULTURES
-from publication.experiment import Experiment
+from data import FIGURE_CULTURES
+from experiment import Experiment
 from collections import Counter
 
 logging.basicConfig(level=logging.DEBUG)

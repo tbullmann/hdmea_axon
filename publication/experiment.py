@@ -4,7 +4,7 @@ import pandas as pd
 import yaml
 
 from hana.recording import electrode_neighborhoods
-from publication.comparison import ImageIterator, ModelDiscriminatorBakkum, ModelDiscriminatorBullmann
+from comparison import ImageIterator, ModelDiscriminatorBakkum, ModelDiscriminatorBullmann
 from hana.experiment import Experiment
 
 

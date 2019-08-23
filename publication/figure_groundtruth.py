@@ -11,10 +11,10 @@ from hana.grid import HidensTransformation
 from hana.plotting import mea_axes
 from hana.recording import load_traces
 from hana.segmentation import segment_axon_verbose, find_AIS
-from publication.comparison import segment_axon_Bakkum, ImageIterator, distanceBetweenCurves
-from publication.data import FIGURE_CULTURE, FIGURE_NEURON, GROUND_TRUTH_CULTURE, GROUND_TRUTH_NEURON
-from publication.experiment import AxonExperiment
-from publication.plotting import show_or_savefig, cross_hair, adjust_position, without_spines_and_ticks
+from comparison import segment_axon_Bakkum, ImageIterator, distanceBetweenCurves
+from data import FIGURE_CULTURE, FIGURE_NEURON, GROUND_TRUTH_CULTURE, GROUND_TRUTH_NEURON
+from experiment import AxonExperiment
+from plotting import show_or_savefig, cross_hair, adjust_position, without_spines_and_ticks
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -105,7 +105,7 @@ def make_figure(figurename, figpath=None):
 
     # Ground truth =====================================================================
     ax3 = plt.subplot(1,3,3)
-    from publication.figure_footprint import plot_traces
+    from figure_footprint import plot_traces
     # Plot traces over high res background images
     images = AxonExperiment(GROUND_TRUTH_CULTURE).images(GROUND_TRUTH_NEURON, type='enhanced')
     images.plot(alpha=1.0)
