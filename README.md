@@ -80,7 +80,7 @@ You need to install a renderer for gif ([ImageMagick](https://www.imagemagick.or
 
 Continue by typing:
 ```bash
-source activate hana                  # use Python environment for hana 
+source activate hana                  # use Python environment for hana
 python all_animations.py
 ```
 This script takes about 15 minutes. A total of 46 movies can be found as ```*.gif``` and/or ```*.mp4``` files in ```temp/culture1```.
