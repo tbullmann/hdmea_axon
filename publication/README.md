@@ -1,4 +1,4 @@
-# High-troughput-analsis of axonal arbors using high-density microelectrode recordings
+# Large-scale mapping of axonal arbors using high-density microelectrode arrays
 ## Figures
 
 [Generating all figures](all_figures.py)
