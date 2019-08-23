@@ -30,6 +30,10 @@ def make_figure(figurename, figpath=None, Culture=FIGURE_CULTURE, with_backgroun
 
         # Plot figure
         fig = plt.figure(figurename, figsize=(8, 7))
+        # for example neuron5.png use instead:
+        # fig = plt.figure(figurename)
+        # fig.set_size_inches([5.5, 5])
+
         ax = plt.subplot(111)
 
         # Load and plot background images
@@ -55,7 +59,7 @@ def make_figure(figurename, figpath=None, Culture=FIGURE_CULTURE, with_backgroun
                    marker='o', edgecolor='none',
                    cmap=plt.cm.hsv, vmin=0, vmax=max_axon_delay, alpha=1)
 
-        plt.title('neuron %d' % neuron)
+        plt.title('Culture %d, Neuron %d, Delay map' % (Culture, neuron))
 
         if with_background_image:
             # cross_hair(ax, x[index_AIS], y[index_AIS], color='red')
@@ -72,6 +76,8 @@ def make_figure(figurename, figpath=None, Culture=FIGURE_CULTURE, with_backgroun
 
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="10%", pad=0.05)
+        # for example neuron5.png use instead:
+        # cax = divider.append_axes("right", size="5%", pad=0.05)
 
         norm = mpl.colors.Normalize(vmin=0, vmax=max_axon_delay)
         cbar = mpl.colorbar.ColorbarBase(cax,
@@ -83,6 +89,9 @@ def make_figure(figurename, figpath=None, Culture=FIGURE_CULTURE, with_backgroun
 
         longfigurename = "neuron%0d" % neuron
         show_or_savefig(subfolderpath, longfigurename)
+        # for example neuron5.png use instead:
+        # show_or_savefig(subfolderpath, longfigurename, dpi = 72)
+
         print ("Plotted neuron %d" % neuron)
 
         plt.close()
