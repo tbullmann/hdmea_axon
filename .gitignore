@@ -1,6 +1,6 @@
 workspace.xml
 .DS_Store
-hana/
+hana
 publication/data
 publication/temp
 publication/figures
