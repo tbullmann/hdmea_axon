@@ -85,7 +85,6 @@ def make_movie(V, t, x, y, culture, neuron):
 
     ani = animation.FuncAnimation(fig, update_frame, n_frames, interval=30)
 
-    plt.cla
     return ani
 
 
@@ -99,7 +98,7 @@ def interpolate_frame(frame, x, y, resolution=5):
     """
     new_x_range = np.arange(min(x), max(x), resolution)
     new_y_range = np.arange(min(y), max(y), resolution)
-    new_x, new_y = np.meshgrid(new_x_range, new_y_range, indexing='ij')
+    new_x, new_y = np.meshgrid(new_x_range, new_y_range, indexing='xy')
     Z = griddata(zip(x, y), frame, (new_x, new_y), method='linear')
     return Z
 
