@@ -103,7 +103,7 @@ def without_spines_and_ticks(ax):
 
 def cross_hair(ax2, x, y, color='red'):
     """Plot a simple crosshair"""
-    ax2.plot(x, y, marker='$\\bigoplus$', markersize=20, color=color)
+    ax2.plot(x, y, marker='$\\bigoplus$', markersize=20, markerfacecolor=color, markeredgecolor="black")
 
 
 def legend_without_multiple_labels(ax, **kwargs):
